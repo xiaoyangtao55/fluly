@@ -85,7 +85,7 @@
     <string name="settings_theme_light_sub">ライトテーマを強制適用</string>
 
     <!-- インターフェーススタイル -->
-    <string name="settings_ui_style_header">インターフェーススタイル</string>
+    <string name="settings_ui_style_header">ホームのスタイル</string>
     <string name="settings_transition_motion_header">画面アニメーション</string>
     <string name="settings_profile_rename">プロファイル名を変更</string>
     <string name="settings_profile_rename_builtin_sub">組み込みプロファイルは変更できません。複製してください</string>
@@ -95,11 +95,11 @@
     <string name="settings_transition_motion_slide_sub">リストが横に移動し、拡大縮小はごく僅か</string>
     <string name="search_d_transition_motion">UI スタイルとは独立に、スライドかズームかを切り替えます</string>
     <string name="settings_ui_aw">watchOS スタイル</string>
-    <string name="settings_ui_aw_sub">ガラス質感、コンパクトカード、丸いキャリア、軽快なモーション</string>
+    <string name="settings_ui_aw_sub">ホームは watchOS スタイル。設定は常に Material 3</string>
     <string name="settings_ui_md3">Material 3 スタイル</string>
-    <string name="settings_ui_md3_sub">大きなブロック、MD3E ジオメトリ、明確なレイヤー構造</string>
+    <string name="settings_ui_md3_sub">ホームは Material 3 スタイル。設定は常に Material 3</string>
     <string name="settings_ui_miuix">MIUIX スタイル</string>
-    <string name="settings_ui_miuix_sub">HyperOS ビジュアル言語：角丸カードとブルーアクセント</string>
+    <string name="settings_ui_miuix_sub">ホームは MIUIX スタイル。設定は常に Material 3</string>
 
     <!-- 画面形状 -->
     <string name="settings_screen_shape_header">画面形状</string>

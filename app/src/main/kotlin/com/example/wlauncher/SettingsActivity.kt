@@ -56,6 +56,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -100,6 +105,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Refresh
@@ -234,7 +240,7 @@ import com.flue.launcher.ui.anim.FlueTransitionMotion
 import com.flue.launcher.ui.theme.ThemeMode
 import com.flue.launcher.ui.theme.UiStyle
 import com.flue.launcher.ui.theme.WatchColors
-import com.flue.launcher.ui.theme.WatchLauncherTheme
+import com.flue.launcher.ui.theme.SettingsMaterialTheme
 import com.flue.launcher.ui.theme.RoundElementRole
 import com.flue.launcher.ui.theme.roundAwareCardShape
 import com.flue.launcher.ui.theme.roundAwareCompactShape
@@ -429,7 +435,6 @@ class SettingsActivity : FlueComponentActivity() {
         setContent {
             val viewModel: LauncherViewModel = viewModel()
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
-            val uiStyle by viewModel.uiStyle.collectAsStateWithLifecycle()
             val globalUiScalePercent by viewModel.globalUiScalePercent.collectAsStateWithLifecycle()
             val screenShape by viewModel.screenShapeOverride.collectAsStateWithLifecycle()
             val systemInDarkTheme = isSystemInDarkTheme()
@@ -438,7 +443,7 @@ class SettingsActivity : FlueComponentActivity() {
                 ThemeMode.DARK -> true
                 ThemeMode.LIGHT -> false
             }
-            WatchLauncherTheme(themeMode = themeMode, uiStyle = uiStyle, screenShape = screenShape) {
+            SettingsMaterialTheme(themeMode = themeMode, screenShape = screenShape) {
                 val windowBackgroundArgb = LauncherTheme.style.screenBackground.toArgb()
                 SideEffect {
                     applySettingsEdgeToEdge(
@@ -1662,11 +1667,7 @@ private fun SettingsRootScreen(
                 item("appearance") {
                     SettingsCategoryCard(
                         title = stringResource(R.string.settings_appearance),
-                        subtitle = if (uiStyle == UiStyle.MATERIAL_3) {
-                            stringResource(R.string.settings_appearance_sub_md3)
-                        } else {
-                            stringResource(R.string.settings_appearance_sub)
-                        },
+                        subtitle = stringResource(R.string.settings_appearance_sub),
                         onClick = { navigateTo(SettingsDestination.APPEARANCE) },
                         scale = itemFisheye(listState, "appearance", screenCenterY, screenHeightPx)
                     )
@@ -5776,35 +5777,53 @@ private fun SettingsPageScaffold(
                 .offset { androidx.compose.ui.unit.IntOffset(0, with(density) { currentTop.toPx() }.toInt()) }
                 .padding(horizontal = horizontalSafeInset + leftSafeInset),
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .size(48.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onBack,
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .graphicsLayer {
-                            scaleX = backVisualScale
-                            scaleY = backVisualScale
-                        }
-                        .clip(CircleShape)
-                        .background(launcherStyle.topBarChipColor),
-                    contentAlignment = Alignment.Center,
+            if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+                androidx.compose.material3.IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.CenterStart).size(48.dp),
                 ) {
                     Icon(
-                        OfficialMiuixIcons.OfficialBack,
+                        Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(R.string.common_back),
-                        tint = launcherStyle.topBarTextColor,
-                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = backVisualScale
+                            scaleY = backVisualScale
+                        },
                     )
                 }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .size(48.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onBack,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .graphicsLayer {
+                                scaleX = backVisualScale
+                                scaleY = backVisualScale
+                            }
+                            .clip(CircleShape)
+                            .background(launcherStyle.topBarChipColor),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            OfficialMiuixIcons.OfficialBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = launcherStyle.topBarTextColor,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+
             }
 
             // 标题用「外层 Box 居中 + 内层 Text 自身宽度」两段测量：
@@ -5829,9 +5848,14 @@ private fun SettingsPageScaffold(
             ) {
                 Text(
                     text = title,
-                    color = launcherStyle.accentColor,
+                    color = if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else launcherStyle.accentColor,
+                    style = if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+                        MaterialTheme.typography.titleLarge
+                    } else MaterialTheme.typography.titleMedium,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) FontWeight.Normal else FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
@@ -5856,6 +5880,16 @@ private fun SettingsPageScaffold(
 @Composable
 private fun HeaderBackButton(onClick: () -> Unit) {
     val launcherStyle = LauncherTheme.style
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        androidx.compose.material3.IconButton(onClick = onClick) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.common_back),
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        return
+    }
     val pressedState = rememberPressedState()
     val pressed by pressedState
     val scale = animateFloatAsState(if (pressed) 0.94f else 1f, label = "header_back_scale")
@@ -5879,6 +5913,47 @@ private fun HeaderBackButton(onClick: () -> Unit) {
     }
 }
 
+// Material settings use official components and state layers. Chord scaling is geometry,
+// not a press animation: keep it even though Material rows no longer shrink on touch.
+@Composable
+private fun MaterialSettingsListItem(
+    title: String,
+    subtitle: String?,
+    scale: Float,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    leading: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null,
+    headlineColor: Color = MaterialTheme.colorScheme.onSurface,
+) {
+    val horizontalPadding = flueRowHorizontalPadding(LauncherTheme.style, rowHeight = 56.dp)
+    androidx.compose.material3.Surface(
+        modifier = Modifier.fillMaxWidth().chordScaled(scale, enabled),
+        shape = LauncherTheme.style.roundAwareCompactShape(RoundElementRole.CAPSULE),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+        androidx.compose.material3.ListItem(
+            headlineContent = { Text(title, style = MaterialTheme.typography.bodyLarge) },
+            supportingContent = subtitle?.takeIf { it.isNotBlank() }?.let { text ->
+                { Text(text, style = MaterialTheme.typography.bodyMedium) }
+            },
+            leadingContent = leading,
+            trailingContent = trailing,
+            colors = androidx.compose.material3.ListItemDefaults.colors(
+                containerColor = Color.Transparent,
+                headlineColor = headlineColor,
+                supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                trailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            ),
+            modifier = modifier.padding(
+                horizontal = (horizontalPadding - 16.dp).coerceAtLeast(0.dp),
+            ),
+        )
+    }
+}
+
 @Composable
 private fun SettingsCategoryCard(
     title: String,
@@ -5888,6 +5963,16 @@ private fun SettingsCategoryCard(
     groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
 ) {
     val launcherStyle = LauncherTheme.style
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        MaterialSettingsListItem(
+            title = title,
+            subtitle = subtitle,
+            scale = scale,
+            modifier = Modifier.clickable(onClick = onClick),
+            trailing = { Icon(Icons.Filled.ChevronRight, contentDescription = null) },
+        )
+        return
+    }
     val horizontalPadding = if (com.flue.launcher.ui.common.isFlueScreenRound()) 24.dp else 18.dp
     if (launcherStyle.uiStyle == UiStyle.MIUIX) {
         // MIUIX：成组大圆角卡片包一行设置行 + Forward 箭头。
@@ -5971,6 +6056,19 @@ private fun SectionTitle(text: String, scale: Float) {
         scaleX = scale
         scaleY = scale
         alpha = scale.coerceIn(0.55f, 1f)
+    }
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleSmall,
+            textAlign = if (roundScreen) TextAlign.Center else null,
+            modifier = Modifier
+                .then(if (roundScreen) Modifier.fillMaxWidth() else Modifier)
+                .padding(top = 8.dp, start = if (roundScreen) 0.dp else 16.dp, bottom = 4.dp)
+                .then(scaleModifier),
+        )
+        return
     }
     if (launcherStyle.uiStyle == UiStyle.MIUIX) {
         // MIUIX：组标题小灰字，对齐 MiuixSettingsCard 的 title 风格。
@@ -6088,6 +6186,18 @@ private fun MotionEasing.motionEasingSummary(context: Context): String = when (t
 @Composable
 private fun MessageCard(text: String, background: Color, onClick: () -> Unit) {
     val launcherStyle = LauncherTheme.style
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        androidx.compose.material3.Surface(
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ) {
+            Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(16.dp))
+        }
+        return
+    }
     val pressedState = rememberPressedState()
     val pressed by pressedState
     val pressedScale = animateFloatAsState(
@@ -6129,6 +6239,28 @@ private fun SettingsChoiceRow(
     groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
 ) {
     val launcherStyle = LauncherTheme.style
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        MaterialSettingsListItem(
+            title = title,
+            subtitle = subtitle,
+            scale = scale,
+            enabled = enabled,
+            modifier = Modifier.selectable(
+                selected = selected,
+                enabled = enabled,
+                role = androidx.compose.ui.semantics.Role.RadioButton,
+                onClick = onClick,
+            ),
+            trailing = {
+                androidx.compose.material3.RadioButton(
+                    selected = selected,
+                    onClick = null,
+                    enabled = enabled,
+                )
+            },
+        )
+        return
+    }
     val horizontalPadding = flueRowHorizontalPadding(launcherStyle, rowHeight = 56.dp)
     if (launcherStyle.uiStyle == UiStyle.MIUIX) {
         // MIUIX：56dp 设置行，选中态在右侧显示 Check 图标。
@@ -6225,6 +6357,43 @@ private fun SettingsSwitchRow(
     indicatorOnly: Boolean = false,
 ) {
     val launcherStyle = LauncherTheme.style
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        val leading: (@Composable () -> Unit)? = if (leadingIcon != null || reserveLeadingIconSpace) {
+            {
+                Box(
+                    modifier = Modifier.size(34.dp).clip(CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (leadingIcon != null) {
+                        Image(leadingIcon, contentDescription = null, modifier = Modifier.fillMaxSize())
+                    }
+                }
+            }
+        } else null
+        MaterialSettingsListItem(
+            title = title,
+            subtitle = subtitle,
+            scale = scale,
+            enabled = enabled,
+            modifier = Modifier.toggleable(
+                value = checked,
+                enabled = enabled,
+                role = androidx.compose.ui.semantics.Role.Switch,
+                onValueChange = onToggle,
+            ),
+            leading = leading,
+            trailing = {
+                // A single toggleable parent owns input and accessibility, including
+                // indicator-only rows; the visual switch must not toggle twice.
+                androidx.compose.material3.Switch(
+                    checked = checked,
+                    onCheckedChange = null,
+                    enabled = enabled,
+                )
+            },
+        )
+        return
+    }
     val horizontalPadding = flueRowHorizontalPadding(launcherStyle, rowHeight = 56.dp)
     if (launcherStyle.uiStyle == UiStyle.MIUIX) {
         // The hidden-app page can compose a new row on nearly every fling frame.
@@ -6575,6 +6744,56 @@ private fun SettingsSliderRow(
     )
     val genericTrackExtraPadding = (genericTrackPadding - genericTextPadding)
         .coerceAtLeast(0.dp)
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        androidx.compose.material3.Surface(
+            modifier = Modifier.fillMaxWidth().chordScaled(scale, enabled),
+            shape = sliderShape,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = genericTextPadding,
+                    vertical = GENERIC_SLIDER_VERTICAL_PADDING,
+                ),
+            ) {
+                Text(title, style = MaterialTheme.typography.bodyLarge)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    localValueText?.invoke(localValue) ?: valueText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(8.dp))
+                Slider(
+                    value = localValue,
+                    onValueChange = {
+                        localValue = it
+                        onValueChange(it)
+                    },
+                    onValueChangeFinished = { onValueChangeFinished?.invoke(localValue) },
+                    valueRange = range,
+                    steps = steps,
+                    enabled = enabled,
+                    modifier = Modifier.padding(horizontal = genericTrackExtraPadding),
+                )
+                if (!supportingText.isNullOrBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = supportingText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = genericTrackExtraPadding),
+                    )
+                }
+                footer?.let { content ->
+                    Spacer(Modifier.height(8.dp))
+                    Box(Modifier.padding(horizontal = genericTrackExtraPadding)) { content() }
+                }
+            }
+        }
+        return
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -6641,6 +6860,41 @@ private fun ActionCard(
     groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
 ) {
     val launcherStyle = LauncherTheme.style
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        val materialPressedState = rememberPressedState()
+        val materialPressed by materialPressedState
+        // Keep the custom long-press timeout (including the import easter egg).
+        // Standard clicks use Material ripple/semantics; timed long presses retain
+        // their original gesture arbitration and use a tonal state layer instead.
+        val actionModifier = if (onLongPress == null) {
+            Modifier.clickable(onClick = onClick)
+        } else {
+            Modifier
+                .background(
+                    if (materialPressed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                    else Color.Transparent,
+                )
+                .semantics {
+                    onClick { onClick(); true }
+                    onLongClick { onLongPress(); true }
+                }
+                .instantPressGesture(
+                    materialPressedState,
+                    onLongPress = onLongPress,
+                    longPressDurationMs = longPressDurationMs,
+                    onClick = onClick,
+                )
+        }
+        MaterialSettingsListItem(
+            title = title,
+            subtitle = subtitle,
+            scale = scale,
+            headlineColor = MaterialTheme.colorScheme.primary,
+            modifier = actionModifier,
+            trailing = icon,
+        )
+        return
+    }
     val horizontalPadding = flueRowHorizontalPadding(launcherStyle, rowHeight = 56.dp)
     val pressedState = rememberPressedState()
     val pressed by pressedState
@@ -6793,7 +7047,10 @@ private fun AboutCard(
             // 「圆屏形状取值统一走这个入口」，不是指望它变胶囊。
             .clip(launcherStyle.roundAwareCardShape())
             .background(launcherStyle.cardColor)
-            .border(1.dp, launcherStyle.outlineColor, launcherStyle.roundAwareCardShape())
+            .then(
+                if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) Modifier
+                else Modifier.border(1.dp, launcherStyle.outlineColor, launcherStyle.roundAwareCardShape()),
+            )
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
         Column(
@@ -6837,7 +7094,7 @@ private fun AboutCard(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 ABOUT_VERSION,
-                color = WatchColors.TextTertiary,
+                color = launcherStyle.secondaryTextColor,
                 fontSize = 12.sp,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
@@ -6873,7 +7130,7 @@ private fun AboutCard(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         "QQ：$AUTHOR_QQ_NUMBER",
-                        color = WatchColors.TextTertiary,
+                        color = launcherStyle.secondaryTextColor,
                         fontSize = 11.sp,
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
@@ -7011,6 +7268,35 @@ private fun DonateMethodCard(
     val pressedState = rememberPressedState()
     val pressed by pressedState
     val launcherStyle = LauncherTheme.style
+    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
+        androidx.compose.material3.Surface(
+            onClick = onPreviewClick,
+            modifier = Modifier.fillMaxWidth().chordScaled(scale),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(16.dp))
+                Image(
+                    painter = painterResource(id = resId),
+                    contentDescription = title,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
+                )
+            }
+        }
+        return
+    }
     val pressedScale = animateFloatAsState(
         if (pressed) 0.962f else 1f,
         animationSpec = spring(stiffness = 820f, dampingRatio = 0.74f),

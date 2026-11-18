@@ -85,7 +85,7 @@
     <string name="settings_theme_light_sub">强制使用浅色主题</string>
 
     <!-- 界面风格 -->
-    <string name="settings_ui_style_header">界面风格</string>
+    <string name="settings_ui_style_header">桌面风格</string>
     <string name="settings_transition_motion_header">界面动画</string>
     <string name="settings_profile_rename">重命名档案</string>
     <string name="settings_profile_rename_builtin_sub">内置档案不能改名，复制一份再改</string>
@@ -95,11 +95,11 @@
     <string name="settings_transition_motion_slide_sub">列表横向移出，缩放很轻</string>
     <string name="search_d_transition_motion">切换平移或缩放的转场动画，与界面风格无关</string>
     <string name="settings_ui_aw">WatchOS 风格</string>
-    <string name="settings_ui_aw_sub">玻璃质感、紧凑卡片、圆形承载与更轻巧的缩放动效</string>
+    <string name="settings_ui_aw_sub">桌面使用 watchOS 风格；设置页统一为 Material 3</string>
     <string name="settings_ui_md3">Material 3 风格</string>
-    <string name="settings_ui_md3_sub">大色块平铺、MD3E 图形、分层更明确的首页与列表</string>
+    <string name="settings_ui_md3_sub">桌面使用 Material 3 风格；设置页统一为 Material 3</string>
     <string name="settings_ui_miuix">MIUIX 风格</string>
-    <string name="settings_ui_miuix_sub">HyperOS 视觉语言：成组大圆角卡片与蓝色强调</string>
+    <string name="settings_ui_miuix_sub">桌面使用 MIUIX 风格；设置页统一为 Material 3</string>
 
     <!-- 屏幕形状 -->
     <string name="settings_screen_shape_header">屏幕形状</string>

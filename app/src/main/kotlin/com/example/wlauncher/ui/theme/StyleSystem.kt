@@ -425,6 +425,12 @@ fun ProvideLauncherStyle(
     CompositionLocalProvider(LocalLauncherStyle provides style, content = content)
 }
 
+/** Settings maps legacy Flue components to its own scoped Material color/shape tokens. */
+@Composable
+fun ProvideLauncherStyle(style: LauncherStyle, content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalLauncherStyle provides style, content = content)
+}
+
 object LauncherTheme {
     val style: LauncherStyle
         @Composable
