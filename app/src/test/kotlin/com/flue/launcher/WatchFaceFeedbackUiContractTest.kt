@@ -31,9 +31,11 @@ class WatchFaceFeedbackUiContractTest {
     @Test
     fun `launcher theme gives outlined inputs the larger row shape`() {
         val theme = source("com/example/wlauncher/ui/theme/Theme.kt")
-        assertTrue(theme.contains("FlueMaterialShapes"))
+        // Check the shape mapping and theme wiring, not a local variable's name.
+        assertTrue(theme.contains("flueMaterialShapes(appleWatchLauncherStyle(isDark))"))
         assertTrue(theme.contains("val rowShape = style.rowShape as CornerBasedShape"))
         assertTrue(theme.contains("extraSmall = rowShape"))
+        assertTrue(Regex("""MaterialTheme\([\s\S]*?shapes\s*=\s*shapes,""").containsMatchIn(theme))
     }
 
     @Test
