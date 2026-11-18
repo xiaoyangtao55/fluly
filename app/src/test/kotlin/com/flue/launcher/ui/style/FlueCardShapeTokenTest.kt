@@ -33,7 +33,7 @@ class FlueCardShapeTokenTest {
         // 令牌都不读 —— 这是它能显示崩溃信息的前提。
         "CrashActivity.kt" to "崩溃页不依赖主题系统",
         // 专辑封面是「面板圆角 − 内边距」的同心推导（见调用点注释），不是一档形状。
-        "ui/controlcenter/ControlCenterLayer.kt" to "同心圆角由面板半径推导",
+        "ui/smartstack/SideScreenMusicCard.kt" to "同心圆角由面板半径推导",
         // 图标蒙版是另一套语言（圆 / squircle），由图标设置决定，与卡片无关。
         "ui/drawer/AppBubble.kt" to "图标蒙版形状",
         "ui/drawer/AppFolderOverlay.kt" to "图标蒙版形状",

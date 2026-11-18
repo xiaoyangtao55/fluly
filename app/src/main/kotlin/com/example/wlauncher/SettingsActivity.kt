@@ -214,7 +214,7 @@ import com.flue.launcher.ui.style.flueRowHorizontalPadding
 import com.flue.launcher.ui.style.flueSettingsGroup
 import com.flue.launcher.motion.MotionEasing
 import com.flue.launcher.motion.MotionPhaseKey
-import com.flue.launcher.ui.controlcenter.MusicTextSwitchAnimations
+import com.flue.launcher.ui.smartstack.MusicTextSwitchAnimations
 import com.flue.launcher.ui.drawer.appListPalette
 import com.flue.launcher.ui.drawer.vibrateHaptic
 import com.flue.launcher.ui.input.flueRotaryScrollable
@@ -350,7 +350,6 @@ enum class SettingsDestination {
     FEATURE_TOGGLES,
     SIDE_SCREEN,
     NOTIFICATION_SETTINGS,
-    CONTROL_CENTER_SETTINGS,
     GESTURE_SETTINGS,
     APP_LIST_BEHAVIOR,
     PERFORMANCE,
@@ -694,13 +693,11 @@ private fun SettingsRootScreen(
     val showWidgetPage by vm.showWidgetPage.collectAsStateWithLifecycle()
     val glassHighlightEnabled by vm.glassHighlightEnabled.collectAsStateWithLifecycle()
     val widgetGlassHighlightEnabled by vm.widgetGlassHighlightEnabled.collectAsStateWithLifecycle()
-    val showControlCenter by vm.showControlCenter.collectAsStateWithLifecycle()
     val showMusicControls by vm.showMusicControls.collectAsStateWithLifecycle()
     val showMediaCustomActions by vm.showMediaCustomActions.collectAsStateWithLifecycle()
     val swapMusicNotificationComponents by vm.swapMusicNotificationComponents.collectAsStateWithLifecycle()
     val doubleTapLockScreenEnabled by vm.doubleTapLockScreenEnabled.collectAsStateWithLifecycle()
     val faceIgnoresBackKey by vm.faceIgnoresBackKey.collectAsStateWithLifecycle()
-    val powerMenuButtonEnabled by vm.powerMenuButtonEnabled.collectAsStateWithLifecycle()
     val watchFaceChargingPowerText by vm.watchFaceChargingPowerText.collectAsStateWithLifecycle()
     val watchFaceTextEntryAnimation by vm.watchFaceTextEntryAnimation.collectAsStateWithLifecycle()
     val watchFaceTextExitAnimation by vm.watchFaceTextExitAnimation.collectAsStateWithLifecycle()
@@ -3840,15 +3837,6 @@ private fun SettingsRootScreen(
                         groupPosition = position,
                     )
                 }
-                row("cat_control_center") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_control_center_title),
-                        subtitle = stringResource(R.string.settings_control_center_card_sub),
-                        onClick = { navigateTo(SettingsDestination.CONTROL_CENTER_SETTINGS) },
-                        scale = itemFisheye(listState, "cat_control_center", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
                 row("cat_gestures") { position ->
                     SettingsCategoryCard(
                         title = stringResource(R.string.settings_gestures_title),
@@ -3941,9 +3929,39 @@ private fun SettingsRootScreen(
                             stringResource(R.string.settings_swap_music_notifications_off)
                         },
                         checked = swapMusicNotificationComponents,
-                        enabled = sideScreenEnabled && showControlCenter,
+                        enabled = sideScreenEnabled,
                         onToggle = vm::setSwapMusicNotificationComponents,
                         scale = itemFisheye(listState, "music_notification_swap_toggle", screenCenterY, screenHeightPx),
+                        groupPosition = position,
+                    )
+                }
+                row("music_controls_toggle") { position ->
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.settings_show_music),
+                        subtitle = if (showMusicControls) {
+                            stringResource(R.string.settings_show_music_on)
+                        } else {
+                            stringResource(R.string.settings_show_music_off)
+                        },
+                        checked = showMusicControls,
+                        enabled = sideScreenEnabled && swapMusicNotificationComponents,
+                        onToggle = vm::setShowMusicControls,
+                        scale = itemFisheye(listState, "music_controls_toggle", screenCenterY, screenHeightPx),
+                        groupPosition = position,
+                    )
+                }
+                row("media_custom_actions_toggle") { position ->
+                    SettingsSwitchRow(
+                        title = stringResource(R.string.settings_media_actions),
+                        subtitle = if (showMediaCustomActions) {
+                            stringResource(R.string.settings_media_actions_on)
+                        } else {
+                            stringResource(R.string.settings_media_actions_off)
+                        },
+                        checked = showMediaCustomActions,
+                        enabled = sideScreenEnabled && swapMusicNotificationComponents && showMusicControls,
+                        onToggle = vm::setShowMediaCustomActions,
+                        scale = itemFisheye(listState, "media_custom_actions_toggle", screenCenterY, screenHeightPx),
                         groupPosition = position,
                     )
                 }
@@ -3996,83 +4014,6 @@ private fun SettingsRootScreen(
                         enabled = sideScreenEnabled && showNotification,
                         onToggle = vm::setShowOngoingNotifications,
                         scale = itemFisheye(listState, "ongoing_notification_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-        }
-
-            SettingsDestination.CONTROL_CENTER_SETTINGS -> SettingsPageScaffold(
-            title = stringResource(R.string.settings_control_center_title),
-            onBack = { handleBack() },
-            headerTime = headerTime,
-            initialFirstVisibleItemIndex = scrollFor(SettingsDestination.CONTROL_CENTER_SETTINGS).index,
-            initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.CONTROL_CENTER_SETTINGS).offset,
-            onScrollChanged = { index, offset -> updateScroll(SettingsDestination.CONTROL_CENTER_SETTINGS, index, offset) }
-        ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("control_center_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_show_cc),
-                        subtitle = if (showControlCenter) {
-                            stringResource(R.string.settings_show_cc_on)
-                        } else {
-                            stringResource(R.string.settings_show_cc_off)
-                        },
-                        checked = showControlCenter,
-                        onToggle = vm::setShowControlCenter,
-                        scale = itemFisheye(listState, "control_center_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("music_controls_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_show_music),
-                        subtitle = if (showMusicControls) {
-                            stringResource(R.string.settings_show_music_on)
-                        } else {
-                            stringResource(R.string.settings_show_music_off)
-                        },
-                        checked = showMusicControls,
-                        enabled = showControlCenter,
-                        onToggle = vm::setShowMusicControls,
-                        scale = itemFisheye(listState, "music_controls_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("media_custom_actions_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_media_actions),
-                        subtitle = if (showMediaCustomActions) {
-                            stringResource(R.string.settings_media_actions_on)
-                        } else {
-                            stringResource(R.string.settings_media_actions_off)
-                        },
-                        checked = showMediaCustomActions,
-                        enabled = showControlCenter && showMusicControls,
-                        onToggle = vm::setShowMediaCustomActions,
-                        scale = itemFisheye(listState, "media_custom_actions_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("power_menu_button") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_cc_power),
-                        subtitle = if (accessibilityServiceEnabled) {
-                            stringResource(R.string.settings_cc_power_accessible)
-                        } else {
-                            stringResource(R.string.settings_cc_power_require)
-                        },
-                        checked = powerMenuButtonEnabled,
-                        enabled = true,
-                        onToggle = { enabled ->
-                            vm.setPowerMenuButtonEnabled(enabled)
-                            accessibilityServiceEnabled = FlueAccessibilityService.isEnabled(context) || accessibilityServiceConnected
-                            if (enabled && !accessibilityServiceEnabled) {
-                                openAccessibilitySettings()
-                            }
-                        },
-                        scale = itemFisheye(listState, "power_menu_button", screenCenterY, screenHeightPx),
                         groupPosition = position,
                     )
                 }
@@ -8102,14 +8043,11 @@ internal fun buildSettingsSearchIndex(context: Context): List<SettingsSearchEntr
     SettingsSearchEntry("SIDE_SCREEN", "widget_glass_highlight", s(R.string.settings_widget_glass_highlight), s(R.string.search_d_widget_glass_highlight), listOf("xzjy", "widget", "glass", "highlight", "gaoguang")),
     SettingsSearchEntry("SIDE_SCREEN", "show_step_count", s(R.string.settings_show_steps), s(R.string.search_d_show_steps), listOf("xsbs", "steps", "bushu")),
     SettingsSearchEntry("SIDE_SCREEN", "music_notification_swap_toggle", s(R.string.settings_swap_music_notifications), s(R.string.search_d_swap), listOf("hhzj", "swap")),
+    SettingsSearchEntry("SIDE_SCREEN", "music_controls_toggle", s(R.string.settings_show_music), s(R.string.search_d_show_music), listOf("yykz", "music", "yinyue")),
+    SettingsSearchEntry("SIDE_SCREEN", "media_custom_actions_toggle", s(R.string.settings_media_actions), s(R.string.search_d_media_actions), listOf("zdyaj", "media actions")),
     SettingsSearchEntry("NOTIFICATION_SETTINGS", null, s(R.string.settings_notifications_title), s(R.string.search_d_notifications), listOf("tzzx", "notification", "tongzhi")),
     SettingsSearchEntry("NOTIFICATION_SETTINGS", "notification_center_toggle", s(R.string.settings_show_notifications), s(R.string.search_d_show_notifications), listOf("xstz", "notifications")),
     SettingsSearchEntry("NOTIFICATION_SETTINGS", "ongoing_notification_toggle", s(R.string.settings_show_ongoing), s(R.string.search_d_show_ongoing), listOf("czts", "ongoing")),
-    SettingsSearchEntry("CONTROL_CENTER_SETTINGS", null, s(R.string.settings_control_center_title), s(R.string.search_d_control_center), listOf("kzzx", "control center", "kongzhi")),
-    SettingsSearchEntry("CONTROL_CENTER_SETTINGS", "control_center_toggle", s(R.string.settings_show_cc), s(R.string.search_d_show_cc), listOf("xskzzx", "show control center")),
-    SettingsSearchEntry("CONTROL_CENTER_SETTINGS", "music_controls_toggle", s(R.string.settings_show_music), s(R.string.search_d_show_music), listOf("yykz", "music", "yinyue")),
-    SettingsSearchEntry("CONTROL_CENTER_SETTINGS", "media_custom_actions_toggle", s(R.string.settings_media_actions), s(R.string.search_d_media_actions), listOf("zdyaj", "media actions")),
-    SettingsSearchEntry("CONTROL_CENTER_SETTINGS", "power_menu_button", s(R.string.settings_cc_power), s(R.string.search_d_cc_power), listOf("dyaj", "power")),
     SettingsSearchEntry("GESTURE_SETTINGS", null, s(R.string.settings_gestures_title), s(R.string.search_d_gestures), listOf("ssaj", "gesture", "shoushi")),
     SettingsSearchEntry("GESTURE_SETTINGS", "double_tap_lock_screen", s(R.string.settings_double_tap_lock), s(R.string.search_d_double_tap), listOf("sjxp", "double tap", "xiping")),
     SettingsSearchEntry("GESTURE_SETTINGS", "face_ignores_back_key", s(R.string.settings_face_ignores_back), s(R.string.settings_face_ignores_back_sub), listOf("bpbxyfhj", "back key", "mitu", "mitou", "fanhui")),

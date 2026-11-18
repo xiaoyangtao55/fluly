@@ -166,10 +166,6 @@ import com.flue.launcher.ui.common.rememberFlueElasticScrollState
 import com.flue.launcher.ui.common.flueOverlayOvershootPx
 import com.flue.launcher.motion.LocalFlueMotionProfile
 import com.flue.launcher.ui.style.flueOverscroll
-import com.flue.launcher.ui.controlcenter.SideScreenControlCenterMusicCard
-import com.flue.launcher.ui.controlcenter.sideScreenContentAllowsVerticalScroll
-import com.flue.launcher.ui.controlcenter.sideScreenContentUsesElasticOverscroll
-import com.flue.launcher.ui.controlcenter.MusicTextSwitchAnimations
 import com.flue.launcher.ui.drawer.AppBubble
 import com.flue.launcher.ui.drawer.AppShortcutOverlay
 import com.flue.launcher.ui.drawer.vibrateHaptic
@@ -881,7 +877,7 @@ fun SmartStackLayer(
             )
             if (showMusicCard) {
                 Spacer(Modifier.height(16.dp))
-                SideScreenControlCenterMusicCard(
+                SideScreenMusicCard(
                     notificationAccessGranted = notificationAccessGranted,
                     musicTextSwitchAnimation = musicTextSwitchAnimation,
                     showMediaCustomActions = showMediaCustomActions,

@@ -28,7 +28,7 @@
 
     <!-- Feature Toggles nav card -->
     <string name="settings_feature_toggles">Feature Toggles</string>
-    <string name="settings_feature_toggles_sub">Side screen, notifications, Control Center, and watch face indicators</string>
+    <string name="settings_feature_toggles_sub">Side screen, notifications, and watch face indicators</string>
 
     <!-- Display Fit -->
     <string name="settings_display_fit">Display Fit</string>
@@ -171,8 +171,6 @@
     <string name="settings_side_screen_card_sub">Side screen, widget page, steps and card layout</string>
     <string name="settings_notifications_card">Notifications</string>
     <string name="settings_notifications_card_sub">Notification previews and ongoing filters</string>
-    <string name="settings_control_center_card">Control Center</string>
-    <string name="settings_control_center_card_sub">Pull-down panel, media card and power button</string>
     <string name="settings_gestures_card">Gestures</string>
     <string name="settings_gestures_card_sub">Double-tap to lock and other gestures</string>
     <string name="settings_app_list_behavior_card">App List Behavior</string>
@@ -189,11 +187,11 @@
     <string name="settings_widget_glass_highlight_on">Show the edge highlight on widget cards</string>
     <string name="settings_widget_glass_highlight_off">Hide the edge highlight on widget cards</string>
     <string name="settings_glass_highlight">Glass edge highlight</string>
-    <string name="settings_glass_highlight_on">Show edge highlights on Control Center, notifications, and side screen</string>
+    <string name="settings_glass_highlight_on">Show edge highlights on notifications and side screen</string>
     <string name="settings_glass_highlight_off">Hide glass edge highlights on all pages</string>
-    <string name="settings_swap_music_notifications">Swap Music and Notifications</string>
-    <string name="settings_swap_music_notifications_on">Show music on side screen and notifications in Control Center</string>
-    <string name="settings_swap_music_notifications_off">Keep notifications on side screen and music in Control Center</string>
+    <string name="settings_swap_music_notifications">Show Music Card</string>
+    <string name="settings_swap_music_notifications_on">Show the music card on side screen instead of notifications</string>
+    <string name="settings_swap_music_notifications_off">Show notification previews on side screen</string>
     <string name="settings_show_steps">Show Step Count</string>
     <string name="settings_show_steps_sub">Show steps to the right of battery on side screen</string>
 
@@ -206,20 +204,13 @@
     <string name="settings_show_ongoing_on">Show useful ongoing notifications while filtering system noise</string>
     <string name="settings_show_ongoing_off">Hide ongoing notifications</string>
 
-    <!-- Control Center -->
-    <string name="settings_control_center_title">Control Center</string>
-    <string name="settings_show_cc">Show Control Center</string>
-    <string name="settings_show_cc_on">Pull down from the watch face for brightness, volume, and quick toggles</string>
-    <string name="settings_show_cc_off">Disable the pull-down control center</string>
+    <!-- Music Card -->
     <string name="settings_show_music">Music Controls</string>
-    <string name="settings_show_music_on">Show the media card in Control Center</string>
-    <string name="settings_show_music_off">Hide the media card from Control Center</string>
+    <string name="settings_show_music_on">Show the media card on side screen</string>
+    <string name="settings_show_music_off">Hide the media card from side screen</string>
     <string name="settings_media_actions">Media App Actions</string>
     <string name="settings_media_actions_on">Show app-defined actions around previous and next</string>
     <string name="settings_media_actions_off">Keep only previous, play, and next</string>
-    <string name="settings_cc_power">Control Center Power Button</string>
-    <string name="settings_cc_power_accessible">Accessibility is enabled; the power icon opens power options</string>
-    <string name="settings_cc_power_require">Requires Accessibility; used only to open power options</string>
 
     <!-- Gestures -->
     <string name="settings_gestures_title">Gestures</string>
@@ -322,21 +313,18 @@
     <string name="search_d_charging_power">Show wattage while charging</string>
     <string name="search_d_icon_packs">Third-party icon packs</string>
     <string name="search_d_hidden_apps">Hide apps from the list</string>
-    <string name="search_d_feature_toggles">Side screen, notifications, control center, gestures</string>
+    <string name="search_d_feature_toggles">Side screen, notifications, gestures</string>
     <string name="search_d_side_screen">Side screen, widget page, step count</string>
     <string name="search_d_side_screen_toggle">Swipe right for quick launch and notifications</string>
     <string name="search_d_widget_page">Swipe left for the widget page</string>
     <string name="search_d_widget_glass_highlight">Control the glass edge highlight on widget cards</string>
     <string name="search_d_show_steps">Step count at the bottom of the side screen</string>
-    <string name="search_d_swap">Swap side screen and control center cards</string>
+    <string name="search_d_swap">Switch between notifications and music card on side screen</string>
     <string name="search_d_notifications">Notification display and persistent filter</string>
     <string name="search_d_show_notifications">Notification preview on the side screen</string>
     <string name="search_d_show_ongoing">Filter out system noise</string>
-    <string name="search_d_control_center">Pull-down panel, music card, power button</string>
-    <string name="search_d_show_cc">Pull down the watch face to open control center</string>
-    <string name="search_d_show_music">Media card in control center</string>
+    <string name="search_d_show_music">Media card on side screen</string>
     <string name="search_d_media_actions">Extra action buttons on the media card</string>
-    <string name="search_d_cc_power">Open power options (requires accessibility)</string>
     <string name="search_d_gestures">Double-tap to sleep etc.</string>
     <string name="search_d_double_tap">Requires system screen-lock permission</string>
     <string name="search_d_app_list_behavior">Mask color, row background, folders</string>
@@ -549,7 +537,7 @@
     <string name="settings_watchface_text_entry_animation">Watch face text fly-in</string>
     <string name="settings_watchface_text_entry_animation_sub">Replay text entry animations whenever the watch face is entered; text appears immediately when disabled</string>
     <string name="settings_watchface_text_exit_animation">Watch face text exit animation</string>
-    <string name="settings_watchface_text_exit_animation_sub">Play text exit animations when opening Control Center, the side page, widgets, or notifications</string>
+    <string name="settings_watchface_text_exit_animation_sub">Play text exit animations when opening the side page, widgets, or notifications</string>
 
     <!-- About and Donate -->
     <string name="settings_about_title">About</string>
@@ -771,35 +759,19 @@
     <string name="dialog_delete_jbwatch_fmt">Delete %s? This jb_watch compatible face will be removed from Flue\'s private folder.</string>
     <string name="dialog_delete_imported_fmt">Delete %s? This imported face will be removed from Flue\'s private folder.</string>
     <string name="settings_overlay_mask_corner_radius">Mask corner radius</string>
-    <string name="settings_overlay_mask_corner_radius_sub_fmt">Smart Stack, Control Center and widgets · %1$d dp</string>
+    <string name="settings_overlay_mask_corner_radius_sub_fmt">Smart Stack and widgets · %1$d dp</string>
     <string name="dialog_overlay_mask_corner_title">Adjustment needed</string>
     <string name="dialog_overlay_mask_corner_subtitle">Adjust the mask corner radius manually for the best appearance.</string>
     <string name="dialog_overlay_mask_corner_value_fmt">Current radius: %1$d dp</string>
     <string name="dialog_overlay_mask_corner_hint">This is usually slightly larger than or equal to your screen corner radius.</string>
     <string name="action_save_changes">Save changes</string>
 
-    <!-- Control Center, Smart Stack and widgets -->
+    <!-- Smart Stack and widgets -->
     <string name="cc_media_not_playing">Nothing playing</string>
     <string name="cc_media_open_app_hint">Open a music app to show controls</string>
-    <string name="cc_power_options">Power options</string>
-    <string name="cc_system_settings">System settings</string>
-    <string name="cc_bluetooth">Bluetooth</string>
-    <string name="cc_wifi">Wi-Fi</string>
-    <string name="cc_mobile_data">Mobile data</string>
-    <string name="cc_dnd">DND</string>
-    <string name="cc_volume">Volume</string>
-    <string name="cc_brightness">Brightness</string>
     <string name="cc_notification_permission_title">Notification access required</string>
-    <string name="cc_notification_permission_subtitle">Tap to open notification access settings</string>
-    <string name="cc_notification_empty_title">No notifications</string>
-    <string name="cc_notification_empty_subtitle">There are no new notifications</string>
-    <string name="cc_notification_count_subtitle">%1$d notifications · tap to view all</string>
     <string name="cc_media_permission_subtitle">Allow access to show music information and controls</string>
     <string name="cc_media_permission_action">Allow access</string>
-    <string name="cc_greeting_morning">Good morning~</string>
-    <string name="cc_greeting_afternoon">Good afternoon~</string>
-    <string name="cc_greeting_evening">Good evening~</string>
-    <string name="toast_write_settings_permission_required">Permission to change system settings is required</string>
     <string name="notification_clear_all">Clear all</string>
     <string name="notification_permission_title">Enable notification access</string>
     <string name="notification_permission_subtitle">Real notifications will appear here after access is granted</string>

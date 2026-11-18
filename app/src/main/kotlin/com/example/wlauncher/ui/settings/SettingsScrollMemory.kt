@@ -23,7 +23,6 @@ internal val SettingsDestination.settingsDepth: Int
         SettingsDestination.BACKUP,
         SettingsDestination.SIDE_SCREEN,
         SettingsDestination.NOTIFICATION_SETTINGS,
-        SettingsDestination.CONTROL_CENTER_SETTINGS,
         SettingsDestination.GESTURE_SETTINGS,
         SettingsDestination.APP_LIST_BEHAVIOR,
         SettingsDestination.PERFORMANCE_RENDERING,

@@ -1,4 +1,4 @@
-package com.flue.launcher.ui.controlcenter
+package com.flue.launcher.ui.smartstack
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -26,7 +26,7 @@ class MediaCardLayoutTest {
     }
 
     @Test
-    fun `side-screen music card matches the full control-center layout`() {
+    fun `side-screen music card matches the full media card layout`() {
         val sideScreen = sideScreenMediaCardLayoutSpec()
         val full = mediaCardLayoutSpec(compact = false)
 
@@ -45,8 +45,6 @@ class MediaCardLayoutTest {
 
     @Test
     fun `scrollable side-screen cards use the shared elastic edge`() {
-        // 回弹判据必须与可滚判据逐项一致。这里逐个组合断言，尤其是「有通知横幅、没有
-        // 音乐卡」那一格 —— 它是默认状态，原实现在这一格丢了橡皮筋。
         assertEquals(
             true,
             sideScreenContentUsesElasticOverscroll(showMusicCard = true, showNotificationPreview = false, expandedShortcutGrid = false),

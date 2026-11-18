@@ -28,7 +28,7 @@
 
     <!-- 功能开关导航卡片 -->
     <string name="settings_feature_toggles">功能开关</string>
-    <string name="settings_feature_toggles_sub">副一屏、通知、控制中心和表盘提示</string>
+    <string name="settings_feature_toggles_sub">副一屏、通知和表盘提示</string>
 
     <!-- 显示适配 -->
     <string name="settings_display_fit">显示适配</string>
@@ -156,7 +156,7 @@
     <string name="settings_app_list_background_clear_image_sub">清除后暂时回到纯色，重新选图即恢复</string>
     <string name="settings_app_list_background_effects">模糊与遮罩</string>
     <string name="settings_app_list_background_blur">模糊程度</string>
-    <string name="settings_app_list_background_blur_sub">与控制中心同一套模糊；Android 12 以下为预烘焙</string>
+    <string name="settings_app_list_background_blur_sub">背景模糊；Android 12 以下为预烘焙</string>
     <string name="settings_app_list_background_scrim">遮罩强度</string>
     <string name="settings_app_list_background_scrim_sub">深色主题压暗、浅色主题提亮，让图标文字更清楚</string>
     <string name="settings_app_list_background_reset">恢复背景效果默认值</string>
@@ -171,8 +171,6 @@
     <string name="settings_side_screen_card_sub">副一屏、小组件页、步数与卡片布局</string>
     <string name="settings_notifications_card">通知中心</string>
     <string name="settings_notifications_card_sub">通知显示与常驻通知过滤</string>
-    <string name="settings_control_center_card">控制中心</string>
-    <string name="settings_control_center_card_sub">下拉面板、音乐卡片与电源按钮</string>
     <string name="settings_gestures_card">手势与按键</string>
     <string name="settings_gestures_card_sub">双击息屏等交互开关</string>
     <string name="settings_app_list_behavior_card">应用列表行为</string>
@@ -189,11 +187,11 @@
     <string name="settings_widget_glass_highlight_on">显示小组件卡片边缘高光</string>
     <string name="settings_widget_glass_highlight_off">关闭小组件卡片边缘高光</string>
     <string name="settings_glass_highlight">玻璃边缘高光</string>
-    <string name="settings_glass_highlight_on">控制中心、通知中心和负一屏显示边缘高光</string>
+    <string name="settings_glass_highlight_on">通知中心和负一屏显示边缘高光</string>
     <string name="settings_glass_highlight_off">关闭所有页面的玻璃边缘高光</string>
-    <string name="settings_swap_music_notifications">互换通知和音乐组件</string>
-    <string name="settings_swap_music_notifications_on">副一屏显示音乐卡片，控制中心显示通知卡片</string>
-    <string name="settings_swap_music_notifications_off">保持副一屏通知、控制中心音乐的默认位置</string>
+    <string name="settings_swap_music_notifications">显示音乐卡片</string>
+    <string name="settings_swap_music_notifications_on">在副一屏显示音乐卡片（替代通知预览）</string>
+    <string name="settings_swap_music_notifications_off">在副一屏显示通知预览</string>
     <string name="settings_show_steps">显示步数</string>
     <string name="settings_show_steps_sub">在侧屏底部电池右侧显示步数</string>
 
@@ -206,20 +204,13 @@
     <string name="settings_show_ongoing_on">显示有内容价值的常驻通知，过滤系统运行和悬浮窗提示</string>
     <string name="settings_show_ongoing_off">隐藏常驻通知</string>
 
-    <!-- 控制中心 -->
-    <string name="settings_control_center_title">控制中心</string>
-    <string name="settings_show_cc">显示控制中心</string>
-    <string name="settings_show_cc_on">从表盘下拉进入亮度、音量和快捷开关</string>
-    <string name="settings_show_cc_off">关闭表盘下拉控制中心入口</string>
+    <!-- 音乐卡片 -->
     <string name="settings_show_music">音乐控制卡片</string>
-    <string name="settings_show_music_on">控制中心显示当前媒体播放卡片</string>
-    <string name="settings_show_music_off">隐藏控制中心里的音乐控制卡片</string>
+    <string name="settings_show_music_on">副一屏显示当前媒体播放卡片</string>
+    <string name="settings_show_music_off">隐藏副一屏里的音乐控制卡片</string>
     <string name="settings_media_actions">音乐应用自定义按钮</string>
     <string name="settings_media_actions_on">在上一曲、下一曲两侧显示应用自定义操作</string>
     <string name="settings_media_actions_off">只保留上一曲、播放和下一曲按钮</string>
-    <string name="settings_cc_power">控制中心电源按钮</string>
-    <string name="settings_cc_power_accessible">已授权无障碍，点击控制中心电源图标会打开电源选项</string>
-    <string name="settings_cc_power_require">开启后跳转无障碍授权，仅用于打开电源选项</string>
 
     <!-- 手势与按键 -->
     <string name="settings_gestures_title">手势与按键</string>
@@ -256,7 +247,7 @@
     <string name="settings_icon_float">返回时图标上浮</string>
     <string name="settings_icon_float_sub">从应用退回列表时重播逐行上浮入场（从表盘进入不受影响）</string>
     <string name="settings_face_shrink">表盘收缩动画</string>
-    <string name="settings_face_shrink_sub">关闭后返回表盘、拉出负一屏 / 小组件 / 控制中心都不再整体缩放</string>
+    <string name="settings_face_shrink_sub">关闭后返回表盘、拉出负一屏 / 小组件都不再整体缩放</string>
     <string name="settings_legacy_transition">还原老转场动画</string>
     <string name="settings_legacy_transition_sub">使用 WatchOS 三段式之前的老动画：表盘放大冲脸进入应用列表</string>
     <string name="settings_stagger_entry">甩尾入场动画</string>
@@ -322,21 +313,18 @@
     <string name="search_d_charging_power">充电时显示功率</string>
     <string name="search_d_icon_packs">第三方图标包</string>
     <string name="search_d_hidden_apps">从列表隐藏应用</string>
-    <string name="search_d_feature_toggles">负一屏、通知、控制中心、手势</string>
+    <string name="search_d_feature_toggles">负一屏、通知、手势</string>
     <string name="search_d_side_screen">副一屏、小组件页、步数</string>
     <string name="search_d_side_screen_toggle">右滑进入快捷启动与通知预览</string>
     <string name="search_d_widget_page">左滑进入小组件</string>
     <string name="search_d_widget_glass_highlight">控制小组件卡片边缘玻璃高光</string>
     <string name="search_d_show_steps">侧屏底部步数</string>
-    <string name="search_d_swap">负一屏与控制中心卡片对调</string>
+    <string name="search_d_swap">在负一屏切换通知与音乐卡片</string>
     <string name="search_d_notifications">通知显示与常驻过滤</string>
     <string name="search_d_show_notifications">副一屏通知预览</string>
     <string name="search_d_show_ongoing">过滤系统噪音</string>
-    <string name="search_d_control_center">下拉面板、音乐卡片、电源按钮</string>
-    <string name="search_d_show_cc">表盘下拉打开控制中心</string>
-    <string name="search_d_show_music">控制中心媒体卡</string>
+    <string name="search_d_show_music">副一屏媒体卡</string>
     <string name="search_d_media_actions">媒体卡额外操作按钮</string>
-    <string name="search_d_cc_power">打开电源选项（需无障碍）</string>
     <string name="search_d_gestures">双击息屏等</string>
     <string name="search_d_double_tap">需系统锁屏授权</string>
     <string name="search_d_app_list_behavior">遮罩取色、底色、文件夹</string>
@@ -555,7 +543,7 @@
     <string name="settings_watchface_text_entry_animation">表盘文字飞入动画</string>
     <string name="settings_watchface_text_entry_animation_sub">每次进入表盘时重播文字进入动画；关闭后文字直接显示</string>
     <string name="settings_watchface_text_exit_animation">表盘文字退出动画</string>
-    <string name="settings_watchface_text_exit_animation_sub">滑入控制中心、负一屏、小组件或通知页时播放文字退出动画</string>
+    <string name="settings_watchface_text_exit_animation_sub">滑入负一屏、小组件或通知页时播放文字退出动画</string>
 
     <!-- About 与 Donate -->
     <string name="settings_about_title">关于</string>
@@ -789,36 +777,20 @@
     <string name="dialog_delete_jbwatch_fmt">删除 %s？这个 jb_watch 兼容表盘会从 Flue 私有目录移除。</string>
     <string name="dialog_delete_imported_fmt">删除 %s？这个导入表盘会从 Flue 私有目录移除。</string>
     <string name="settings_overlay_mask_corner_radius">遮罩圆角</string>
-    <string name="settings_overlay_mask_corner_radius_sub_fmt">负一屏、控制中心和小组件页 · %1$d dp</string>
-    <string name="search_d_overlay_mask_corner_radius">调整负一屏、通知中心、控制中心和小组件页的遮罩圆角</string>
+    <string name="settings_overlay_mask_corner_radius_sub_fmt">负一屏和小组件页 · %1$d dp</string>
+    <string name="search_d_overlay_mask_corner_radius">调整负一屏、通知中心和小组件页的遮罩圆角</string>
     <string name="dialog_overlay_mask_corner_title">需要调整</string>
     <string name="dialog_overlay_mask_corner_subtitle">需要手动调整遮罩圆角以获得最佳观感。</string>
     <string name="dialog_overlay_mask_corner_value_fmt">当前圆角：%1$d dp</string>
     <string name="dialog_overlay_mask_corner_hint">这通常略大或等于您的屏幕圆角。</string>
     <string name="action_save_changes">保存更改</string>
 
-    <!-- 控制中心、负一屏与小组件 -->
+    <!-- 负一屏与小组件 -->
     <string name="cc_media_not_playing">未在播放</string>
     <string name="cc_media_open_app_hint">打开音乐应用后会显示控制</string>
-    <string name="cc_power_options">电源选项</string>
-    <string name="cc_system_settings">系统设置</string>
-    <string name="cc_bluetooth">蓝牙</string>
-    <string name="cc_wifi">Wi-Fi</string>
-    <string name="cc_mobile_data">流量</string>
-    <string name="cc_dnd">勿扰</string>
-    <string name="cc_volume">音量</string>
-    <string name="cc_brightness">亮度</string>
     <string name="cc_notification_permission_title">需要通知使用权</string>
-    <string name="cc_notification_permission_subtitle">点击进入通知授权页面</string>
-    <string name="cc_notification_empty_title">暂无通知</string>
-    <string name="cc_notification_empty_subtitle">当前没有新的通知</string>
-    <string name="cc_notification_count_subtitle">%1$d 条通知，点击查看全部</string>
     <string name="cc_media_permission_subtitle">授权后显示音乐信息和控制</string>
     <string name="cc_media_permission_action">点击授权</string>
-    <string name="cc_greeting_morning">早好～</string>
-    <string name="cc_greeting_afternoon">午好～</string>
-    <string name="cc_greeting_evening">晚好～</string>
-    <string name="toast_write_settings_permission_required">需要修改系统设置权限</string>
     <string name="notification_clear_all">全部清除</string>
     <string name="notification_permission_title">开启通知访问</string>
     <string name="notification_permission_subtitle">完成授权后这里会显示真实通知</string>

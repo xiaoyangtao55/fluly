@@ -13,7 +13,7 @@ import com.flue.launcher.ui.common.flueOverlayOvershootPx
 import kotlin.math.abs
 
 /** 表盘上可跟手拉出的覆层。 */
-enum class OverlayGestureTarget { Stack, Widgets, ControlCenter }
+enum class OverlayGestureTarget { Stack, Widgets }
 
 internal fun resolveOverlaySettleOpen(
     progress: Float,
@@ -57,10 +57,8 @@ fun GestureHost(
     sideScreenEnabled: Boolean = false,
     showNotification: Boolean = true,
     showWidgetPage: Boolean = true,
-    showControlCenter: Boolean = false,
     widgetsBackGestureLocked: Boolean = false,
     stackDismissHandledByContent: Boolean = false,
-    controlCenterDismissHandledByContent: Boolean = false,
     onOverlayDrag: ((OverlayGestureTarget, Float) -> Unit)? = null,
     onOverlayRelease: ((OverlayGestureTarget, Float, Float, Boolean) -> Unit)? = null,
     /**
@@ -102,19 +100,12 @@ fun GestureHost(
     val hostGestureNeeded = if (gesturesLocked) false else when (screenState) {
         ScreenState.Face, ScreenState.Widgets -> true
         ScreenState.Stack -> !stackDismissHandledByContent
-        // 控制中心以前不在这份名单里：覆层一打开手势宿主就整体卸载，
-        // 于是「拉出跟手、返回不跟手」。它的关闭方向要走同一条跟手链路。
-        ScreenState.ControlCenter -> !controlCenterDismissHandledByContent
         else -> false
     }
     // 覆层已经打开时，这一次拖拽是「往回收」：进度基准是 1，手指反向移动
     // 让它递减到 0，抬手仍由 onOverlayRelease 带初速度收尾。
-    // 三个覆层都要认领关闭方向，不能只有控制中心：负一屏 / 小组件页此前
-    // 一律返回 null，关闭方向没人认领，于是「拉出跟手、退出不跟手」。
     // 小组件页被编辑手势锁住时不认领，把关闭交还给下面的 80px 兜底分支。
     val closingOverlay: OverlayGestureTarget? = when (screenState) {
-        ScreenState.ControlCenter -> OverlayGestureTarget.ControlCenter
-            .takeIf { !controlCenterDismissHandledByContent }
         ScreenState.Stack -> OverlayGestureTarget.Stack
             .takeIf { !stackDismissHandledByContent }
         ScreenState.Widgets -> OverlayGestureTarget.Widgets.takeIf { !widgetsBackGestureLocked }
@@ -146,7 +137,6 @@ fun GestureHost(
                 screenState,
                 sideScreenEnabled,
                 showWidgetPage,
-                showControlCenter,
                 widgetsBackGestureLocked,
                 closingOverlay,
                 // 解锁后必须重建识别器，否则加载完成了手势还是死的。
@@ -163,9 +153,8 @@ fun GestureHost(
                     val delta = when (target) {
                         OverlayGestureTarget.Stack -> totalDx / (widthPx * 0.8f)
                         OverlayGestureTarget.Widgets -> -totalDx / (widthPx * 0.8f)
-                        OverlayGestureTarget.ControlCenter -> totalDy / (heightPx * 0.8f)
                     }
-                    // 关闭侧从 1 起算：手指反向（上滑）时 delta 为负，进度递减。
+                    // 关闭侧从 1 起算：手指反向时 delta 为负，进度递减。
                     val base = if (closingOverlay == target) 1f else 0f
                     return (base + delta).coerceIn(0f, 1f)
                 }
@@ -173,15 +162,11 @@ fun GestureHost(
                 /**
                  * 已打开覆层「继续往外拉」的越界位移，签名与 translationX 同向
                  * （正数 = 内容往右）。
-                 *
-                 * 竖向的控制中心不走这条路：它有自己的一段式 dismiss 物理（见
-                 * ControlCenterLayer），在那里叠越界会和 dismiss 进度打架。
                  */
                 fun overlayOvershoot(target: OverlayGestureTarget): Float {
                     val outward = when (target) {
                         OverlayGestureTarget.Stack -> totalDx
                         OverlayGestureTarget.Widgets -> -totalDx
-                        OverlayGestureTarget.ControlCenter -> return 0f
                     }
                     val magnitude = flueOverlayOvershootPx(
                         outwardTravelPx = outward,
@@ -197,7 +182,6 @@ fun GestureHost(
                     return when (target) {
                         OverlayGestureTarget.Stack -> velocity.x / (widthPx * 0.8f)
                         OverlayGestureTarget.Widgets -> -velocity.x / (widthPx * 0.8f)
-                        OverlayGestureTarget.ControlCenter -> velocity.y / (heightPx * 0.8f)
                     }
                 }
 
@@ -248,10 +232,6 @@ fun GestureHost(
                         // 右滑打开、关闭方向向左；小组件页相反；两者都得走横轴，
                         // 所以光把它们加进 closingOverlay 是不够的。
                         val closingClaimed = closingOverlay != null && when (closingOverlay) {
-                            OverlayGestureTarget.ControlCenter ->
-                                abs(totalDy) > axisLockPx &&
-                                    abs(totalDy) > abs(totalDx) &&
-                                    totalDy < 0f
                             OverlayGestureTarget.Stack ->
                                 abs(totalDx) > axisLockPx &&
                                     abs(totalDx) > abs(totalDy) &&
@@ -286,8 +266,6 @@ fun GestureHost(
                                     abs(totalDx) > axisLockPx &&
                                         abs(totalDx) > abs(totalDy) &&
                                         totalDx < 0f
-                                // 控制中心不走越界，见 overlayOvershoot 的注释。
-                                OverlayGestureTarget.ControlCenter -> false
                             }
                         if (closingOverlay != null && !consumed && outwardClaimed) {
                             overshootTarget = closingOverlay
@@ -313,8 +291,6 @@ fun GestureHost(
                                     OverlayGestureTarget.Stack
                                 !isVertical && totalDx < 0f && showWidgetPage ->
                                     OverlayGestureTarget.Widgets
-                                isVertical && totalDy > 0f && showControlCenter ->
-                                    OverlayGestureTarget.ControlCenter
                                 else -> null
                             }
                             if (candidate != null && onOverlayDrag != null) {
@@ -343,9 +319,6 @@ fun GestureHost(
                                     } else if (isHorizontal && totalDx < -80 && showWidgetPage) {
                                         onStateChange(ScreenState.Widgets)
                                         change.consume()
-                                    } else if (isVertical && totalDy > 80 && showControlCenter) {
-                                        onStateChange(ScreenState.ControlCenter)
-                                        change.consume()
                                     }
                                 }
 
@@ -357,8 +330,6 @@ fun GestureHost(
                                         change.consume()
                                     }
                                 }
-
-                                ScreenState.ControlCenter -> Unit
 
                                 ScreenState.Apps -> Unit
                                 ScreenState.App -> Unit

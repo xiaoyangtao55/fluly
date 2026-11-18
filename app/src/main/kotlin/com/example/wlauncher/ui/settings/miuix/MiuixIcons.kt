@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
  * 包含图标：
  * [Back]、[Forward]、[Check]、[Close]、[Add]、[Remove]、[Search]、
  * [Settings]、[Info]、[Warning]、[Refresh]、[Delete]、[Wifi]、[Bluetooth]、
- * [Battery]、[Notification]、[Brightness]、[Clock]、[Grid]、[MobileData]、
- * [DoNotDisturb]、[SkipPrevious]、[SkipNext]、[ArrowUp]、[ArrowDown]。
+ * [Battery]、[Notification]、[Brightness]、[Clock]、[Grid]、
+ * [SkipPrevious]、[SkipNext]、[ArrowUp]、[ArrowDown]。
  */
 object MiuixIcons {
 
@@ -116,37 +116,6 @@ object MiuixIcons {
         stroke {
             moveTo(15f, 5.5f)
             verticalLineTo(18.5f)
-        }
-    }
-
-    /** 移动数据：上下行双箭头。 */
-    val MobileData: ImageVector by lazyIcon("MobileData") {
-        stroke {
-            moveTo(8.5f, 18.5f)
-            verticalLineTo(6f)
-        }
-        stroke {
-            moveTo(5.2f, 9.3f)
-            lineTo(8.5f, 6f)
-            lineTo(11.8f, 9.3f)
-        }
-        stroke {
-            moveTo(15.5f, 5.5f)
-            verticalLineTo(18f)
-        }
-        stroke {
-            moveTo(12.2f, 14.7f)
-            lineTo(15.5f, 18f)
-            lineTo(18.8f, 14.7f)
-        }
-    }
-
-    /** 勿扰：圆形状态标记内的减号。 */
-    val DoNotDisturb: ImageVector by lazyIcon("DoNotDisturb") {
-        stroke { circle(12f, 12f, 8.2f) }
-        stroke {
-            moveTo(7.6f, 12f)
-            horizontalLineTo(16.4f)
         }
     }
 

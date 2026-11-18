@@ -2,8 +2,10 @@
 
 **Android 手表上的桌面启动器（HOME 应用）**，Kotlin + Jetpack Compose 实现。
 
-目标是把手表主屏做成能真正日常使用的桌面：表盘、应用抽屉、副一屏、通知中心、控制中心都在
+目标是把手表主屏做成能真正日常使用的桌面：表盘、应用抽屉、副一屏、通知中心都在
 同一个进程里，手势和转场连续，而不是在几个 App 之间来回跳。
+
+本地修改版已移除控制中心及表盘下拉入口；音乐卡片保留在副一屏，相关开关位于「负一屏设置」。
 
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![CI](https://github.com/xumidcm/Flue-next/actions/workflows/ci.yml/badge.svg)](https://github.com/xumidcm/Flue-next/actions/workflows/ci.yml)
@@ -46,7 +48,7 @@
 - 快捷应用槽位、通知预览聚合
 - 上滑进入通知中心，底部电池与步数组合显示
 
-### 通知中心与控制中心
+### 通知中心
 - 通知监听、按应用聚合、分组展开折叠
 - 单条 / 整组滑动删除，顶部橡皮筋与下拉返回
 

@@ -85,8 +85,6 @@ import com.flue.launcher.ui.anim.scaleBlurAlpha
 import com.flue.launcher.ui.anim.LayerPivot
 import com.flue.launcher.motion.asFloatAnimationSpec
 import com.flue.launcher.motion.LocalFlueMotionProfile
-import com.flue.launcher.ui.controlcenter.ControlCenterLayer
-import com.flue.launcher.ui.controlcenter.controlCenterCardPlacement
 import com.flue.launcher.ui.drawer.AppFolderOverlay
 import com.flue.launcher.ui.drawer.NativeListDrawerScreen
 import com.flue.launcher.ui.drawer.NativeAppListEdgeFadeOverlay
@@ -177,10 +175,7 @@ internal fun notificationUnderlayBlurProgress(
     underlayState: ScreenState,
     transitionProgress: Float,
 ): Float {
-    if (
-        underlayState != ScreenState.Stack &&
-        underlayState != ScreenState.ControlCenter
-    ) return 0f
+    if (underlayState != ScreenState.Stack) return 0f
     if (notificationReturnState != underlayState) return 0f
     return transitionProgress.takeIf(Float::isFinite)?.coerceIn(0f, 1f) ?: 0f
 }
@@ -408,7 +403,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
     val rotaryHapticsEnabled by vm.rotaryHapticsEnabled.collectAsStateWithLifecycle()
     val showWidgetPage by vm.showWidgetPage.collectAsStateWithLifecycle()
     val widgetGlassHighlightEnabled by vm.widgetGlassHighlightEnabled.collectAsStateWithLifecycle()
-    val showControlCenter by vm.showControlCenter.collectAsStateWithLifecycle()
     val watchFaceChargingPowerText by vm.watchFaceChargingPowerText.collectAsStateWithLifecycle()
     val watchFaceTextEntryAnimation by vm.watchFaceTextEntryAnimation.collectAsStateWithLifecycle()
     val watchFaceTextExitAnimation by vm.watchFaceTextExitAnimation.collectAsStateWithLifecycle()
@@ -420,7 +414,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         vm.watchfaceGravityBackdropBlurEnabled.collectAsStateWithLifecycle()
     val doubleTapLockScreenEnabled by vm.doubleTapLockScreenEnabled.collectAsStateWithLifecycle()
     val faceIgnoresBackKey by vm.faceIgnoresBackKey.collectAsStateWithLifecycle()
-    val powerMenuButtonEnabled by vm.powerMenuButtonEnabled.collectAsStateWithLifecycle()
     val uiStyle by vm.uiStyle.collectAsStateWithLifecycle()
     val notificationAccessGranted by vm.notificationAccessGranted.collectAsStateWithLifecycle()
     val sideScreenPreviewGroups by vm.sideScreenPreviewGroups.collectAsStateWithLifecycle()
@@ -429,11 +422,8 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
     val showMusicControls by vm.showMusicControls.collectAsStateWithLifecycle()
     val showMediaCustomActions by vm.showMediaCustomActions.collectAsStateWithLifecycle()
     val swapMusicNotificationComponents by vm.swapMusicNotificationComponents.collectAsStateWithLifecycle()
-    val cardPlacement = controlCenterCardPlacement(
-        showMusic = showMusicControls,
-        showNotifications = showNotification,
-        swapped = swapMusicNotificationComponents,
-    )
+    val showMusicCardOnSideScreen = showMusicControls && swapMusicNotificationComponents
+    val showNotificationsOnSideScreen = showNotification && !showMusicCardOnSideScreen
     val musicTextSwitchAnimation by vm.musicTextSwitchAnimation.collectAsStateWithLifecycle()
     val glassHighlightEnabled by vm.glassHighlightEnabled.collectAsStateWithLifecycle()
     val launchSourceState by vm.launchSourceState.collectAsStateWithLifecycle()
@@ -679,26 +669,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                         ).show()
                         openAccessibilitySettings()
                     }
-                }
-            }
-        }
-    }
-    val openPowerDialogWithAccessibility: () -> Unit = remember(context, openAccessibilitySettings) {
-        {
-            if (!FlueAccessibilityService.openPowerDialog()) {
-                if (FlueAccessibilityService.isEnabled(context)) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.toast_accessibility_connecting),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.toast_grant_accessibility),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                    openAccessibilitySettings()
                 }
             }
         }
@@ -1269,7 +1239,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         // 预制模糊混合滞后；Animatable 只负责抬手后的单次 spring 收尾。
         val sidePageAnim = remember { Animatable(0f) }
         val widgetPageAnim = remember { Animatable(0f) }
-        val controlCenterAnim = remember { Animatable(0f) }
         // 表盘上滑进入应用列表的单一跟手时钟。拖动阶段直接写 FloatState，
         // 抬手后才交给 Animatable；列表、表盘、底板和边缘遮罩都读取它。
         val appListGestureProgress = remember { mutableFloatStateOf(0f) }
@@ -1309,7 +1278,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         // now sample progress directly on the render path instead.
         var sidePageMounted by remember { mutableStateOf(false) }
         var widgetPageMounted by remember { mutableStateOf(false) }
-        var controlCenterMounted by remember { mutableStateOf(false) }
         val overlayGestureTargetState = remember { mutableStateOf<OverlayGestureTarget?>(null) }
         var overlayGestureTarget by overlayGestureTargetState
         val overlayGestureProgress = remember { mutableFloatStateOf(0f) }
@@ -1339,14 +1307,9 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
             sideScreenEnabled &&
             (screenState == ScreenState.Stack ||
                 isSideScreenHeldForLaunch ||
-                (screenState == ScreenState.Notifications && notificationReturnState != ScreenState.ControlCenter))
+                screenState == ScreenState.Notifications)
         ) 1f else 0f
         val widgetPageTarget = if (showWidgetPage && screenState == ScreenState.Widgets) 1f else 0f
-        val controlCenterTarget = if (
-            showControlCenter &&
-            (screenState == ScreenState.ControlCenter ||
-                (screenState == ScreenState.Notifications && notificationReturnState == ScreenState.ControlCenter))
-        ) 1f else 0f
         LaunchedEffect(sidePageTarget, overlayGestureTarget) {
             if (overlayGestureTarget != OverlayGestureTarget.Stack) {
                 if (sidePageTarget > 0f || sidePageAnim.value > 0.001f) {
@@ -1373,22 +1336,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 }
             }
         }
-        LaunchedEffect(controlCenterTarget, overlayGestureTarget) {
-            if (overlayGestureTarget != OverlayGestureTarget.ControlCenter) {
-                if (controlCenterTarget > 0f || controlCenterAnim.value > 0.001f) {
-                    controlCenterMounted = true
-                }
-                val initialVelocity =
-                    overlayReleaseVelocities.remove(OverlayGestureTarget.ControlCenter) ?: 0f
-                controlCenterAnim.animateTo(controlCenterTarget, overlaySettleSpec, initialVelocity)
-                if (
-                    controlCenterTarget <= 0f &&
-                    overlayGestureTarget != OverlayGestureTarget.ControlCenter
-                ) {
-                    controlCenterMounted = false
-                }
-            }
-        }
         val sidePageProgressProvider = remember {
             {
                 if (overlayGestureTargetState.value == OverlayGestureTarget.Stack) {
@@ -1407,22 +1354,12 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 }
             }
         }
-        val controlCenterProgressProvider = remember {
-            {
-                if (overlayGestureTargetState.value == OverlayGestureTarget.ControlCenter) {
-                    overlayGestureProgress.floatValue
-                } else {
-                    controlCenterAnim.value
-                }
-            }
-        }
-        // 表盘背衬统一进度：四个覆层里最强的一个驱动表盘下压与镜像外扩。
+        // 表盘背衬统一进度：三个覆层里最强的一个驱动表盘下压与镜像外扩。
         val overlayBackdropProgress = remember {
             {
                 maxOf(
                     sidePageProgressProvider(),
                     widgetPageProgressProvider(),
-                    controlCenterProgressProvider(),
                     notificationGestureProgress,
                 ).coerceIn(0f, 1f)
             }
@@ -1449,7 +1386,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 maxOf(
                     sidePageProgressProvider(),
                     widgetPageProgressProvider(),
-                    controlCenterProgressProvider(),
                     notificationGestureProgress,
                 ) > 0.001f
             }
@@ -1488,15 +1424,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 )
             }
         }
-        val controlCenterNotificationBlurProgress = remember {
-            {
-                notificationUnderlayBlurProgress(
-                    notificationReturnState = notificationReturnState,
-                    underlayState = ScreenState.ControlCenter,
-                    transitionProgress = notificationGestureProgress,
-                )
-            }
-        }
         // 「表盘收缩动画」关掉后，覆层拉出时表盘也不再缩放下沉——只留模糊
         // 与轻微压暗。这个 provider 是覆层拖动期间真正生效的逐帧值（外部时钟），
         // faceLayerValues 那边的静态目标只在非拖动路径上用，两处都得门控，
@@ -1506,12 +1433,11 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 val p = maxOf(
                     sidePageProgressProvider(),
                     widgetPageProgressProvider(),
-                    controlCenterProgressProvider(),
                     notificationGestureProgress,
                 ).coerceIn(0f, 1f)
                 // p=0 必须精确等于表盘静止态（外部时钟撤走零跳变）。
                 // alpha 只轻降：表盘变透明会露出纯黑底、还削弱镜像背衬的
-                // 亮度；压暗交给覆层玻璃自己的底色。Android 12+ 的三个
+                // 亮度；压暗交给覆层玻璃自己的底色。Android 12+ 的两个
                 // 页面背衬使用实际 20dp；通知页维持原来的 16dp 观感。
                 // 缩放收到 0.08：下压幅度太大时表盘明显「缩成一小块」，
                 // 边缘让出的像素全靠背衬副本硬撑。让位靠模糊 + 轻微下压表达，
@@ -1519,7 +1445,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 val pageProgress = maxOf(
                     sidePageProgressProvider(),
                     widgetPageProgressProvider(),
-                    controlCenterProgressProvider(),
                 ).coerceIn(0f, 1f)
                 val notificationProgress = notificationGestureProgress.coerceIn(0f, 1f)
                 LayerAnimValues(
@@ -1621,7 +1546,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         val closeNotificationsToOrigin: () -> Unit = {
             vm.setState(
                 when (notificationReturnState) {
-                    ScreenState.ControlCenter -> ScreenState.ControlCenter
                     ScreenState.Stack,
                     ScreenState.Notifications -> if (sideScreenEnabled) ScreenState.Stack else ScreenState.Face
                     else -> notificationReturnState
@@ -1752,7 +1676,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         val overlayPrewarming = sidePagePrewarmed
         val sideScreenPrewarming = sideScreenEnabled && overlayPrewarming
         val widgetPagePrewarming = showWidgetPage && overlayPrewarming
-        val controlCenterPrewarming = showControlCenter && overlayPrewarming
         val sideScreenVisible = sidePageMounted ||
             overlayGestureTarget == OverlayGestureTarget.Stack ||
             screenState == ScreenState.Stack ||
@@ -1761,10 +1684,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         val widgetPageVisible = widgetPageMounted ||
             overlayGestureTarget == OverlayGestureTarget.Widgets ||
             screenState == ScreenState.Widgets
-        val controlCenterVisible = controlCenterMounted ||
-            overlayGestureTarget == OverlayGestureTarget.ControlCenter ||
-            screenState == ScreenState.ControlCenter
-        val sideSceneOverlayActive = sideScreenVisible || widgetPageVisible || controlCenterVisible
+        val sideSceneOverlayActive = sideScreenVisible || widgetPageVisible
         val appListLayerRaised = screenState == ScreenState.Apps ||
             appListGestureDriven ||
             // 打断转场时补位：prevState 尚未回写的那一帧靠它顶住 zIndex，
@@ -1881,7 +1801,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
             when (target) {
                 OverlayGestureTarget.Stack -> sidePageMounted = true
                 OverlayGestureTarget.Widgets -> widgetPageMounted = true
-                OverlayGestureTarget.ControlCenter -> controlCenterMounted = true
             }
         }
         // 越界只改绘制位移，不动进度、不动挂载、不动 generation —— 它不是一次转场。
@@ -1971,7 +1890,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 val overlayState = when (target) {
                     OverlayGestureTarget.Stack -> ScreenState.Stack
                     OverlayGestureTarget.Widgets -> ScreenState.Widgets
-                    OverlayGestureTarget.ControlCenter -> ScreenState.ControlCenter
                 }
                 val wasOpen = screenState == overlayState
                 val open = resolveOverlaySettleOpen(
@@ -1994,7 +1912,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                     when (target) {
                         OverlayGestureTarget.Stack -> sidePageAnim.snapTo(handoff)
                         OverlayGestureTarget.Widgets -> widgetPageAnim.snapTo(handoff)
-                        OverlayGestureTarget.ControlCenter -> controlCenterAnim.snapTo(handoff)
                     }
                     if (handoffGeneration == overlayGestureGeneration) {
                         overlayGestureTarget = null
@@ -2008,10 +1925,8 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
             sideScreenEnabled = sideScreenEnabled,
             showNotification = false,
             showWidgetPage = showWidgetPage,
-            showControlCenter = showControlCenter,
             widgetsBackGestureLocked = widgetPageEditGestureLocked,
             stackDismissHandledByContent = true,
-            controlCenterDismissHandledByContent = true,
             onOverlayDrag = updateOverlayGesture,
             onOverlayRelease = releaseOverlayGesture,
             onOverlayOvershoot = updateOverlayOvershoot,
@@ -2174,7 +2089,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                         overlaySessionKey = when {
                             screenState == ScreenState.Stack -> "stack"
                             screenState == ScreenState.Widgets -> "widgets"
-                            screenState == ScreenState.ControlCenter -> "controlCenter"
                             screenState == ScreenState.Notifications -> "notifications"
                             appListLayerRaised || screenState == ScreenState.Apps -> "apps"
                             watchFaceCardsVisible -> "cards"
@@ -2703,7 +2617,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                         shortcutRows = sideScreenShortcutRows,
                         shortcutColumns = sideScreenShortcutCols,
                         previewGroups = sideScreenPreviewGroups,
-                        showMusicCard = cardPlacement.musicOnSideScreen,
+                        showMusicCard = showMusicCardOnSideScreen,
                         contentVisible = sideScreenVisible,
                         showMediaCustomActions = showMediaCustomActions,
                         musicTextSwitchAnimation = musicTextSwitchAnimation,
@@ -2711,7 +2625,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                         overlayMaskCornerRadiusDp = overlayMaskCornerRadiusDp,
                         leftSafeInsetPercent = appListLeftSafeInsetPercent,
                         notificationsEnabled =
-                            notificationsEnabled && cardPlacement.notificationOnSideScreen,
+                            notificationsEnabled && showNotificationsOnSideScreen,
                         notificationAccessGranted = notificationAccessGranted,
                         notificationsSceneActive = notificationSceneActive,
                         notificationTransitionProgress = notificationProgress,
@@ -2808,83 +2722,10 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                 }
             }
 
-            // 同上：controlCenterPrewarming 在加载页期间完成首次组合。
-            // 这层的位移是 translationY，收起态同样在屏外且 alpha 为 0。
-            if (showControlCenter && (controlCenterVisible || controlCenterPrewarming)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .zIndex(4.4f)
-                        .flueLegacyBlur(
-                            progress = controlCenterNotificationBlurProgress,
-                            enabled = true,
-                            advancedMaterialEnabled = true,
-                        )
-                        .graphicsLayer {
-                            val offscreen = size.height.coerceAtLeast(screenHeightPx)
-                            val pageProgress = controlCenterProgressProvider()
-                            translationY = (pageProgress - 1f) * offscreen
-                            alpha = if (pageProgress > 0.001f) 1f else 0f
-                            val blurP = controlCenterNotificationBlurProgress()
-                            val radiusPx = with(density) { (24f * blurP).dp.toPx() }
-                                .roundToInt()
-                                .coerceAtLeast(0)
-                            renderEffect = if (
-                                shouldRenderLayerBlur(
-                                    sdkInt = Build.VERSION.SDK_INT,
-                                    blurEnabled = true,
-                                    alpha = alpha,
-                                    radiusPx = radiusPx,
-                                )
-                            ) {
-                                systemBlurEffectForRadiusPx(radiusPx)
-                            } else null
-                        }
-                ) {
-                    ControlCenterLayer(
-                        leftSafeInsetPercent = appListLeftSafeInsetPercent,
-                        showMusicControls = cardPlacement.musicInControlCenter,
-                        notificationAccessGranted = notificationAccessGranted,
-                        musicTextSwitchAnimation = musicTextSwitchAnimation,
-                        showMediaCustomActions = showMediaCustomActions,
-                        showNotificationCard = cardPlacement.notificationInControlCenter,
-                        notificationGroups = sideScreenPreviewGroups,
-                        onOpenNotifications = { openNotificationsFrom(ScreenState.ControlCenter) },
-                        onDismissProgressChange = { progress ->
-                            updateOverlayGesture(OverlayGestureTarget.ControlCenter, progress)
-                        },
-                        onDismissRelease = { progress, velocity, cancelled ->
-                            releaseOverlayGesture(
-                                OverlayGestureTarget.ControlCenter,
-                                progress,
-                                velocity,
-                                cancelled,
-                            )
-                        },
-                        showPowerButton = powerMenuButtonEnabled,
-                        onPowerClick = openPowerDialogWithAccessibility,
-                        glassHighlightEnabled = glassHighlightEnabled,
-                        overlayMaskCornerRadiusDp = overlayMaskCornerRadiusDp,
-                        // 这一层常驻组合，靠位移移出屏外，所以它自己看不出「又被打开了」。
-                        // 用打开态喂给它，好让滚动在开场那一帧回到顶部。
-                        //
-                        // 这里必须用 controlCenterVisible 而不是 controlCenterTarget：后者跟着
-                        // **离散的** screenState 走，而下拉是手势驱动的 —— screenState 只在松手
-                        // 那一刻才翻成 ControlCenter。于是整段拖动过程里 target 仍是 0、复位不
-                        // 触发，内容早就带着上次退出时的滚动位置露在屏幕上了；等松手再复位，
-                        // 看见的是内容「跳」回顶部。这就是老师报的「再次下拉是从退出位置进入」。
-                        //
-                        // controlCenterVisible 在手势第一帧就成立（updateOverlayGesture 会把
-                        // controlCenterMounted 置真），复位落在内容还基本在屏外的时候，看不见。
-                        contentVisible = controlCenterVisible,
-                    )
-                }
-            }
-
-            // Android 12 以下：通知中心压在负一屏 / 控制中心上时的烘焙模糊背景。
+            // Android 12 以下：通知中心压在负一屏上时的烘焙模糊背景。
             //
-            // 那两层的根底是 alpha = 0.62 的半透明玻璃，底下的表盘和图标是直接
-            // 穿透过来的 —— 挂在它们身上的 flueLegacyBlur 只能糊「自己录下来的
+            // 负一屏的根底是 alpha = 0.62 的半透明玻璃，底下的表盘和图标是直接
+            // 穿透过来的 —— 挂在它身上的 flueLegacyBlur 只能糊「自己录下来的
             // 内容」，穿透的像素根本不在那个图层里，所以通知列表后面一直是清晰
             // 的图标，可读性极差（老师截图）。这里改成和表盘同一套 PixelCopy
             // 预制帧。
@@ -2892,13 +2733,12 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
             // 闸门必须两头都卡死：覆层要完全展开（早了采到入场中间态），通知
             // 要一点都还没拉出来（晚了会把通知列表自己采进背景，形成套娃）。
             //
-            // 只用**离散状态**判定，绝不读 sidePageAnim / controlCenterAnim 的
-            // 逐帧 value —— 那些是 Animatable，在组合期读会让整个 Launcher 场景
-            // 跟着每一帧重组（本文件上面那条注释记的正是这个已修掉的坑）。
-            // 稳定停在 Stack / ControlCenter 且没有任何手势在飞，就等价于「已完全
-            // 展开」；剩下的落定余量由捕获函数自己那段 delay 负责。
+            // 只用**离散状态**判定，绝不读 sidePageAnim 的逐帧 value —— 那些是
+            // Animatable，在组合期读会让整个 Launcher 场景跟着每一帧重组。
+            // 稳定停在 Stack 且没有任何手势在飞，就等价于「已完全展开」；剩下的
+            // 落定余量由捕获函数自己那段 delay 负责。
             val notificationUnderlaySettled =
-                (screenState == ScreenState.Stack || screenState == ScreenState.ControlCenter) &&
+                screenState == ScreenState.Stack &&
                     overlayGestureTarget == null &&
                     !notificationGestureActive &&
                     !notificationSceneActive

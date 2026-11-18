@@ -13,22 +13,13 @@ class NotificationUnderlayPolicyTest {
             0f,
         )
         assertEquals(
-            0.6f,
-            notificationUnderlayBlurProgress(
-                ScreenState.ControlCenter,
-                ScreenState.ControlCenter,
-                0.6f,
-            ),
+            0f,
+            notificationUnderlayBlurProgress(ScreenState.Widgets, ScreenState.Stack, 0.6f),
             0f,
         )
         assertEquals(
             0f,
-            notificationUnderlayBlurProgress(ScreenState.ControlCenter, ScreenState.Stack, 0.6f),
-            0f,
-        )
-        assertEquals(
-            0f,
-            notificationUnderlayBlurProgress(ScreenState.Stack, ScreenState.ControlCenter, 0.6f),
+            notificationUnderlayBlurProgress(ScreenState.Stack, ScreenState.Widgets, 0.6f),
             0f,
         )
     }
@@ -43,8 +34,8 @@ class NotificationUnderlayPolicyTest {
         assertEquals(
             0f,
             notificationUnderlayBlurProgress(
-                ScreenState.ControlCenter,
-                ScreenState.ControlCenter,
+                ScreenState.Stack,
+                ScreenState.Stack,
                 Float.NaN,
             ),
             0f,

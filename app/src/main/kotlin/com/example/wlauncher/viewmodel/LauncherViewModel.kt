@@ -85,7 +85,7 @@ import com.flue.launcher.ui.notification.alignNotificationPreviewOrder
 import com.flue.launcher.ui.notification.stabilizeNotificationGroupOrder
 import com.flue.launcher.service.NotifData
 import com.flue.launcher.service.WLauncherNotificationListener
-import com.flue.launcher.ui.controlcenter.MusicTextSwitchAnimations
+import com.flue.launcher.ui.smartstack.MusicTextSwitchAnimations
 import com.flue.launcher.watchface.BUILT_IN_WATCHFACE_ID
 import com.flue.launcher.watchface.BUILT_IN_PHOTO_WATCHFACE_ID
 import com.flue.launcher.watchface.BUILT_IN_VIDEO_WATCHFACE_ID
@@ -224,13 +224,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         val KEY_ROTARY_HAPTICS_ENABLED = booleanPreferencesKey("rotary_haptics_enabled")
         val KEY_NOTIFICATION_SETTING_MIGRATED = booleanPreferencesKey("notification_setting_migrated")
         val KEY_SHOW_WIDGET_PAGE = booleanPreferencesKey("show_widget_page")
-        val KEY_SHOW_CONTROL_CENTER = booleanPreferencesKey("show_control_center")
         val KEY_SHOW_MUSIC_CONTROLS = booleanPreferencesKey("show_music_controls")
         val KEY_SHOW_MEDIA_CUSTOM_ACTIONS = booleanPreferencesKey("show_media_custom_actions")
         val KEY_SWAP_MUSIC_NOTIFICATION_COMPONENTS = booleanPreferencesKey("swap_music_notification_components")
         val KEY_DOUBLE_TAP_LOCK_SCREEN = booleanPreferencesKey("double_tap_lock_screen_enabled")
         val KEY_FACE_IGNORES_BACK_KEY = booleanPreferencesKey("face_ignores_back_key")
-        val KEY_POWER_MENU_BUTTON = booleanPreferencesKey("power_menu_button_enabled")
         val KEY_WATCHFACE_CHARGING_POWER_TEXT = booleanPreferencesKey("watchface_charging_power_text")
         val KEY_WATCHFACE_TEXT_ENTRY_ANIMATION = booleanPreferencesKey("watchface_text_entry_animation")
         val KEY_WATCHFACE_TEXT_EXIT_ANIMATION = booleanPreferencesKey("watchface_text_exit_animation")
@@ -591,8 +589,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val rotaryHapticsEnabled: StateFlow<Boolean> = _rotaryHapticsEnabled.asStateFlow()
     private val _showWidgetPage = MutableStateFlow(true)
     val showWidgetPage: StateFlow<Boolean> = _showWidgetPage.asStateFlow()
-    private val _showControlCenter = MutableStateFlow(true)
-    val showControlCenter: StateFlow<Boolean> = _showControlCenter.asStateFlow()
     private val _showMusicControls = MutableStateFlow(true)
     val showMusicControls: StateFlow<Boolean> = _showMusicControls.asStateFlow()
     private val _showMediaCustomActions = MutableStateFlow(true)
@@ -613,8 +609,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
      */
     private val _faceIgnoresBackKey = MutableStateFlow(false)
     val faceIgnoresBackKey: StateFlow<Boolean> = _faceIgnoresBackKey.asStateFlow()
-    private val _powerMenuButtonEnabled = MutableStateFlow(false)
-    val powerMenuButtonEnabled: StateFlow<Boolean> = _powerMenuButtonEnabled.asStateFlow()
     private val _watchFaceChargingPowerText = MutableStateFlow(true)
     val watchFaceChargingPowerText: StateFlow<Boolean> = _watchFaceChargingPowerText.asStateFlow()
     private val _watchFaceTextEntryAnimation = MutableStateFlow(true)
@@ -1319,11 +1313,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                     _showWidgetPage.value = loadedShowWidgetPage
                 }
 
-                val loadedShowControlCenter = prefs[KEY_SHOW_CONTROL_CENTER] ?: true
-                if (_showControlCenter.value != loadedShowControlCenter) {
-                    _showControlCenter.value = loadedShowControlCenter
-                }
-
                 val loadedShowMusicControls = prefs[KEY_SHOW_MUSIC_CONTROLS] ?: true
                 if (_showMusicControls.value != loadedShowMusicControls) {
                     _showMusicControls.value = loadedShowMusicControls
@@ -1347,11 +1336,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 val loadedFaceIgnoresBackKey = prefs[KEY_FACE_IGNORES_BACK_KEY] ?: false
                 if (_faceIgnoresBackKey.value != loadedFaceIgnoresBackKey) {
                     _faceIgnoresBackKey.value = loadedFaceIgnoresBackKey
-                }
-
-                val loadedPowerMenuButton = prefs[KEY_POWER_MENU_BUTTON] ?: false
-                if (_powerMenuButtonEnabled.value != loadedPowerMenuButton) {
-                    _powerMenuButtonEnabled.value = loadedPowerMenuButton
                 }
 
                 if (!devicePresetApplied) {
@@ -1607,7 +1591,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
             state == ScreenState.Notifications && !_sideScreenEnabled.value -> ScreenState.Face
             state == ScreenState.Notifications && !_showNotification.value -> ScreenState.Stack
             state == ScreenState.Widgets && !_showWidgetPage.value -> ScreenState.Face
-            state == ScreenState.ControlCenter && !_showControlCenter.value -> ScreenState.Face
             else -> state
         }
         // 不再在这里直接 closeFolder()。
@@ -1946,7 +1929,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
             ScreenState.Stack -> _screenState.value = ScreenState.Face
             ScreenState.Notifications -> _screenState.value = if (_sideScreenEnabled.value) ScreenState.Stack else ScreenState.Face
             ScreenState.Widgets -> _screenState.value = ScreenState.Face
-            ScreenState.ControlCenter -> _screenState.value = ScreenState.Face
         }
     }
 
@@ -3046,14 +3028,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         persist { store.edit { it[KEY_SHOW_WIDGET_PAGE] = show } }
     }
 
-    fun setShowControlCenter(show: Boolean) {
-        _showControlCenter.value = show
-        if (!show && _screenState.value == ScreenState.ControlCenter) {
-            _screenState.value = ScreenState.Face
-        }
-        persist { store.edit { it[KEY_SHOW_CONTROL_CENTER] = show } }
-    }
-
     fun setShowMusicControls(show: Boolean) {
         _showMusicControls.value = show
         persist { store.edit { it[KEY_SHOW_MUSIC_CONTROLS] = show } }
@@ -3077,11 +3051,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     fun setFaceIgnoresBackKey(enabled: Boolean) {
         _faceIgnoresBackKey.value = enabled
         persist { store.edit { it[KEY_FACE_IGNORES_BACK_KEY] = enabled } }
-    }
-
-    fun setPowerMenuButtonEnabled(enabled: Boolean) {
-        _powerMenuButtonEnabled.value = enabled
-        persist { store.edit { it[KEY_POWER_MENU_BUTTON] = enabled } }
     }
 
     fun setAppHidden(componentKey: String, hidden: Boolean) {
@@ -3964,13 +3933,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         _watchFaceTapHapticsEnabled.value = true
         _rotaryHapticsEnabled.value = true
         _showWidgetPage.value = true
-        _showControlCenter.value = true
         _showMusicControls.value = true
         _showMediaCustomActions.value = true
         _swapMusicNotificationComponents.value = false
         _doubleTapLockScreenEnabled.value = false
         _faceIgnoresBackKey.value = false
-        _powerMenuButtonEnabled.value = false
         _watchFaceChargingPowerText.value = true
         _watchFaceTextEntryAnimation.value = true
         _watchFaceTextExitAnimation.value = true
@@ -4104,13 +4071,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 it[KEY_WATCHFACE_TAP_HAPTICS_ENABLED] = true
                 it[KEY_ROTARY_HAPTICS_ENABLED] = true
                 it[KEY_SHOW_WIDGET_PAGE] = true
-                it[KEY_SHOW_CONTROL_CENTER] = true
                 it[KEY_SHOW_MUSIC_CONTROLS] = true
                 it[KEY_SHOW_MEDIA_CUSTOM_ACTIONS] = true
                 it[KEY_SWAP_MUSIC_NOTIFICATION_COMPONENTS] = false
                 it[KEY_DOUBLE_TAP_LOCK_SCREEN] = false
                 it[KEY_FACE_IGNORES_BACK_KEY] = false
-                it[KEY_POWER_MENU_BUTTON] = false
                 it[KEY_WATCHFACE_CHARGING_POWER_TEXT] = true
                 it[KEY_WATCHFACE_TEXT_ENTRY_ANIMATION] = true
                 it[KEY_WATCHFACE_TEXT_EXIT_ANIMATION] = true

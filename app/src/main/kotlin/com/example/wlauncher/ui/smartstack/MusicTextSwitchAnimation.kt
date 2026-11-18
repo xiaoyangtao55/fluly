@@ -1,4 +1,4 @@
-package com.flue.launcher.ui.controlcenter
+package com.flue.launcher.ui.smartstack
 
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.Easing

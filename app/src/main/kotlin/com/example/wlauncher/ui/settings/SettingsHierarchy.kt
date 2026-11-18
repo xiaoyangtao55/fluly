@@ -486,27 +486,15 @@ object SettingsHierarchy {
                 subtitle = "表盘左滑进入独立小组件页面"
             ),
             SettingsEntry.Toggle(
-                id = "show_control_center",
-                title = "显示控制中心",
-                prefKey = "show_control_center",
-                subtitle = "表盘下拉进入亮度、音量和快捷开关"
-            ),
-            SettingsEntry.Toggle(
                 id = "show_music_controls",
                 title = "音乐控制卡片",
                 prefKey = "show_music_controls",
-                dependsOn = "show_control_center"
+                dependsOn = "side_screen"
             ),
             SettingsEntry.Toggle(
                 id = "double_tap_lock_screen",
                 title = "双击表盘息屏",
                 prefKey = "double_tap_lock_screen_enabled",
-                subtitle = "需要无障碍授权"
-            ),
-            SettingsEntry.Toggle(
-                id = "power_menu_button",
-                title = "控制中心电源按钮",
-                prefKey = "power_menu_button_enabled",
                 subtitle = "需要无障碍授权"
             ),
             SettingsEntry.Toggle(
@@ -547,7 +535,7 @@ object SettingsHierarchy {
                 id = "accessibility",
                 title = "无障碍授权",
                 action = "open_accessibility_settings",
-                subtitle = "双击息屏 / 电源菜单依赖此授权"
+                subtitle = "双击息屏依赖此授权"
             ),
             SettingsEntry.Action(
                 id = "notification_access",

@@ -115,9 +115,6 @@ fun faceLayerValues(
             ScreenState.Widgets ->
                 LayerAnimValues(scale = 0.85f, blur = 5f, alpha = 0.3f)
                     .shrinkGated(shrinkOnFaceReturn)
-            ScreenState.ControlCenter ->
-                LayerAnimValues(scale = 0.9f, blur = 8f, alpha = 0.5f)
-                    .shrinkGated(shrinkOnFaceReturn)
         }
     } else if (motion == FlueTransitionMotion.SLIDE) {
         when (state) {
@@ -137,9 +134,6 @@ fun faceLayerValues(
                     .shrinkGated(shrinkOnFaceReturn)
             ScreenState.Widgets ->
                 LayerAnimValues(scale = 0.93f, blur = 3f, alpha = 0.58f)
-                    .shrinkGated(shrinkOnFaceReturn)
-            ScreenState.ControlCenter ->
-                LayerAnimValues(scale = 0.94f, blur = 5f, alpha = 0.48f)
                     .shrinkGated(shrinkOnFaceReturn)
         }
     } else {
@@ -163,9 +157,6 @@ fun faceLayerValues(
                     .shrinkGated(shrinkOnFaceReturn)
             ScreenState.Widgets ->
                 LayerAnimValues(scale = 0.85f, blur = 5f, alpha = 0.3f)
-                    .shrinkGated(shrinkOnFaceReturn)
-            ScreenState.ControlCenter ->
-                LayerAnimValues(scale = 0.9f, blur = 8f, alpha = 0.5f)
                     .shrinkGated(shrinkOnFaceReturn)
         }
     }
@@ -298,14 +289,6 @@ fun widgetLayerValues(state: ScreenState): LayerAnimValues = when (state) {
  */
 fun notificationLayerValues(state: ScreenState): LayerAnimValues = when (state) {
     ScreenState.Notifications -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 1f, translationY = 0f)
-    else -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 0f, translationY = 1f)
-}
-
-/**
- * 控制中心层状态映射。
- */
-fun controlCenterLayerValues(state: ScreenState): LayerAnimValues = when (state) {
-    ScreenState.ControlCenter -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 1f, translationY = 0f)
     else -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 0f, translationY = 1f)
 }
 

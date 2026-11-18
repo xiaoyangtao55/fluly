@@ -23,9 +23,6 @@ enum class ScreenState {
     /** 独立小组件页 */
     Widgets,
 
-    /** 控制中心 */
-    ControlCenter,
-
     /** 桌面设置 */
     Settings
 }

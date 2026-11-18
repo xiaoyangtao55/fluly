@@ -118,11 +118,6 @@ class FlueAccessibilityService : AccessibilityService() {
             val service = activeService ?: return false
             return service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
         }
-
-        fun openPowerDialog(): Boolean {
-            val service = activeService ?: return false
-            return service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_POWER_DIALOG)
-        }
     }
 }
 
