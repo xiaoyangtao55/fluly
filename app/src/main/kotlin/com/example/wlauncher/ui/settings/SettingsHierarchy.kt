@@ -111,16 +111,6 @@ object SettingsHierarchy {
         title = "外观",
         items = listOf(
             SettingsEntry.Picker(
-                id = "ui_style",
-                title = "界面风格",
-                prefKey = "ui_style",
-                options = listOf(
-                    PickerOption("APPLE_WATCH", "Apple Watch 风格"),
-                    PickerOption("MATERIAL_3", "Material 3 风格"),
-                    PickerOption("MIUIX", "MIUIX 风格")
-                )
-            ),
-            SettingsEntry.Picker(
                 id = "theme_mode",
                 title = "深色模式",
                 prefKey = "theme_mode",

@@ -922,6 +922,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
                 val loadedUiStyle = uiStyleFromPreference(prefs[KEY_UI_STYLE])
                 if (_uiStyle.value != loadedUiStyle) _uiStyle.value = loadedUiStyle
+                // Old backups/preferences must not reactivate removed launcher themes.
+                if (prefs[KEY_UI_STYLE] != null && prefs[KEY_UI_STYLE] != DEFAULT_UI_STYLE.name) {
+                    persist { store.edit { it[KEY_UI_STYLE] = DEFAULT_UI_STYLE.name } }
+                }
 
                 val loadedSideScreenEnabled = prefs[KEY_SIDE_SCREEN_ENABLED] ?: true
                 if (_sideScreenEnabled.value != loadedSideScreenEnabled) _sideScreenEnabled.value = loadedSideScreenEnabled
@@ -1950,12 +1954,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         if (_transitionMotion.value == motion) return
         _transitionMotion.value = motion
         repositories.applicationScope.launch { store.edit { it[KEY_TRANSITION_MOTION] = motion.name } }
-    }
-
-    fun setUiStyle(style: UiStyle) {
-        if (_uiStyle.value == style) return
-        _uiStyle.value = style
-        repositories.applicationScope.launch { store.edit { it[KEY_UI_STYLE] = style.name } }
     }
 
     fun setSideScreenEnabled(enabled: Boolean) {

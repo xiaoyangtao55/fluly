@@ -3041,43 +3041,6 @@ private fun SettingsRootScreen(
                     )
                 }
             }
-            item("ui_style_header") {
-                SectionTitle(stringResource(R.string.settings_ui_style_header), itemFisheye(listState, "ui_style_header", screenCenterY, screenHeightPx))
-            }
-            // 单选组并成一张卡：界面风格 / 界面动画 / 屏幕形状都是「一个类型的几个
-            // 选项」，MIUIX 档不该一行一张独立胶囊卡（老师报的）。
-            flueSettingsGroup {
-                row("ui_style_apple_watch") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_ui_aw),
-                        subtitle = stringResource(R.string.settings_ui_aw_sub),
-                        selected = uiStyle == UiStyle.APPLE_WATCH,
-                        onClick = { vm.setUiStyle(UiStyle.APPLE_WATCH) },
-                        scale = itemFisheye(listState, "ui_style_apple_watch", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("ui_style_material_3") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_ui_md3),
-                        subtitle = stringResource(R.string.settings_ui_md3_sub),
-                        selected = uiStyle == UiStyle.MATERIAL_3,
-                        onClick = { vm.setUiStyle(UiStyle.MATERIAL_3) },
-                        scale = itemFisheye(listState, "ui_style_material_3", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("ui_style_miuix") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_ui_miuix),
-                        subtitle = stringResource(R.string.settings_ui_miuix_sub),
-                        selected = uiStyle == UiStyle.MIUIX,
-                        onClick = { vm.setUiStyle(UiStyle.MIUIX) },
-                        scale = itemFisheye(listState, "ui_style_miuix", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
             item("transition_motion_header") {
                 SectionTitle(stringResource(R.string.settings_transition_motion_header), itemFisheye(listState, "transition_motion_header", screenCenterY, screenHeightPx))
             }
@@ -8229,9 +8192,6 @@ internal fun buildSettingsSearchIndex(context: Context): List<SettingsSearchEntr
     SettingsSearchEntry("APPEARANCE", "layout_grid", s(R.string.settings_layout_grid), s(R.string.settings_layout_grid_sub), listOf("wgbj", "grid", "wangge", "miji")),
     SettingsSearchEntry("APPEARANCE", "layout_flow", s(R.string.settings_layout_flow), s(R.string.settings_layout_flow_sub), listOf("xlbj", "flow", "xinliu", "yueya", "crescent")),
     SettingsSearchEntry("APPEARANCE", "layout_ring", s(R.string.settings_layout_ring), s(R.string.settings_layout_ring_sub), listOf("xhbj", "ring", "xinghuan", "huanxing", "shoulong", "dome")),
-    SettingsSearchEntry("APPEARANCE", "ui_style_apple_watch", s(R.string.settings_ui_aw), s(R.string.settings_ui_aw_sub), listOf("pgbx", "apple watch", "pingguo", "watchos")),
-    SettingsSearchEntry("APPEARANCE", "ui_style_material_3", s(R.string.settings_ui_md3), s(R.string.settings_ui_md3_sub), listOf("md3", "material", "expressive")),
-    SettingsSearchEntry("APPEARANCE", "ui_style_miuix", s(R.string.settings_ui_miuix), s(R.string.settings_ui_miuix_sub), listOf("miuix", "hyperos", "xiaomi", "aoshi")),
     SettingsSearchEntry("APPEARANCE", "transition_motion_scale", s(R.string.settings_transition_motion_scale), s(R.string.search_d_transition_motion), listOf("sfdh", "zoom", "suofang", "donghua", "animation")),
     SettingsSearchEntry("APPEARANCE", "transition_motion_slide", s(R.string.settings_transition_motion_slide), s(R.string.search_d_transition_motion), listOf("pydh", "slide", "pingyi", "donghua", "animation")),
     SettingsSearchEntry("APPEARANCE", "screen_shape_auto", s(R.string.settings_screen_shape_auto), s(R.string.settings_screen_shape_auto_sub), listOf("zdsb", "auto", "zidong")),
@@ -8240,7 +8200,6 @@ internal fun buildSettingsSearchIndex(context: Context): List<SettingsSearchEntr
     SettingsSearchEntry("APPEARANCE", "theme_mode_system", s(R.string.search_t_theme_system), s(R.string.search_d_theme_mode), listOf("gssx", "system theme", "shenqian")),
     SettingsSearchEntry("APPEARANCE", "theme_mode_dark", s(R.string.settings_theme_dark), s(R.string.search_d_theme_mode), listOf("ssms", "dark", "shense")),
     SettingsSearchEntry("APPEARANCE", "theme_mode_light", s(R.string.settings_theme_light), s(R.string.search_d_theme_mode), listOf("qsms", "light", "qianse")),
-    SettingsSearchEntry("APPEARANCE", "ui_style_header", s(R.string.settings_ui_style_header), s(R.string.search_d_ui_style), listOf("jmfg", "style", "miuix", "md3")),
     SettingsSearchEntry("APPEARANCE", "screen_shape_header", s(R.string.settings_screen_shape_header), s(R.string.search_d_screen_shape), listOf("pmxz", "round", "yuanping", "fangping")),
     SettingsSearchEntry("APPEARANCE", "overlay_mask_corner_radius", s(R.string.settings_overlay_mask_corner_radius), s(R.string.search_d_overlay_mask_corner_radius), listOf("zzj", "zhezhao yuanjiao", "mask corner", "corner radius", "yuanjiao")),
     SettingsSearchEntry("APPEARANCE", "blur_toggle", s(R.string.settings_blur), s(R.string.search_d_blur), listOf("gjcz", "blur", "mohu", "boli")),

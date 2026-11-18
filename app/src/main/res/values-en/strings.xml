@@ -85,7 +85,6 @@
     <string name="settings_theme_light_sub">Force light theme</string>
 
     <!-- Interface Style -->
-    <string name="settings_ui_style_header">Launcher style</string>
     <string name="settings_transition_motion_header">Screen animation</string>
     <string name="settings_profile_rename">Rename profile</string>
     <string name="settings_profile_rename_builtin_sub">Built-in profiles keep their names; duplicate one first</string>
@@ -94,12 +93,6 @@
     <string name="settings_transition_motion_slide">Slide</string>
     <string name="settings_transition_motion_slide_sub">The list slides sideways with barely any scaling</string>
     <string name="search_d_transition_motion">Choose a slide or zoom transition, independent of the UI style</string>
-    <string name="settings_ui_aw">WatchOS</string>
-    <string name="settings_ui_aw_sub">watchOS launcher styling; settings always use Material 3</string>
-    <string name="settings_ui_md3">Material 3</string>
-    <string name="settings_ui_md3_sub">Material 3 launcher styling; settings always use Material 3</string>
-    <string name="settings_ui_miuix">MIUIX</string>
-    <string name="settings_ui_miuix_sub">MIUIX launcher styling; settings always use Material 3</string>
 
     <!-- Screen Shape -->
     <string name="settings_screen_shape_header">Screen Shape</string>
@@ -278,7 +271,6 @@
     <string name="search_d_layout_honeycomb">Icon honeycomb grid</string>
     <string name="search_d_layout_list">Icons in a single column list</string>
     <string name="search_d_theme_mode">Theme mode</string>
-    <string name="search_d_ui_style">Apple Watch / MD3 / MIUIX</string>
     <string name="search_d_screen_shape">Manually specify round or square</string>
     <string name="search_d_blur">Blur and glass effects</string>
     <string name="search_d_edge_blur">Blur fade at top and bottom of the app list</string>

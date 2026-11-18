@@ -18,8 +18,8 @@ class SettingsMaterialThemeContractTest {
         val activity = settings.substringBefore("private fun applySettingsEdgeToEdge")
         assertTrue(activity.contains("SettingsMaterialTheme(themeMode = themeMode, screenShape = screenShape)"))
         assertFalse(activity.contains("viewModel.uiStyle.collectAsStateWithLifecycle()"))
-        assertTrue(settings.contains("vm.setUiStyle(UiStyle.APPLE_WATCH)"))
-        assertTrue(settings.contains("vm.setUiStyle(UiStyle.MIUIX)"))
+        assertFalse(settings.contains("vm.setUiStyle("))
+        assertFalse(settings.contains("row(\"ui_style_miuix\")"))
         assertTrue(source("LauncherActivity.kt").contains("WatchLauncherTheme("))
     }
 

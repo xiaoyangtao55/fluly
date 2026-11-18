@@ -65,7 +65,6 @@ class SettingsSearchIndexTest {
             "APP_LIST_BACKGROUND" to "app_list_background_scrim",
             "APPEARANCE" to "layout_flow",
             "APPEARANCE" to "layout_grid",
-            "APPEARANCE" to "ui_style_miuix",
             "DISPLAY_SIZE" to "app_list_flow_crescent_bulge",
             "DISPLAY_SIZE" to "app_list_grid_icon_plate",
             "DISPLAY_SIZE" to "layout_profile_header",

@@ -1,13 +1,9 @@
 package com.flue.launcher.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.expressiveLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,24 +17,20 @@ import com.flue.launcher.ui.common.FlueScreenShape
 import com.flue.launcher.ui.common.LocalFlueScreenShapeOverride
 import com.flue.launcher.ui.style.FlueOverlayHost
 
-// UI 风格
+// Internal component render modes, not user-selectable launcher themes.
+// MATERIAL_3 is still required by the independent settings screen; legacy enum
+// names remain for shared component/source compatibility, never preference selection.
 enum class UiStyle {
     APPLE_WATCH,
     MATERIAL_3,
     MIUIX
 }
 
-/**
- * 启动时的默认界面风格（老师指定改成 watchOS 档）。
- *
- * 枚举名仍是 `APPLE_WATCH` —— 它是**持久化值**（`UiStyle.valueOf(存的字符串)`），改名会让
- * 所有老用户的存档解析失败、被下面那条 `?:` 兜回默认档，等于静默重置他们的选择。
- * 对外的名字只在文案层改（`settings_ui_aw` 那几条字符串）。
- */
+/** Launcher styling is fixed; legacy persisted values migrate to watchOS. */
 val DEFAULT_UI_STYLE: UiStyle = UiStyle.APPLE_WATCH
 
-fun uiStyleFromPreference(raw: String?): UiStyle =
-    raw?.let { value -> runCatching { UiStyle.valueOf(value) }.getOrNull() } ?: DEFAULT_UI_STYLE
+@Suppress("UNUSED_PARAMETER")
+fun uiStyleFromPreference(raw: String?): UiStyle = DEFAULT_UI_STYLE
 
 // 深色 Material3 颜色方案
 private val DarkColorScheme = darkColorScheme(
@@ -68,40 +60,6 @@ private val LightColorScheme = lightColorScheme(
     onSurface = WatchColorsDark.Black,
 )
 
-// MIUIX（HyperOS）配色注入 M3 colorScheme：商店 / 编辑器 / 登录等直接读
-// MaterialTheme.* 的界面在 MIUIX 风格下整体换肤（#3482FF 蓝 + HyperOS 灰阶）。
-private val MiuixDarkColorScheme = darkColorScheme(
-    primary = Color(0xFF3482FF),
-    onPrimary = Color.White,
-    secondary = Color(0xFF34C08D),
-    tertiary = Color(0xFF3482FF),
-    background = Color.Black,
-    surface = Color(0xFF111113),
-    surfaceVariant = Color(0xFF1F1F1F),
-    secondaryContainer = Color(0xFF20304A),
-    onSecondaryContainer = Color(0xFFB9D4FF),
-    onBackground = Color(0xE6FFFFFF),
-    onSurface = Color(0xE6FFFFFF),
-    onSurfaceVariant = Color(0x80FFFFFF),
-    outline = Color(0x26FFFFFF),
-)
-
-private val MiuixLightColorScheme = lightColorScheme(
-    primary = Color(0xFF3482FF),
-    onPrimary = Color.White,
-    secondary = Color(0xFF31A56F),
-    tertiary = Color(0xFF3482FF),
-    background = Color(0xFFF7F7FA),
-    surface = Color.White,
-    surfaceVariant = Color(0xFFF2F2F5),
-    secondaryContainer = Color(0xFFE3EDFF),
-    onSecondaryContainer = Color(0xFF1B4C9C),
-    onBackground = Color(0xFF1A1A1A),
-    onSurface = Color(0xFF1A1A1A),
-    onSurfaceVariant = Color(0xFF80838A),
-    outline = Color(0x1F000000),
-)
-
 /** Keeps raw Material text inputs visually aligned with Flue's larger row corners. */
 private fun flueMaterialShapes(style: LauncherStyle): Shapes {
     val rowShape = style.rowShape as CornerBasedShape
@@ -125,11 +83,10 @@ enum class ThemeMode {
 
 val LocalGlobalUiScale = compositionLocalOf { 1f }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WatchLauncherTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    uiStyle: UiStyle = UiStyle.APPLE_WATCH,
+    @Suppress("UNUSED_PARAMETER") uiStyle: UiStyle = UiStyle.APPLE_WATCH,
     screenShape: FlueScreenShape = FlueScreenShape.AUTO,
     content: @Composable () -> Unit
 ) {
@@ -140,73 +97,19 @@ fun WatchLauncherTheme(
     }
 
     WatchColors.setDarkMode(isDark)
-    val FlueMaterialShapes = remember(uiStyle, isDark) {
-        flueMaterialShapes(
-            when (uiStyle) {
-                UiStyle.APPLE_WATCH -> appleWatchLauncherStyle(isDark)
-                UiStyle.MATERIAL_3 -> materialLauncherStyle(isDark)
-                UiStyle.MIUIX -> miuixLauncherStyle(isDark)
-            },
-        )
-    }
-
-    val inner: @Composable () -> Unit = {
+    val shapes = remember(isDark) { flueMaterialShapes(appleWatchLauncherStyle(isDark)) }
+    MaterialTheme(
+        colorScheme = if (isDark) DarkColorScheme else LightColorScheme,
+        shapes = shapes,
+    ) {
         CompositionLocalProvider(LocalFlueScreenShapeOverride provides screenShape) {
             ProvideLauncherStyle(
-                uiStyle = uiStyle,
+                uiStyle = UiStyle.APPLE_WATCH,
                 darkMode = isDark,
-                content = { FlueOverlayHost(content = content) }
+                content = { FlueOverlayHost(content = content) },
             )
         }
     }
-
-    when (uiStyle) {
-        // 真 Material 3 Expressive：官方 expressive 配色基线 + 弹性
-        // motion scheme（组件级 spring 动效），不再是手搓「假 MD3」。
-        UiStyle.MATERIAL_3 -> MaterialExpressiveTheme(
-            colorScheme = if (isDark) darkColorScheme() else expressiveLightColorScheme(),
-            motionScheme = MotionScheme.expressive(),
-            shapes = FlueMaterialShapes,
-            content = inner,
-        )
-        UiStyle.MIUIX -> MaterialTheme(
-            colorScheme = if (isDark) MiuixDarkColorScheme else MiuixLightColorScheme,
-            shapes = FlueMaterialShapes,
-            // M3 主题必须留在外层：106 个 `LauncherTheme.style` 读取点与大量
-            // `MaterialTheme.colorScheme` 读取点都依赖它，拆不掉。MIUIX 档在它**里面**
-            // 再套一层真 `MiuixTheme`，miuix 组件（basic.Switch / basic.Slider /
-            // extra.WindowDialog）才拿得到自己的配色与平滑圆角。两套主题走各自独立的
-            // CompositionLocal，嵌套无冲突。
-            content = { MiuixThemeLayer(isDark = isDark, content = inner) },
-        )
-        UiStyle.APPLE_WATCH -> MaterialTheme(
-            colorScheme = if (isDark) DarkColorScheme else LightColorScheme,
-            shapes = FlueMaterialShapes,
-            content = inner,
-        )
-    }
-}
-
-/**
- * MIUIX 档的真 miuix 主题层。
- *
- * 配色直接从 miuix 的 `darkColorScheme()` / `lightColorScheme()` 起，只把**强调色**换成
- * 项目统一的 `#3482FF` —— 强调色是全局一致的（三套风格共用同一个来源），其余灰阶交给
- * miuix 自己的配方，免得手抄一遍 HyperOS 的颜色表又抄漏。
- */
-@Composable
-private fun MiuixThemeLayer(
-    isDark: Boolean,
-    content: @Composable () -> Unit,
-) {
-    val colors = remember(isDark) {
-        if (isDark) {
-            top.yukonga.miuix.kmp.theme.darkColorScheme(primary = Color(0xFF3482FF))
-        } else {
-            top.yukonga.miuix.kmp.theme.lightColorScheme(primary = Color(0xFF3482FF))
-        }
-    }
-    top.yukonga.miuix.kmp.theme.MiuixTheme(colors = colors, content = content)
 }
 
 @Composable

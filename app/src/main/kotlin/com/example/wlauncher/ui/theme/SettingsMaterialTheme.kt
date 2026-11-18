@@ -44,7 +44,10 @@ fun SettingsMaterialTheme(
     MaterialTheme(colorScheme = colors, typography = Typography(), shapes = Shapes()) {
         val shapes = MaterialTheme.shapes
         val style = remember(colors, shapes, dark) {
-            materialLauncherStyle(dark).copy(
+            appleWatchLauncherStyle(dark).copy(
+                uiStyle = UiStyle.MATERIAL_3,
+                capsuleMaxRadius = androidx.compose.ui.unit.Dp(28f),
+                loadingIndicatorSize = androidx.compose.ui.unit.Dp(32f),
                 screenBackground = colors.surface,
                 screenScrim = Brush.verticalGradient(listOf(colors.surface, colors.surface)),
                 cardColor = colors.surfaceContainerLow,

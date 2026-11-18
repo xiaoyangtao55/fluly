@@ -288,140 +288,14 @@ fun appleWatchLauncherStyle(darkMode: Boolean): LauncherStyle {
     )
 }
 
-fun materialLauncherStyle(darkMode: Boolean): LauncherStyle {
-    val bg = if (darkMode) Color(0xFF0D1118) else Color(0xFFF5F1EA)
-    val surface = if (darkMode) Color(0xFF18212D) else Color(0xFFE8E1D6)
-    val surfaceAlt = if (darkMode) Color(0xFF243244) else Color(0xFFD9D0C2)
-    val accent = if (darkMode) Color(0xFF8CB4FF) else Color(0xFF295EA8)
-    val text = if (darkMode) Color(0xFFF4F7FB) else Color(0xFF1E2938)
-    return LauncherStyle(
-        uiStyle = UiStyle.MATERIAL_3,
-        screenBackground = bg,
-        screenScrim = Brush.verticalGradient(
-            listOf(
-                accent.copy(alpha = if (darkMode) 0.16f else 0.12f),
-                Color.Transparent,
-                surface.copy(alpha = 0.86f)
-            )
-        ),
-        cardColor = surface,
-        pressedCardColor = surfaceAlt,
-        selectedCardColor = accent.copy(alpha = if (darkMode) 0.22f else 0.18f),
-        outlineColor = accent.copy(alpha = if (darkMode) 0.22f else 0.16f),
-        titleColor = text,
-        bodyColor = text,
-        secondaryTextColor = text.copy(alpha = 0.72f),
-        accentColor = accent,
-        positiveColor = if (darkMode) Color(0xFF7AD982) else Color(0xFF1C7B39),
-        topBarChipColor = surfaceAlt,
-        topBarTextColor = text,
-        appListBaseColor = surface,
-        appListFadeColor = bg.copy(alpha = 0.92f),
-        appListPressedOverlay = accent.copy(alpha = if (darkMode) 0.12f else 0.08f),
-        cardShape = RoundedCornerShape(32.dp),
-        compactShape = RoundedCornerShape(24.dp),
-        bubbleShape = RoundedCornerShape(30.dp),
-        chipShape = CircleShape,
-        rowShape = RoundedCornerShape(24.dp),
-        panelShape = RoundedCornerShape(36.dp),
-        glass = flueGlassTokens(darkMode),
-        glassThick = flueGlassTokens(darkMode, GlassTier.Thick),
-        watchFaceOverlayStrength = 1.25f,
-        faceSwitchEnterSpec = tween(durationMillis = 300, delayMillis = 20),
-        faceSwitchExitSpec = tween(durationMillis = 220),
-        pageMotionSpec = spring(
-            dampingRatio = 0.84f,
-            stiffness = Spring.StiffnessMediumLow
-        ),
-        launchMaskEnterSpec = tween(durationMillis = 220),
-        launchMaskExitSpec = tween(durationMillis = 220),
-        pressScaleSpec = spring(stiffness = 560f, dampingRatio = 0.82f),
-        switchThumbTravel = 20f,
-        // M3 有自己的 shape scale，圆屏也停在 28dp（compactShape 的 24dp 略放）。
-        capsuleMaxRadius = 28.dp,
-        switchVisualScale = 1f,
-        switchTouchTarget = 48.dp,
-        // Expressive 的 LoadingIndicator 形变靠形状读出来，小于 32dp 就看不清。
-        loadingIndicatorSize = 32.dp,
-    )
-}
-
-/**
- * MIUIX（HyperOS 视觉语言）风格令牌：
- * 大圆角成组卡片（18dp）、行高较高、辅助文字灰色小号、
- * 强调色默认蓝（#3482FF）、浅色底 #F7F7F7 / 深色底 #000000、卡片 #1B1B1B。
- */
-fun miuixLauncherStyle(darkMode: Boolean): LauncherStyle {
-    // HyperOS 实测值：卡片深色 #1F1F1F（非 #1B1B1B）、正文 90% 白、
-    // 次要文字 50% 白（浅色 50% 黑），而不是近似的纯灰。
-    val bg = if (darkMode) Color(0xFF000000) else Color(0xFFF7F7F7)
-    val card = if (darkMode) Color(0xFF1F1F1F) else Color(0xFFFFFFFF)
-    val cardPressed = if (darkMode) Color(0xFF2C2C2C) else Color(0xFFEDEDED)
-    val accent = Color(0xFF3482FF)
-    val text = if (darkMode) Color(0xE6FFFFFF) else Color(0xFF1A1A1A)
-    val secondary = if (darkMode) Color(0x80FFFFFF) else Color(0x80000000)
-    return LauncherStyle(
-        uiStyle = UiStyle.MIUIX,
-        screenBackground = bg,
-        screenScrim = Brush.verticalGradient(
-            listOf(
-                Color.Transparent,
-                Color.Transparent,
-                Color.Black.copy(alpha = if (darkMode) 0.18f else 0.04f)
-            )
-        ),
-        cardColor = card,
-        pressedCardColor = cardPressed,
-        selectedCardColor = accent.copy(alpha = if (darkMode) 0.24f else 0.14f),
-        outlineColor = if (darkMode) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.05f),
-        titleColor = text,
-        bodyColor = text,
-        secondaryTextColor = secondary,
-        accentColor = accent,
-        // MIUIX 的开关 / 选中态统一使用蓝色强调色，而不是绿色
-        positiveColor = accent,
-        topBarChipColor = card,
-        topBarTextColor = text,
-        appListBaseColor = card,
-        appListFadeColor = bg.copy(alpha = if (darkMode) 0.86f else 0.92f),
-        appListPressedOverlay = if (darkMode) Color.White.copy(alpha = 0.06f) else Color.Black.copy(alpha = 0.05f),
-        cardShape = RoundedCornerShape(18.dp),
-        compactShape = RoundedCornerShape(14.dp),
-        bubbleShape = RoundedCornerShape(999.dp),
-        chipShape = CircleShape,
-        rowShape = RoundedCornerShape(14.dp),
-        panelShape = RoundedCornerShape(22.dp),
-        glass = flueGlassTokens(darkMode),
-        glassThick = flueGlassTokens(darkMode, GlassTier.Thick),
-        watchFaceOverlayStrength = 1f,
-        faceSwitchEnterSpec = tween(durationMillis = 260, delayMillis = 40),
-        faceSwitchExitSpec = tween(durationMillis = 200),
-        pageMotionSpec = spring(dampingRatio = 0.9f, stiffness = 600f),
-        launchMaskEnterSpec = tween(durationMillis = 180),
-        launchMaskExitSpec = tween(durationMillis = 200),
-        pressScaleSpec = spring(stiffness = 600f, dampingRatio = 0.9f),
-        switchThumbTravel = 22f,
-        // HyperOS 是大圆角而非胶囊：22dp 与 panelShape 对齐，再大就成药丸了。
-        capsuleMaxRadius = 22.dp,
-        switchVisualScale = 1f,
-        switchTouchTarget = 48.dp,
-        loadingIndicatorSize = 28.dp,
-    )
-}
-
 @Composable
 fun ProvideLauncherStyle(
     uiStyle: UiStyle,
     darkMode: Boolean,
     content: @Composable () -> Unit
 ) {
-    val style = remember(uiStyle, darkMode) {
-        when (uiStyle) {
-            UiStyle.APPLE_WATCH -> appleWatchLauncherStyle(darkMode)
-            UiStyle.MATERIAL_3 -> materialLauncherStyle(darkMode)
-            UiStyle.MIUIX -> miuixLauncherStyle(darkMode)
-        }
-    }
+    // Alternate render modes are only used by the independent settings theme.
+    val style = remember(darkMode) { appleWatchLauncherStyle(darkMode) }
     CompositionLocalProvider(LocalLauncherStyle provides style, content = content)
 }
 
