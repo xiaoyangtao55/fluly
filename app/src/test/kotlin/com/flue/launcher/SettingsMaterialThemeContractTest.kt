@@ -1,16 +1,11 @@
 package com.flue.launcher
 
-import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SettingsMaterialThemeContractTest {
-    private fun source(relative: String): String {
-        val root = sequenceOf(File("src/main/kotlin"), File("app/src/main/kotlin"), File("../app/src/main/kotlin"))
-            .first(File::isDirectory)
-        return File(root, "com/example/wlauncher/$relative").readText()
-    }
+    private fun source(relative: String): String = TestSourceRoots.read(relative)
 
     @Test
     fun `settings theme is scoped and independent of launcher preference`() {

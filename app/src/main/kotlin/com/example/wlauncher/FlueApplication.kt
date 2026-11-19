@@ -10,6 +10,10 @@ import com.flue.launcher.i18n.FlueLocaleManager
 import com.flue.launcher.ui.theme.ThemeMode
 import com.flue.launcher.ui.theme.UiStyle
 import com.flue.launcher.ui.theme.DEFAULT_UI_STYLE
+import com.flue.launcher.ui.style.FlueOverlayPreferences
+import com.flue.launcher.ui.style.FlueOverlayPreferenceSource
+import com.flue.launcher.viewmodel.LauncherViewModel
+import com.flue.launcher.viewmodel.dataStore
 import com.flue.launcher.watchface.standard.WatchMediaSessionHost
 import com.flue.launcher.watchface.standard.WatchWeatherRepository
 import com.flue.launcher.watchface.standard.WatchWeatherSources
@@ -20,6 +24,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class FlueApplication : Application() {
@@ -34,6 +40,17 @@ class FlueApplication : Application() {
         // 运行时模块不能反向依赖 HOME 的通知监听服务，媒体会话查询组件由这里注入。
         WatchMediaSessionHost.listenerComponent =
             android.content.ComponentName(this, com.flue.launcher.service.WLauncherNotificationListener::class.java)
+        // 覆层（对话框 / 提示）的视觉偏好存在启动器设置里，:ui-kit 不认识设置层，
+        // 由这里把 DataStore 的一条投影注入进去。
+        FlueOverlayPreferenceSource.flow = dataStore.data
+            .map { preferences ->
+                FlueOverlayPreferences(
+                    advancedMaterial = preferences[LauncherViewModel.KEY_BLUR]
+                        ?: (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S),
+                    reduceMotion = preferences[LauncherViewModel.KEY_REDUCE_DYNAMIC_EFFECTS] ?: false,
+                )
+            }
+            .catch { emit(FlueOverlayPreferenceSource.default()) }
         // Agent 模块拿不到 App 的 BuildConfig，版本号由宿主注入。
         com.flue.launcher.watchface.agent.AgentRuntimeInfo.versionName = BuildConfig.VERSION_NAME
         FlueLog.configureDiagnostics(this)

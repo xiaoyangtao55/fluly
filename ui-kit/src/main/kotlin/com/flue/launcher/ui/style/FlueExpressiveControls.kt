@@ -29,7 +29,7 @@ internal enum class FlueExpressiveActionContainer {
     FLOATING_TOOLBAR,
 }
 
-internal fun useMaterial3ExpressiveComponents(uiStyle: UiStyle): Boolean =
+fun useMaterial3ExpressiveComponents(uiStyle: UiStyle): Boolean =
     uiStyle == UiStyle.MATERIAL_3
 
 internal fun flueExpressiveActionContainer(
@@ -47,7 +47,7 @@ internal fun flueExpressiveActionContainer(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun FlueExpressiveButtonGroup(
+fun FlueExpressiveButtonGroup(
     modifier: Modifier = Modifier,
     slot: @Composable () -> Unit,
 ) {
@@ -69,7 +69,7 @@ internal fun FlueExpressiveButtonGroup(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun FlueExpressiveSplitButton(
+fun FlueExpressiveSplitButton(
     primaryOnClick: () -> Unit,
     secondaryOnClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -110,7 +110,7 @@ internal fun FlueExpressiveSplitButton(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun FlueExpressiveFloatingToolbar(
+fun FlueExpressiveFloatingToolbar(
     modifier: Modifier = Modifier,
     expanded: Boolean = true,
     content: @Composable () -> Unit,

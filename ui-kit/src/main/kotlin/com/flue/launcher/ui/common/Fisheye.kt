@@ -4,7 +4,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 
 @Composable
-internal fun bottomFisheyeScale(
+fun bottomFisheyeScale(
     listState: LazyListState,
     key: Any,
     screenCenterY: Float,

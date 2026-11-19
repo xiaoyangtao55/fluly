@@ -1,6 +1,6 @@
 package com.flue.launcher.watchface.selection
 
-import java.io.File
+import com.flue.launcher.TestSourceRoots
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -105,12 +105,5 @@ class WatchFaceCardSelectorContractTest {
         assertTrue(selector.contains("Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)"))
     }
 
-    private fun source(relative: String): String {
-        val root = sequenceOf(
-            File("src/main/kotlin"),
-            File("app/src/main/kotlin"),
-            File("../app/src/main/kotlin"),
-        ).firstOrNull(File::isDirectory) ?: error("找不到 Android Kotlin 源码目录")
-        return File(root, relative).readText()
-    }
+    private fun source(relative: String): String = TestSourceRoots.read(relative)
 }

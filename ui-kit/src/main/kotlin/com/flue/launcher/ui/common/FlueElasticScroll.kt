@@ -38,7 +38,7 @@ import kotlin.math.roundToInt
  * intentionally mirror CloX: pull 0.18 and fling absorb 0.008.
  */
 @Stable
-internal class FlueElasticScrollState internal constructor(
+class FlueElasticScrollState internal constructor(
     private val density: Float,
     private val scope: CoroutineScope,
     private val atTopProvider: () -> Boolean,
@@ -244,7 +244,7 @@ internal fun flueElasticOvershootPx(
  *
  * 动效档把回弹关掉时恒返回 0 —— 那一档的正确观感就是硬停，不能悄悄给出越界。
  */
-internal fun flueOverlayOvershootPx(
+fun flueOverlayOvershootPx(
     outwardTravelPx: Float,
     viewportPx: Int,
     density: Float,
@@ -269,7 +269,7 @@ internal fun flueOverlayOvershootPx(
  * Animatable is reserved for the interruptible settle phase.
  */
 @Stable
-internal class FlueElasticOffsetController(
+class FlueElasticOffsetController(
     private val scope: CoroutineScope,
 ) {
     private val offsetState = mutableFloatStateOf(0f)
@@ -335,7 +335,7 @@ internal fun flueElasticMaximumOffsetPx(
 }
 
 @Composable
-internal fun rememberFlueElasticScrollState(
+fun rememberFlueElasticScrollState(
     listState: LazyListState,
     motionProfile: FlueMotionProfile = LocalFlueMotionProfile.current,
 ): FlueElasticScrollState {
@@ -390,7 +390,7 @@ internal fun Modifier.flueElasticNestedScroll(
 }
 
 @Composable
-internal fun rememberFlueElasticScrollState(
+fun rememberFlueElasticScrollState(
     scrollState: ScrollState,
     motionProfile: FlueMotionProfile = LocalFlueMotionProfile.current,
 ): FlueElasticScrollState {

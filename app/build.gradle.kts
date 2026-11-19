@@ -115,6 +115,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":ui-kit"))
     implementation(project(":agent"))
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
@@ -133,8 +134,8 @@ dependencies {
     implementation(libs.compose.foundation)
     // material3 单独提到 1.5 beta：BOM 2026.04 捆绑的 1.4.0 里
     // MaterialExpressiveTheme / MotionScheme.expressive 仍是 internal，
-    // 真 M3 Expressive 主题需要 1.5 的公开 API。
-    implementation("androidx.compose.material3:material3:1.5.0-alpha14")
+    // 真 M3 Expressive 主题需要 1.5 的公开 API（:ui-kit 里同一份）。
+    implementation(libs.compose.material3.expressive)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.animation)
     implementation(libs.compose.cloudy)

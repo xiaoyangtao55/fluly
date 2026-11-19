@@ -54,8 +54,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -72,12 +72,10 @@ import com.flue.launcher.ui.prompt.promptVisualEffectPolicy
 import com.flue.launcher.ui.theme.LauncherTheme
 import com.flue.launcher.ui.theme.ProvideDialogUiScale
 import com.flue.launcher.ui.theme.UiStyle
-import com.flue.launcher.viewmodel.LauncherViewModel
-import com.flue.launcher.viewmodel.dataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -155,21 +153,13 @@ fun FlueOverlayHost(
     val context = LocalContext.current
     val view = LocalView.current
     val controller = remember { FlueOverlayController() }
-    val defaultPreferencePair =
-        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) to false
-    val preferenceFlow = remember(context) {
-        context.dataStore.data
-            .map { preferences ->
-                (preferences[LauncherViewModel.KEY_BLUR]
-                    ?: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)) to
-                    (preferences[LauncherViewModel.KEY_REDUCE_DYNAMIC_EFFECTS] ?: false)
-            }
-            .catch { emit((Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) to false) }
+    // 偏好来源由宿主注入（见 FlueOverlayPreferenceSource）；没注入就用设置项缺省值。
+    val preferenceFlow = remember {
+        FlueOverlayPreferenceSource.flow ?: flowOf(FlueOverlayPreferenceSource.default())
     }
-    val preferencePair by preferenceFlow
-        .collectAsState(initial = defaultPreferencePair)
-    val advancedMaterialEnabled = preferencePair.first
-    val reduceMotion = preferencePair.second
+    val preferences by preferenceFlow.collectAsState(initial = FlueOverlayPreferenceSource.default())
+    val advancedMaterialEnabled = preferences.advancedMaterial
+    val reduceMotion = preferences.reduceMotion
     val policy = remember(advancedMaterialEnabled, reduceMotion) {
         promptVisualEffectPolicy(
             sdkInt = Build.VERSION.SDK_INT,

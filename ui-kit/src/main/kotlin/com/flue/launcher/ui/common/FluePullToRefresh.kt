@@ -41,7 +41,7 @@ import kotlin.math.roundToInt
  * 底端回弹仍由 [FlueElasticScrollState] 负责，两者可叠加在同一个列表上。
  */
 @Stable
-internal class FluePullToRefreshState internal constructor(
+class FluePullToRefreshState internal constructor(
     private val scope: CoroutineScope,
     private val atTopProvider: () -> Boolean,
     private val thresholdPx: Float,
@@ -180,7 +180,7 @@ internal class FluePullToRefreshState internal constructor(
 }
 
 @Composable
-internal fun rememberFluePullToRefreshState(
+fun rememberFluePullToRefreshState(
     refreshing: Boolean,
     onRefresh: () -> Unit,
     atTop: () -> Boolean,
@@ -210,7 +210,7 @@ internal fun rememberFluePullToRefreshState(
 internal val FLUE_PULL_REFRESH_THRESHOLD: Dp = 56.dp
 
 /** 让内容跟着下拉走；指示器由调用方叠在上面。 */
-internal fun Modifier.fluePullToRefresh(state: FluePullToRefreshState): Modifier =
+fun Modifier.fluePullToRefresh(state: FluePullToRefreshState): Modifier =
     nestedScroll(state.connection)
         .layout { measurable, constraints ->
             val placeable = measurable.measure(constraints)

@@ -14,11 +14,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import kotlin.math.abs
 import kotlin.math.sign
 
-internal const val ROTARY_HAPTIC_MIN_INTERVAL_MS = 140L
-internal const val ROTARY_SCROLL_MULTIPLIER = 0.65f
-internal const val ROTARY_SCROLL_MAX_STEP_PX = 48f
+const val ROTARY_HAPTIC_MIN_INTERVAL_MS = 140L
+const val ROTARY_SCROLL_MULTIPLIER = 0.65f
+const val ROTARY_SCROLL_MAX_STEP_PX = 48f
 
-internal class RotaryHapticGate(
+class RotaryHapticGate(
     private val minIntervalMs: Long = ROTARY_HAPTIC_MIN_INTERVAL_MS
 ) {
     private var lastAcceptedAtMs: Long? = null

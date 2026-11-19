@@ -47,7 +47,7 @@ private val SystemBlurRadiusBucketsDp = floatArrayOf(
     20f,
 )
 
-internal fun quantizeSystemBlurRadiusDp(radiusDp: Float): Float {
+fun quantizeSystemBlurRadiusDp(radiusDp: Float): Float {
     if (!radiusDp.isFinite() || radiusDp < 1f) return 0f
     var selected = 0f
     for (bucket in SystemBlurRadiusBucketsDp) {
@@ -71,7 +71,7 @@ private object SystemBlurEffectCache {
 }
 
 @RequiresApi(Build.VERSION_CODES.S)
-internal fun systemBlurEffectForRadiusPx(radiusPx: Int): ComposeRenderEffect =
+fun systemBlurEffectForRadiusPx(radiusPx: Int): ComposeRenderEffect =
     SystemBlurEffectCache.get(radiusPx)
 
 @Composable

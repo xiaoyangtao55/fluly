@@ -1,6 +1,5 @@
 package com.flue.launcher
 
-import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -68,12 +67,5 @@ class WatchFaceFeedbackUiContractTest {
         assertTrue(creation.contains("formatVersion = WatchFormatVersion.V1"))
     }
 
-    private fun source(relative: String): String {
-        val root = sequenceOf(
-            File("src/main/kotlin"),
-            File("app/src/main/kotlin"),
-            File("../app/src/main/kotlin"),
-        ).firstOrNull(File::isDirectory) ?: error("找不到 Android Kotlin 源码目录")
-        return File(root, relative).readText()
-    }
+    private fun source(relative: String): String = TestSourceRoots.read(relative)
 }

@@ -84,7 +84,7 @@ val FlueGroupSpacing: Dp = 12.dp
  *
  * [unspacedItem] 就是那个「我不要」：由 [flueSettingsGroup] 用，间距交给行自己按位置出。
  */
-class FlueSettingsListScope internal constructor(
+class FlueSettingsListScope(
     private val delegate: LazyListScope,
     private val spacing: Dp,
 ) : LazyListScope {
