@@ -158,4 +158,6 @@
     <string name="tap_action_weather_sub">打开你常用的天气应用</string>
 
     <string name="image_crop_failed">无法读取这张图片</string>
+
+    <string name="common_back">返回</string>
 </resources>

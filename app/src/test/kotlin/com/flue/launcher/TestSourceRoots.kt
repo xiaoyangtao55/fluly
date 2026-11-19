@@ -26,6 +26,9 @@ object TestSourceRoots {
         "../watchface-editor/src/main/kotlin",
         "agent/src/main/kotlin",
         "../agent/src/main/kotlin",
+        // Studio 是独立应用模块，源码在 src/main/java 而不是 kotlin。
+        "studio/src/main/java",
+        "../studio/src/main/java",
     ).map(::File).filter(File::isDirectory)
 
     /** 读源码并把行尾统一成 `\n`：Windows 的 `core.autocrlf` 检出会让结构断言假红。 */
@@ -42,6 +45,15 @@ object TestSourceRoots {
             }
             if (relative.startsWith("com/flue/launcher/")) {
                 add(relative.replaceFirst("com/flue/launcher/", "com/example/wlauncher/"))
+            }
+            // Agent 设置三页随 :agent 一起搬进了 Studio，包名也从 launcher 换成 studio。
+            if (relative.startsWith("com/flue/launcher/ui/settings/agent/")) {
+                add(
+                    relative.replaceFirst(
+                        "com/flue/launcher/ui/settings/agent/",
+                        "com/flue/studio/ui/settings/agent/",
+                    ),
+                )
             }
             // 有的调用点只写包内相对路径（如 "ui/theme/Theme.kt"），补上包前缀。
             if (!relative.startsWith("com/")) {

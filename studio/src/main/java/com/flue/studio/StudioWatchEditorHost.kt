@@ -124,10 +124,12 @@ class StudioWatchEditorHost(private val context: Context) : WatchEditorHost {
 
     override fun applyHideFromRecents(activity: Activity, enabled: Boolean) = Unit
 
-    /** Agent 在 Studio 是底部导航的一页，编辑器里的「去设置」直接回主界面即可。 */
+    /** 编辑器里的「去设置」深链到 Studio 的设置页（Agent 的 provider / 工作区都在那）。 */
     override fun openAgentSettings(activity: Activity) {
         activity.startActivity(
-            Intent(activity, StudioActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            Intent(activity, StudioActivity::class.java)
+                .putExtra(StudioActivity.EXTRA_TAB, StudioActivity.TAB_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
         )
     }
 

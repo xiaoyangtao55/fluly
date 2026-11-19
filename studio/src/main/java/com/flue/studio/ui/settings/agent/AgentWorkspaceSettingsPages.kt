@@ -1,4 +1,4 @@
-package com.flue.launcher.ui.settings.agent
+package com.flue.studio.ui.settings.agent
 
 import android.content.Context
 import android.net.Uri
@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import com.flue.launcher.R
+import com.flue.studio.R
 import com.flue.launcher.ui.settings.miuix.MiuixIcons
 import com.flue.launcher.ui.settings.miuix.SettingsIcon
 import com.flue.launcher.ui.style.FlueAlertDialog

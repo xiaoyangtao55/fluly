@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
-import com.flue.launcher.R
+import com.flue.launcher.uikit.R
 import com.flue.launcher.ui.common.isFlueScreenRound
 import com.flue.launcher.ui.settings.miuix.MiuixIcons
 import com.flue.launcher.ui.theme.LauncherTheme

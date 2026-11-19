@@ -46,6 +46,8 @@ dependencies {
     api(project(":watchface-core"))
 
     implementation(libs.core.ktx)
+    // 设置组件里带 @Preview，编译期需要 ui-tooling-preview
+    implementation(libs.compose.ui.tooling.preview)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kotlinx.coroutines.android)

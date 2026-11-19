@@ -228,7 +228,6 @@ import com.flue.launcher.ui.input.RotaryHapticGate
 import com.flue.launcher.ui.input.requestFocusAfterFirstFrame
 import com.flue.launcher.ui.navigation.LayoutMode
 import com.flue.launcher.ui.settings.WatchFaceSettingCard
-import com.flue.launcher.ui.settings.agent.AgentSettingsPage
 import com.flue.launcher.ui.settings.miuix.MiuixIcons
 import com.flue.launcher.ui.settings.miuix.MiuixSettingsCard
 import com.flue.launcher.ui.settings.miuix.MiuixSettingsRow
@@ -319,7 +318,6 @@ const val EXTRA_SETTINGS_DESTINATION = "settings_destination"
 const val EXTRA_SETTINGS_RETURN_TO_FACE = "settings_return_to_face"
 const val SETTINGS_DESTINATION_WATCH_FACES = "watch_faces"
 const val SETTINGS_DESTINATION_TOOLS = "tools"
-const val SETTINGS_DESTINATION_AGENT = "agent"
 private val LocalSettingsLeftSafeInsetPercent = compositionLocalOf { 0 }
 private val LocalSettingsRotaryHapticsEnabled = compositionLocalOf { true }
 
@@ -338,7 +336,6 @@ private val LocalSettingsSearchTarget = compositionLocalOf<SettingsSearchTarget?
 enum class SettingsDestination {
     ROOT,
     WATCH_FACES,
-    AGENT,
     WATCH_FACE_MORE,
     TAP_ACTION_CATEGORIES,
     TAP_ACTION_CATEGORY,
@@ -495,7 +492,6 @@ class SettingsActivity : FlueComponentActivity() {
         val initialDestination = when (getStringExtra(EXTRA_SETTINGS_DESTINATION)) {
             SETTINGS_DESTINATION_WATCH_FACES -> SettingsDestination.WATCH_FACES
             SETTINGS_DESTINATION_TOOLS -> SettingsDestination.TOOLS
-            SETTINGS_DESTINATION_AGENT -> SettingsDestination.AGENT
             else -> SettingsDestination.ROOT
         }
         return SettingsLaunchConfig(
@@ -1645,14 +1641,6 @@ private fun SettingsRootScreen(
                         scale = itemFisheye(listState, "watchfaces", screenCenterY, screenHeightPx)
                     )
                 }
-                item("agent_settings") {
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_agent_title),
-                        subtitle = stringResource(R.string.settings_agent_subtitle),
-                        onClick = { navigateTo(SettingsDestination.AGENT) },
-                        scale = itemFisheye(listState, "agent_settings", screenCenterY, screenHeightPx),
-                    )
-                }
                 item("section_app_list") {
                     SectionTitle(stringResource(R.string.settings_section_app_list), itemFisheye(listState, "section_app_list", screenCenterY, screenHeightPx))
                 }
@@ -1832,7 +1820,6 @@ private fun SettingsRootScreen(
                 }
         }
 
-            SettingsDestination.AGENT -> AgentSettingsPage(onBack = { handleBack() })
             SettingsDestination.WATCH_FACES -> SettingsPageScaffold(
             title = stringResource(R.string.settings_watchfaces),
             onBack = { handleBack() },

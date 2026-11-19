@@ -1,4 +1,4 @@
-package com.flue.launcher.ui.settings.agent
+package com.flue.studio.ui.settings.agent
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -50,7 +50,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.stringResource
-import com.flue.launcher.R
+import com.flue.studio.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flue.launcher.ui.settings.miuix.MiuixIcons

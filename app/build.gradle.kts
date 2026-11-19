@@ -113,7 +113,6 @@ kotlin {
 
 dependencies {
     implementation(project(":ui-kit"))
-    implementation(project(":agent"))
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
     implementation(libs.core.ktx)

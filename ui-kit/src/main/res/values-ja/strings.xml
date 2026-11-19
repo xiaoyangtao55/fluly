@@ -158,4 +158,6 @@
     <string name="tap_action_weather_sub">いつもの天気アプリを開きます</string>
 
     <string name="image_crop_failed">この画像を読み込めません</string>
+
+    <string name="common_back">戻る</string>
 </resources>

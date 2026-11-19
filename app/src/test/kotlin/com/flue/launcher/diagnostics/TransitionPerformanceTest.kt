@@ -1,10 +1,13 @@
 package com.flue.launcher.diagnostics
 
-import com.flue.launcher.watchface.agent.provider.AgentJsonParser
-import com.flue.launcher.watchface.agent.provider.AgentJsonValue
+import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+// org.json 在纯 JVM 单测里是 android.jar 的空壳，读到的是 null；借 Robolectric 换成真实实现。
+@RunWith(RobolectricTestRunner::class)
 class TransitionPerformanceTest {
     @Test fun delayedFramesAndStageWorkKeepTheirStartingScene() {
         val collector = TransitionPerformanceCollector(1L)
@@ -15,13 +18,20 @@ class TransitionPerformanceTest {
         collector.recordFrame(20L, 20_000_000L, 16_000_000L, 2)
         collector.recordFrame(120L, 8_000_000L, 16_000_000L, 0)
         collector.recordFrame(0L, 1_000_000L, 16_000_000L, 0)
-        val scenes = (AgentJsonParser.parse(collector.toJson()) as AgentJsonValue.Obj).obj("scenes")!!
-        val open = scenes.obj("open")!!
-        assertEquals(2L, open.long("dropped_callbacks"))
-        assertEquals(100L, open.long("over_budget_percent"))
-        assertEquals(1L, open.obj("stages")!!.obj("list_capture")!!.long("count"))
-        assertEquals(1L, scenes.obj("reverse")!!.obj("stages")!!.obj("frame_total")!!.long("count"))
-        assertEquals(0L, scenes.obj("idle")!!.obj("stages")!!.obj("frame_total")!!.long("count"))
+        // 用 org.json 读，别借 :agent 的 JSON 解析器——HOME 已经不依赖那个模块了。
+        val scenes = JSONObject(collector.toJson()).getJSONObject("scenes")
+        val open = scenes.getJSONObject("open")
+        assertEquals(2L, open.getLong("dropped_callbacks"))
+        assertEquals(100L, open.getLong("over_budget_percent"))
+        assertEquals(1L, open.getJSONObject("stages").getJSONObject("list_capture").getLong("count"))
+        assertEquals(
+            1L,
+            scenes.getJSONObject("reverse").getJSONObject("stages").getJSONObject("frame_total").getLong("count"),
+        )
+        assertEquals(
+            0L,
+            scenes.getJSONObject("idle").getJSONObject("stages").getJSONObject("frame_total").getLong("count"),
+        )
     }
 
     @Test fun p95UsesAllSamplesAndResetsBetweenIntervals() {
