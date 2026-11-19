@@ -26,14 +26,15 @@ import com.flue.launcher.watchface.agent.workspace.SafeProotShellRunner
 import com.flue.launcher.watchface.agent.workspace.WorkspaceManager
 import com.flue.studio.ui.StudioChatScreen
 import com.flue.studio.ui.StudioProviderDialog
+import com.flue.studio.ui.StudioWatchFaceScreen
 import com.flue.studio.ui.StudioWorkspaceScreen
 import java.io.File
 
 /**
- * Flue Studio 外壳：Agent 对话 + proot 工作区。
+ * Flue Studio 外壳：Agent 对话 + 表盘预览 + proot 工作区。
  *
- * 编辑器 / 视频转码 / 文件管理要等对应的运行时与编辑器模块从 app 里拆出来，
- * 所以这里刻意不引用任何 launcher 代码。
+ * 表盘页走的是 `:watchface-runtime` 的渲染器，和 HOME 同一条链路；这里仍然不引用
+ * 任何 launcher 的 Activity / ViewModel。
  */
 class StudioActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +53,7 @@ class StudioActivity : ComponentActivity() {
 
 private enum class StudioTab(val label: String) {
     CHAT("对话"),
+    WATCHFACE("表盘"),
     WORKSPACE("工作区"),
 }
 
@@ -91,6 +93,7 @@ private fun StudioRoot(manager: WorkspaceManager, runner: SafeProotShellRunner) 
                 onOpenSettings = { showProvider = true },
                 modifier = modifier,
             )
+            StudioTab.WATCHFACE -> StudioWatchFaceScreen(modifier = modifier)
             StudioTab.WORKSPACE -> StudioWorkspaceScreen(
                 manager = manager,
                 runner = runner,
