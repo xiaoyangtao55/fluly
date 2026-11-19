@@ -6,7 +6,10 @@ import android.content.Context
 import com.flue.launcher.logging.FlueLog
 import com.flue.launcher.data.repository.AppRepository
 import com.flue.launcher.data.repository.WidgetRepository
+import com.flue.launcher.diagnostics.DiagnosticsController
+import com.flue.launcher.i18n.FlueActivityLifecycleHooks
 import com.flue.launcher.i18n.FlueLocaleManager
+import com.flue.launcher.status.DoNotDisturbState
 import com.flue.launcher.ui.theme.ThemeMode
 import com.flue.launcher.ui.theme.UiStyle
 import com.flue.launcher.ui.theme.DEFAULT_UI_STYLE
@@ -40,6 +43,15 @@ class FlueApplication : Application() {
         // 运行时模块不能反向依赖 HOME 的通知监听服务，媒体会话查询组件由这里注入。
         WatchMediaSessionHost.listenerComponent =
             android.content.ComponentName(this, com.flue.launcher.service.WLauncherNotificationListener::class.java)
+        // 基类 FlueComponentActivity 已下沉到 :ui-kit，它原本在 onResume/onPause 里
+        // 刷勿扰状态、给诊断控制器记账 —— 这两件事都是启动器的，所以由这里注回去。
+        FlueActivityLifecycleHooks.onResume = { activity ->
+            DoNotDisturbState.refresh(activity)
+            DiagnosticsController.onResume(activity)
+        }
+        FlueActivityLifecycleHooks.onPause = { activity ->
+            DiagnosticsController.onPause(activity)
+        }
         // 覆层（对话框 / 提示）的视觉偏好存在启动器设置里，:ui-kit 不认识设置层，
         // 由这里把 DataStore 的一条投影注入进去。
         FlueOverlayPreferenceSource.flow = dataStore.data

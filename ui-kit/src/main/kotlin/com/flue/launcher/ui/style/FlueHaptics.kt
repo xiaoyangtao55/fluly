@@ -1,5 +1,10 @@
 package com.flue.launcher.ui.style
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import com.flue.launcher.ui.theme.UiStyle
 
@@ -63,5 +68,25 @@ object FlueHaptics {
         UiStyle.APPLE_WATCH -> HapticFeedbackType.GestureThresholdActivate
         UiStyle.MATERIAL_3 -> HapticFeedbackType.GestureEnd
         UiStyle.MIUIX -> HapticFeedbackType.GestureEnd
+    }
+}
+
+/**
+ * 一次短促的「咔」。给那些不需要区分风格、只想确认「点到了」的场合。
+ *
+ * 原先住在 `ui/drawer/ShortcutPopup.kt`，被抽屉、智能堆叠、商店、编辑器到处 import；
+ * 它跟风格映射无关，但同样是「触觉」这件事，一起收在这里。
+ */
+fun vibrateHaptic(context: Context) {
+    runCatching {
+        val effect = VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            manager.defaultVibrator.vibrate(effect)
+        } else {
+            @Suppress("DEPRECATION")
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            vibrator.vibrate(effect)
+        }
     }
 }

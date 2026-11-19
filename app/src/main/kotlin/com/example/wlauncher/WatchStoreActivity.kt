@@ -215,7 +215,7 @@ import com.flue.launcher.ui.common.LocalChordScreenCenterY
 import com.flue.launcher.ui.common.LocalChordViewportWidth
 import com.flue.launcher.ui.common.rememberFluePressScale
 import com.flue.launcher.ui.common.rememberFluePullToRefreshState
-import com.flue.launcher.ui.drawer.vibrateHaptic
+import com.flue.launcher.ui.style.vibrateHaptic
 import com.flue.launcher.ui.input.ROTARY_SCROLL_MULTIPLIER
 import com.flue.launcher.ui.input.RotaryHapticGate
 import com.flue.launcher.ui.input.flueRotaryScrollable

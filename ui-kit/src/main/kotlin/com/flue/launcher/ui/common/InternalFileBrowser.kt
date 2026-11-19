@@ -70,7 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
-import com.flue.launcher.R
+import com.flue.launcher.uikit.R
 import com.flue.launcher.ui.settings.miuix.MiuixIcons
 import com.flue.launcher.ui.theme.LauncherTheme
 import com.flue.launcher.ui.theme.ProvideDialogUiScale

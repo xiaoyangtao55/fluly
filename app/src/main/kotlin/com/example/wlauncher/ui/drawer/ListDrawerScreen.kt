@@ -89,6 +89,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
+import com.flue.launcher.ui.style.vibrateHaptic
 private const val LIST_MENU_TRIGGER_MS = 620L
 private const val LIST_MENU_DRAG_START_DP = 20f
 private const val LIST_FOLDER_HOVER_MS = 400L

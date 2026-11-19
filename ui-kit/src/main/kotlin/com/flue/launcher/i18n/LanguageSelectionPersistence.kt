@@ -2,7 +2,7 @@ package com.flue.launcher.i18n
 
 import java.util.concurrent.CancellationException
 
-internal data class LanguageSelectionResult(
+data class LanguageSelectionResult(
     val language: String,
     val isSuccess: Boolean,
 )
@@ -13,7 +13,7 @@ internal data class LanguageSelectionResult(
  * 持久化的语言，否则冷启动会使用新语言、当前进程却提示失败，两个真相反而
  * 更难收敛。
  */
-internal suspend fun persistLanguageSelection(
+suspend fun persistLanguageSelection(
     language: String,
     saveStartupLanguage: (String) -> Boolean,
     mirrorLanguage: suspend (String) -> Unit,

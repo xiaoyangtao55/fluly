@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 从 app 迁出：这些文案只属于本模块的界面。 -->
+<resources>
+    <string name="internal_file_browser_back">上の階層へ</string>
+    <string name="internal_file_browser_empty">条件に一致するファイルがありません</string>
+    <string name="internal_file_browser_grant">権限を開く</string>
+    <string name="internal_file_browser_import_selected_fmt">選択した %1$d 件を読み込む</string>
+    <string name="internal_file_browser_loading">ファイルを読み込み中…</string>
+    <string name="internal_file_browser_permission_message">Wear OS にはシステムのファイル選択画面がない場合があります。Flue 内蔵ブラウザーを使うには、デバイス内ファイルの管理を許可してください。Flue は選択したファイルのみ読み取ります。</string>
+    <string name="internal_file_browser_permission_title">デバイスのファイル閲覧を許可</string>
+    <string name="internal_file_browser_read_failed">このフォルダーを読み取れません</string>
+    <string name="internal_file_browser_select_current_folder">このフォルダーに書き出す</string>
+</resources>

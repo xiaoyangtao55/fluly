@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 从 app 迁出：这些文案只属于本模块的界面。 -->
+<resources>
+    <string name="internal_file_browser_back">Go up</string>
+    <string name="internal_file_browser_empty">No matching files here</string>
+    <string name="internal_file_browser_grant">Open permission</string>
+    <string name="internal_file_browser_import_selected_fmt">Import %1$d selected files</string>
+    <string name="internal_file_browser_loading">Reading files…</string>
+    <string name="internal_file_browser_permission_message">Wear OS often has no system file picker. To use Flue’s built-in browser, allow Flue to manage files on this device. Flue reads a file only when you choose it.</string>
+    <string name="internal_file_browser_permission_title">Allow device file browsing</string>
+    <string name="internal_file_browser_read_failed">This folder cannot be read</string>
+    <string name="internal_file_browser_select_current_folder">Export to this folder</string>
+</resources>

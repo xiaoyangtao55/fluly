@@ -95,7 +95,7 @@ import com.flue.launcher.applist.nativeview.NativeAppListPresentation
 import com.flue.launcher.ui.drawer.AppListBackend
 import com.flue.launcher.ui.drawer.appListBackend
 import com.flue.launcher.ui.drawer.appListPalette
-import com.flue.launcher.ui.drawer.vibrateHaptic
+import com.flue.launcher.ui.style.vibrateHaptic
 import com.flue.launcher.ui.common.flueOverlayMaskShape
 import com.flue.launcher.ui.common.isFlueScreenRound
 import com.flue.launcher.ui.home.WatchFaceLayer

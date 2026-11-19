@@ -168,7 +168,7 @@ import com.flue.launcher.motion.LocalFlueMotionProfile
 import com.flue.launcher.ui.style.flueOverscroll
 import com.flue.launcher.ui.drawer.AppBubble
 import com.flue.launcher.ui.drawer.AppShortcutOverlay
-import com.flue.launcher.ui.drawer.vibrateHaptic
+import com.flue.launcher.ui.style.vibrateHaptic
 import com.flue.launcher.ui.notification.NotificationEntryUi
 import com.flue.launcher.ui.notification.NotificationGroupUi
 import com.flue.launcher.ui.notification.NotificationRevealTarget

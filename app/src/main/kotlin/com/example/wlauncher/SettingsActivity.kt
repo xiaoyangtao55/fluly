@@ -222,7 +222,7 @@ import com.flue.launcher.motion.MotionEasing
 import com.flue.launcher.motion.MotionPhaseKey
 import com.flue.launcher.ui.smartstack.MusicTextSwitchAnimations
 import com.flue.launcher.ui.drawer.appListPalette
-import com.flue.launcher.ui.drawer.vibrateHaptic
+import com.flue.launcher.ui.style.vibrateHaptic
 import com.flue.launcher.ui.input.flueRotaryScrollable
 import com.flue.launcher.ui.input.ROTARY_SCROLL_MULTIPLIER
 import com.flue.launcher.ui.input.RotaryHapticGate

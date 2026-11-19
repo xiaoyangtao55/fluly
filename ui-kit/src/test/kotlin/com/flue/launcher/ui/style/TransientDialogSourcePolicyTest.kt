@@ -5,11 +5,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TransientDialogSourcePolicyTest {
+    /**
+     * 允许用原生 Dialog 的「整屏任务页」。
+     *
+     * 这份名单只对当前模块的源码生效（[kotlinSources] 只扫 ui-kit），剩下的
+     * app 侧条目是搬家前的历史记录，等对应页面也搬过来时再删。InternalFileBrowser
+     * 搬进 ui-kit 时路径也跟着变了。
+     */
     private val allowedFullscreenDialogFiles = setOf(
         "com/example/wlauncher/SettingsActivity.kt",
         "com/example/wlauncher/WatchStoreActivity.kt",
         "com/flue/launcher/ui/common/FlueImageCropOverlay.kt",
-        "com/example/wlauncher/ui/common/InternalFileBrowser.kt",
+        "com/flue/launcher/ui/common/InternalFileBrowser.kt",
         "com/flue/launcher/ui/store/WatchStorePageStack.kt",
     )
 

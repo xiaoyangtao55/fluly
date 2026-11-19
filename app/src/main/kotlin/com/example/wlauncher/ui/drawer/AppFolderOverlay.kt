@@ -95,6 +95,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import com.flue.launcher.ui.style.vibrateHaptic
 
 private const val FOLDER_ITEM_MENU_TRIGGER_MS = 620L
 private const val FOLDER_ITEM_DRAG_OUT_MS = 2_000L

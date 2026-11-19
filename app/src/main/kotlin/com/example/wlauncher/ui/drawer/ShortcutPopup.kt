@@ -5,9 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Process
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -349,16 +346,3 @@ private fun ShortcutMenuItem(text: String, color: Color = Color.White, onClick: 
     }
 }
 
-fun vibrateHaptic(context: Context) {
-    try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vm.defaultVibrator.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            val v = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            v.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
-        }
-    } catch (_: Exception) {
-    }
-}

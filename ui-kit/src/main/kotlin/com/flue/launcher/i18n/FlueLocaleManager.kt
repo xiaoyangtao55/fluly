@@ -26,7 +26,7 @@ object FlueLocaleManager {
     const val LANGUAGE_SYSTEM = ""
 
     /** 将外部输入归一为 SharedPreferences/DataStore 共用的 canonical 值。 */
-    internal fun normalizeLanguage(language: String?): String = canonicalLanguage(language)
+    fun normalizeLanguage(language: String?): String = canonicalLanguage(language)
 
     /** 读取已保存的语言代码；未设置时返回 [LANGUAGE_SYSTEM]。 */
     fun getSavedLanguage(context: Context): String =

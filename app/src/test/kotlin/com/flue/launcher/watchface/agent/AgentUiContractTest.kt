@@ -1,10 +1,10 @@
 package com.flue.launcher.watchface.agent
 
-import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.flue.launcher.TestSourceRoots
 
 class AgentUiContractTest {
     @Test
@@ -195,20 +195,5 @@ class AgentUiContractTest {
         assertTrue(panel.contains("localizedConversationTitle"))
     }
 
-    private fun source(relative: String): String {
-        // agent 已拆成独立 Gradle 模块，源码根不再只有 app 一处。
-        val roots = sequenceOf(
-            "src/main/kotlin",
-            "app/src/main/kotlin",
-            "../app/src/main/kotlin",
-            "../agent/src/main/kotlin",
-            "src/main/java",
-            "../app/src/main/java",
-        ).map(::File).filter(File::isDirectory).toList()
-        require(roots.isNotEmpty()) { "找不到 Android Kotlin 源码目录" }
-        return roots.map { File(it, relative) }
-            .firstOrNull(File::isFile)
-            ?.readText()
-            ?: error("在 ${roots.joinToString()} 下都找不到 $relative")
-    }
+    private fun source(relative: String): String = TestSourceRoots.read(relative)
 }

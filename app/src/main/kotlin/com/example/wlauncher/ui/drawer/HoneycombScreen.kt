@@ -95,6 +95,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
+import com.flue.launcher.ui.style.vibrateHaptic
 
 private const val HONEYCOMB_MENU_TRIGGER_MS = 620L
 private const val HONEYCOMB_MENU_DRAG_START_DP = 20f
