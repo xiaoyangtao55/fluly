@@ -430,11 +430,11 @@
     <string name="settings_watchface_import">文字盤をインポート</string>
     <string name="settings_watchface_import_sub">標準 Watchmaker .watch 文字盤をインポート（jb_watch パッケージ対応）</string>
     <string name="settings_watchface_store">文字盤ストア</string>
-    <string name="settings_watchface_store_sub">Watchmaker Community Store を閲覧し、.watch 文字盤を安全にインストール</string>
+    <string name="settings_watchface_store_sub">Flue Studio で Watchmaker Community Store を閲覧し、.watch 文字盤を読み込みます</string>
     <string name="settings_watchface_editor_new">.watch 文字盤を新規作成</string>
-    <string name="settings_watchface_editor_new_sub">内蔵エディターで基本レイヤーを作り、リアルタイムでプレビュー</string>
+    <string name="settings_watchface_editor_new_sub">Flue Studio で文字盤を新規作成し、リアルタイムでプレビュー</string>
     <string name="settings_watchface_editor_current">現在の標準文字盤を編集</string>
-    <string name="settings_watchface_editor_current_sub_fmt">%s を分離した下書きで編集し、新しい文字盤として保存</string>
+    <string name="settings_watchface_editor_current_sub_fmt">Flue Studio で %s を編集し、新しい文字盤として保存</string>
     <string name="settings_watchface_more">文字盤の詳細設定</string>
     <string name="settings_watchface_more_sub">内蔵文字盤のフォントと下部フェード</string>
     <string name="settings_watchmaker_force_fill">画面いっぱいに表示</string>
@@ -1683,4 +1683,5 @@
     <string name="watch_store_web_view_render_failed">ウェブ版の読み込みに失敗したため、システムのブラウザで開きました</string>
     <string name="settings_watchface_tap_haptics">タップ時の振動</string>
     <string name="settings_watchface_tap_haptics_sub">.watch 文字盤の操作ボタンをタップすると振動します</string>
+    <string name="flue_studio_not_installed">Flue Studio がインストールされていません（エディタとストアはこちらにあります）</string>
 </resources>

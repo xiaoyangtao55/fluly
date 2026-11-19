@@ -160,15 +160,16 @@ object SettingsHierarchy {
             SettingsEntry.Navigation(
                 id = "watchface_store",
                 title = "表盘商店",
-                destination = "WatchStoreActivity",
-                subtitle = "在线表盘（主工作区开发中）",
+                // 商店与编辑器都已搬进 Flue Studio，这里只是文档性的分组表。
+                destination = "com.flue.studio.StudioActivity",
+                subtitle = "在 Flue Studio 里浏览（独立 APK）",
                 status = EntryStatus.PLANNED
             ),
             SettingsEntry.Navigation(
                 id = "watchface_editor",
                 title = "表盘编辑器",
-                destination = "WatchEditorActivity",
-                subtitle = "自定义表盘编辑（主工作区开发中）",
+                destination = "com.flue.studio.StudioActivity",
+                subtitle = "在 Flue Studio 里编辑（独立 APK）",
                 status = EntryStatus.PLANNED
             ),
             SettingsEntry.Navigation(

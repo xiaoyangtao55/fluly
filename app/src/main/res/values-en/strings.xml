@@ -436,11 +436,11 @@
     <string name="watchface_cards_open_settings">Open watch face settings</string>
     <string name="watchface_cards_builtin_author">Flue</string>
     <string name="watchface_cards_unknown_author">Unknown author</string>
-    <string name="settings_watchface_store_sub">Browse the Watchmaker Community Store and install .watch faces safely</string>
+    <string name="settings_watchface_store_sub">Browse the Watchmaker Community Store in Flue Studio, then import the .watch face</string>
     <string name="settings_watchface_editor_new">New .watch face</string>
-    <string name="settings_watchface_editor_new_sub">Build basic layers in the editor with a live preview</string>
+    <string name="settings_watchface_editor_new_sub">Create a face in Flue Studio with a live preview</string>
     <string name="settings_watchface_editor_current">Edit current standard face</string>
-    <string name="settings_watchface_editor_current_sub_fmt">Edit %s in an isolated draft and save as a new face</string>
+    <string name="settings_watchface_editor_current_sub_fmt">Edit %s in Flue Studio and save as a new face</string>
     <string name="settings_watchface_more">More watch face options</string>
     <string name="settings_watchface_more_sub">Long-press action, built-in face font, and bottom fade</string>
     <string name="settings_watchface_long_press_mode">Long-press watch face action</string>
@@ -1696,4 +1696,5 @@
     <string name="watch_store_web_view_render_failed">The web store failed to load; opened in the system browser instead</string>
     <string name="settings_watchface_tap_haptics">Tap vibration</string>
     <string name="settings_watchface_tap_haptics_sub">Vibrate when tapping interactive buttons on .watch faces</string>
+    <string name="flue_studio_not_installed">Flue Studio is not installed; the editor and watch face store live there</string>
 </resources>

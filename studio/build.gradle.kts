@@ -54,8 +54,11 @@ kotlin {
 
 dependencies {
     implementation(project(":agent"))
+    implementation(project(":ui-kit"))
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
+    // 编辑器与商店整块搬进 Studio：HOME 从此不再打包 ffmpeg / miuix / WebView 商店。
+    implementation(project(":watchface-editor"))
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)
@@ -66,4 +69,13 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
     implementation(libs.compose.animation)
+    implementation(libs.compose.material3.expressive)
+    implementation(libs.compose.material.icons)
+    implementation(libs.compose.cloudy)
+    implementation(libs.miuix.core)
+    implementation(libs.miuix.icons)
+    // 编辑器要转码导入的视频、在编辑器里试跑全局脚本，这些都得在运行时可见。
+    implementation(libs.ffmpeg.kit.video)
+    implementation(libs.smart.exception.java)
+    implementation(libs.luaj.jse)
 }

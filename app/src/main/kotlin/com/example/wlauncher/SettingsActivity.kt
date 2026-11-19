@@ -45,7 +45,6 @@ import com.flue.launcher.ui.settings.miuix.SettingsIcon
 import com.flue.launcher.ui.settings.SettingsSearchEntry
 import com.flue.launcher.ui.settings.SettingsSearchField
 import com.flue.launcher.ui.settings.searchSettingsEntries
-import com.flue.launcher.ui.store.WatchStoreBaseUrlDialog
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.fadeIn
@@ -244,6 +243,7 @@ import com.flue.launcher.ui.theme.SettingsMaterialTheme
 import com.flue.launcher.ui.theme.RoundElementRole
 import com.flue.launcher.ui.theme.roundAwareCardShape
 import com.flue.launcher.ui.theme.roundAwareCompactShape
+import com.flue.launcher.util.FlueStudioLauncher
 import com.flue.launcher.util.RecentsVisibility
 import com.flue.launcher.util.FlowCrescentDirection
 import com.flue.launcher.util.flowCrescentOffsetPx
@@ -260,7 +260,6 @@ import com.flue.launcher.watchface.standard.WatchWeatherRepository
 import com.flue.launcher.watchface.standard.WatchLocationPermissionPolicy
 import com.flue.launcher.watchface.standard.hasHeartRatePermission
 import com.flue.launcher.watchface.standard.requiredHeartRatePermission
-import com.flue.launcher.watchface.store.WatchStoreRepository
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import com.flue.launcher.ui.settings.WatchTapActionAppPickerDialog
@@ -272,10 +271,6 @@ import com.flue.launcher.diagnostics.DiagnosticsSettingsSection
 import com.flue.launcher.diagnostics.DiagnosticsInformationSection
 import com.flue.launcher.aod.AodSupplementalNotice
 import com.flue.launcher.aod.rememberAodSettingsState
-import com.flue.launcher.ui.store.clearFlueWebViewData
-import com.flue.launcher.watchface.store.MAX_WEB_ZOOM_PERCENT
-import com.flue.launcher.watchface.store.MIN_WEB_ZOOM_PERCENT
-import com.flue.launcher.watchface.store.WatchStoreUiPreferences
 import com.flue.launcher.ui.style.FlueLoadingIndicator
 import com.flue.launcher.watchface.selection.WatchFaceLongPressMode
 import top.yukonga.miuix.kmp.icon.MiuixIcons as OfficialMiuixIcons
@@ -553,45 +548,13 @@ private fun SettingsRootScreen(
     val rawWatchFaces by vm.availableWatchFaces.collectAsStateWithLifecycle()
     val selectedWatchFaceId by vm.selectedWatchFaceId.collectAsStateWithLifecycle()
     val rawSelectedWatchFace by vm.selectedWatchFace.collectAsStateWithLifecycle()
-    val watchCatalogRepository = remember(context) { WatchStoreRepository(context) }
-    var watchCatalogReloadToken by remember { mutableStateOf(0) }
-    val watchStoreUiPreferences = remember(context) { WatchStoreUiPreferences(context) }
-    var customWatchStoreUrlDialogVisible by remember { mutableStateOf(false) }
     // H6：缩放值存在商店那座 UI 偏好小岛里（它本来就是「商店本地 UI 偏好」的归属），
     // 这里只留一份界面镜像；网页宿主 onResume 会自己回读并对当前页 reload。
-    var webZoomPercent by remember { mutableStateOf(watchStoreUiPreferences.readWebZoomPercent()) }
-    var webZoomDialogVisible by remember { mutableStateOf(false) }
     var tapActionCategoryId by remember { mutableStateOf<String?>(null) }
     var tapActionPicker by remember { mutableStateOf<WatchTapActionDefinition?>(null) }
     var tapActionRevision by remember { mutableStateOf(0) }
-    var clearWebDataDialogVisible by remember { mutableStateOf(false) }
-    var watchCatalogDisplayNames by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    LaunchedEffect(watchCatalogRepository, watchCatalogReloadToken) {
-        val snapshot = runCatching { watchCatalogRepository.readCatalog() }.getOrNull()
-        watchCatalogDisplayNames = if (snapshot?.diagnostic == null) {
-            snapshot?.records.orEmpty().mapNotNull { record ->
-                val launcherId = record.activeLauncherIdOrNull() ?: return@mapNotNull null
-                val displayName = record.resolvedDisplayName() ?: return@mapNotNull null
-                launcherId to displayName
-            }.toMap()
-        } else {
-            emptyMap()
-        }
-    }
-    val watchFaces = remember(rawWatchFaces, watchCatalogDisplayNames) {
-        rawWatchFaces.map { descriptor ->
-            watchCatalogDisplayNames[descriptor.id]
-                ?.takeIf { it != descriptor.displayName }
-                ?.let { descriptor.copy(displayName = it) }
-                ?: descriptor
-        }
-    }
-    val selectedWatchFace = remember(rawSelectedWatchFace, watchCatalogDisplayNames) {
-        watchCatalogDisplayNames[rawSelectedWatchFace.id]
-            ?.takeIf { it != rawSelectedWatchFace.displayName }
-            ?.let { rawSelectedWatchFace.copy(displayName = it) }
-            ?: rawSelectedWatchFace
-    }
+    val watchFaces = rawWatchFaces
+    val selectedWatchFace = rawSelectedWatchFace
     val allSelectableApps by vm.allSelectableApps.collectAsStateWithLifecycle()
     val hiddenApps by vm.hiddenApps.collectAsStateWithLifecycle()
     val availableIconPacks by vm.availableIconPacks.collectAsStateWithLifecycle()
@@ -684,7 +647,6 @@ private fun SettingsRootScreen(
     val builtInVideoCustomText by vm.builtInVideoCustomText.collectAsStateWithLifecycle()
     val builtInManagerThumbnails by vm.builtInManagerThumbnails.collectAsStateWithLifecycle()
     val hideFromRecents by vm.hideFromRecents.collectAsStateWithLifecycle()
-    val watchStoreSegmentedDownload by vm.watchStoreSegmentedDownload.collectAsStateWithLifecycle()
     val themeMode by vm.themeMode.collectAsStateWithLifecycle()
     val uiStyle by vm.uiStyle.collectAsStateWithLifecycle()
     // 转场动画风格独立于界面风格（老师定）：这一页要同时读两者。
@@ -1434,11 +1396,9 @@ private fun SettingsRootScreen(
                 weatherLocationLabel = weatherRepository.activeLocationLabel().orEmpty()
                 weatherUsingSystemLocation = weatherRepository.isUsingSystemLocation()
                 weatherTemperatureUnit = weatherRepository.temperatureUnit()
-                // Market/editor activities can install a content-addressed .watch
-                // archive while this SettingsActivity remains alive. Refresh the
-                // shared registry when returning instead of waiting for a cold start.
+                // Studio 可能刚装完/编辑完一个 .watch，回到这一页时重扫一次，
+                // 而不是等下次冷启动才看见。
                 vm.refreshWatchFaces(force = true)
-                watchCatalogReloadToken += 1
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -1961,12 +1921,7 @@ private fun SettingsRootScreen(
                         ),
                         scale = itemFisheye(listState, "watchface_editor_current", screenCenterY, screenHeightPx),
                         icon = { SettingsIcon(material = OfficialMiuixIcons.OfficialSettings, miuix = OfficialMiuixIcons.OfficialSettings) },
-                        onClick = {
-                            context.startActivity(
-                                Intent(context, WatchEditorActivity::class.java)
-                                    .putExtra(WatchEditorActivity.EXTRA_WATCH_FACE_ID, selectedWatchFace.id)
-                            )
-                        }
+                        onClick = { FlueStudioLauncher.open(context) }
                     )
                 }
             }
@@ -1980,9 +1935,7 @@ private fun SettingsRootScreen(
                         subtitle = stringResource(R.string.settings_watchface_editor_new_sub),
                         scale = itemFisheye(listState, "watchface_editor_new", screenCenterY, screenHeightPx),
                         icon = { SettingsIcon(material = OfficialMiuixIcons.OfficialAdd, miuix = OfficialMiuixIcons.OfficialAdd) },
-                        onClick = {
-                            context.startActivity(Intent(context, WatchEditorActivity::class.java))
-                        },
+                        onClick = { FlueStudioLauncher.open(context) },
                         groupPosition = position,
                     )
                 }
@@ -2029,9 +1982,7 @@ private fun SettingsRootScreen(
                                 miuix = OfficialMiuixIcons.OfficialCarrier,
                             )
                         },
-                        onClick = {
-                            context.startActivity(Intent(context, WatchStoreActivity::class.java))
-                        },
+                        onClick = { FlueStudioLauncher.open(context) },
                         groupPosition = position,
                     )
                 }
@@ -4323,17 +4274,7 @@ private fun SettingsRootScreen(
                         groupPosition = position,
                     )
                 }
-                row("watch_store_segmented_download") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watch_store_segmented_download),
-                        subtitle = stringResource(R.string.settings_watch_store_segmented_download_sub),
-                        checked = watchStoreSegmentedDownload,
-                        onToggle = vm::setWatchStoreSegmentedDownload,
-                        scale = itemFisheye(listState, "watch_store_segmented_download", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+                            }
         }
 
             SettingsDestination.MOTION_PROFILE -> SettingsPageScaffold(
@@ -4669,68 +4610,7 @@ private fun SettingsRootScreen(
                         groupPosition = position,
                     )
                 }
-                row("watch_store_preview_cache") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_clear_watch_store_cache),
-                        subtitle = stringResource(R.string.settings_clear_watch_store_cache_sub),
-                        onClick = {
-                            settingsScope.launch {
-                                val message = runCatching { watchCatalogRepository.clearPreviewCache() }
-                                    .fold(
-                                        onSuccess = { removed ->
-                                            context.getString(R.string.settings_clear_watch_store_cache_done, removed)
-                                        },
-                                        onFailure = {
-                                            context.getString(R.string.settings_clear_watch_store_cache_failed)
-                                        },
-                                    )
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        scale = itemFisheye(
-                            listState,
-                            "watch_store_preview_cache",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        groupPosition = position,
-                    )
-                }
-                row("watch_store_market_url") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_watch_store_market_url),
-                        subtitle = watchStoreUiPreferences.readBaseUrl(),
-                        onClick = { customWatchStoreUrlDialogVisible = true },
-                        scale = itemFisheye(
-                            listState,
-                            "watch_store_market_url",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        groupPosition = position,
-                    )
-                }
-                row("web_zoom") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_web_zoom),
-                        subtitle = "$webZoomPercent%",
-                        onClick = { webZoomDialogVisible = true },
-                        scale = itemFisheye(listState, "web_zoom", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("clear_web_data") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_clear_web_data),
-                        subtitle = stringResource(R.string.settings_clear_web_data_sub),
-                        // 二次确认：这一项清的是**网页版的登录态**，而它和应用内市场账号是
-                        // 两套凭据 —— 误触之后「我明明登录过」的困惑代价很高。
-                        onClick = { clearWebDataDialogVisible = true },
-                        scale = itemFisheye(listState, "clear_web_data", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("diagnostic_logging") { position ->
+                                                                                row("diagnostic_logging") { position ->
                     SettingsSwitchRow(
                         title = stringResource(R.string.settings_diagnostic_logging),
                         subtitle = if (diagnosticLoggingEnabled) {
@@ -4987,7 +4867,6 @@ private fun SettingsRootScreen(
             SettingsDestination.DEBUG -> DebugPage(
                 vm = vm,
                 weatherRepository = weatherRepository,
-                watchCatalogRepository = watchCatalogRepository,
                 onBack = { handleBack() },
                 onCrash = { error("Flue debug crash") },
             )
@@ -5184,52 +5063,6 @@ private fun SettingsRootScreen(
                 action = action,
                 onDismiss = { tapActionPicker = null },
                 onChanged = { tapActionRevision++ },
-            )
-        }
-    if (webZoomDialogVisible) {
-        WebZoomInputDialog(
-            current = webZoomPercent,
-            onDismiss = { webZoomDialogVisible = false },
-            onConfirm = { value ->
-                webZoomPercent = watchStoreUiPreferences.writeWebZoomPercent(value)
-                webZoomDialogVisible = false
-            },
-        )
-    }
-    if (clearWebDataDialogVisible) {
-        FlueAlertDialog(
-            onDismissRequest = { clearWebDataDialogVisible = false },
-            title = stringResource(R.string.settings_clear_web_data),
-            text = stringResource(R.string.settings_clear_web_data_confirm),
-            confirmText = stringResource(android.R.string.ok),
-            dismissText = stringResource(android.R.string.cancel),
-            onConfirm = {
-                clearWebDataDialogVisible = false
-                clearFlueWebViewData(context)
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.settings_clear_web_data_done),
-                    Toast.LENGTH_SHORT,
-                ).show()
-            },
-        )
-    }
-    if (customWatchStoreUrlDialogVisible) {
-            // 与表盘市场共用同一份弹窗（市场拉取失败时要就地弹它，不再跳工具页）。
-            WatchStoreBaseUrlDialog(
-                preferences = watchStoreUiPreferences,
-                onSaved = {
-                    customWatchStoreUrlDialogVisible = false
-                    settingsScope.launch {
-                        runCatching { watchCatalogRepository.clearPreviewCache() }
-                    }
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.settings_watch_store_market_url_saved),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                },
-                onDismiss = { customWatchStoreUrlDialogVisible = false },
             )
         }
 
@@ -7153,7 +6986,6 @@ private fun AboutCard(
 private fun DebugPage(
     vm: LauncherViewModel,
     weatherRepository: WatchWeatherRepository,
-    watchCatalogRepository: WatchStoreRepository,
     onBack: () -> Unit,
     onCrash: () -> Unit,
 ) {
@@ -7203,10 +7035,9 @@ private fun DebugPage(
                     onClick = {
                         scope.launch {
                             cacheStatus = runCatching {
-                                val removed = watchCatalogRepository.clearPreviewCache()
                                 vm.refreshWatchFaces(force = true)
                                 weatherRepository.requestRefresh()
-                                context.getString(R.string.diagnostics_cache_refreshed, removed)
+                                context.getString(R.string.diagnostics_cache_refreshed, 0)
                             }.getOrElse { context.getString(R.string.diagnostics_cache_failed) }
                         }
                     },
@@ -7341,58 +7172,6 @@ private fun ProfileRenameDialog(
     )
 }
 
-/**
- * H6 的缩放输入。
- *
- * 这一项**要限范围**（与 I1 的画布数值输入那条「不限量程」相反）：WebView 的缩放超出
- * 25–250 会直接排版崩坏，而 25 / 250 正是老师给的界。所以越界时把「确定」灰掉，
- * 而不是收下之后偷偷夹一遍 —— 用户得知道自己填的数没被采用。
- */
-@Composable
-private fun WebZoomInputDialog(
-    current: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit,
-) {
-    val style = LauncherTheme.style
-    var text by remember(current) { mutableStateOf(current.toString()) }
-    val parsed = text.trim().toIntOrNull()
-    val valid = parsed != null && parsed in MIN_WEB_ZOOM_PERCENT..MAX_WEB_ZOOM_PERCENT
-    FlueAlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.settings_web_zoom_dialog_title), color = style.titleColor)
-        },
-        text = {
-            OutlinedTextField(
-                value = text,
-                // 只收数字：手表键盘上切数字面板很费劲，直接把非数字过滤掉。
-                onValueChange = { raw -> text = raw.filter(Char::isDigit).take(3) },
-                singleLine = true,
-                shape = style.rowShape,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                supportingText = {
-                    Text(
-                        stringResource(R.string.settings_web_zoom_sub),
-                        color = style.secondaryTextColor,
-                        fontSize = 11.sp,
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { parsed?.let(onConfirm) }, enabled = valid) {
-                Text(stringResource(android.R.string.ok), color = style.accentColor)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel), color = style.secondaryTextColor)
-            }
-        },
-    )
-}
 
 @Composable
 private fun OverlayMaskCornerRadiusDialog(

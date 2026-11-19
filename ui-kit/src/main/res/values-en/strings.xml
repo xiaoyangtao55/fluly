@@ -156,4 +156,6 @@
     <string name="tap_action_weather">Weather</string>
 
     <string name="tap_action_weather_sub">Open your preferred weather app</string>
+
+    <string name="image_crop_failed">This image could not be read</string>
 </resources>

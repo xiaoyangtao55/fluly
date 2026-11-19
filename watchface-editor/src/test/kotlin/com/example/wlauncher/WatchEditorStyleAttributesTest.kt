@@ -2,6 +2,7 @@
 // WatchEditorActivity.kt 本身完全一致（这个仓里那批 Activity 的路径和包名从来不一致）。
 package com.flue.launcher
 
+import com.flue.launcher.watchface.editor.R
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import com.flue.launcher.watchface.core.WATCH_SHAPE_ATTRIBUTE_VALUES

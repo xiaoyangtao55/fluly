@@ -19,9 +19,10 @@ class AgentConversationUiContractTest {
 
     @Test
     fun `watch editor uses resize once for the agent keyboard`() {
-        val manifest = sourceFromMain("AndroidManifest.xml")
+        // 编辑器已经搬进 Studio，这条声明跟着搬到了 Studio 的 manifest 上。
+        val manifest = studioManifest()
 
-        val editorActivity = manifest.substringAfter("android:name=\".WatchEditorActivity\"")
+        val editorActivity = manifest.substringAfter("android:name=\"com.flue.launcher.WatchEditorActivity\"")
             .substringBefore("</activity>")
             .substringBefore("/>")
         assertTrue(editorActivity.contains("android:windowSoftInputMode=\"adjustResize\""))
@@ -29,12 +30,11 @@ class AgentConversationUiContractTest {
 
     private fun source(relative: String): String = TestSourceRoots.read(relative)
 
-    private fun sourceFromMain(relative: String): String {
-        val root = sequenceOf(
-            File("src/main"),
-            File("app/src/main"),
-            File("../app/src/main"),
-        ).firstOrNull(File::isDirectory) ?: error("找不到 Android main 目录")
-        return File(root, relative).readText()
+    private fun studioManifest(): String {
+        val manifest = sequenceOf(
+            File("../studio/src/main/AndroidManifest.xml"),
+            File("studio/src/main/AndroidManifest.xml"),
+        ).firstOrNull(File::isFile) ?: error("找不到 Studio 的 AndroidManifest.xml")
+        return manifest.readText()
     }
 }

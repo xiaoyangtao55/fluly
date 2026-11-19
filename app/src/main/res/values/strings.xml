@@ -437,11 +437,11 @@
     <string name="watchface_cards_open_settings">进入表盘设置</string>
     <string name="watchface_cards_builtin_author">Flue</string>
     <string name="watchface_cards_unknown_author">未知作者</string>
-    <string name="settings_watchface_store_sub">浏览 Watchmaker Community Store，下载后安全安装 .watch 表盘</string>
+    <string name="settings_watchface_store_sub">在 Flue Studio 中浏览 Watchmaker Community Store，下载后导入 .watch 表盘</string>
     <string name="settings_watchface_editor_new">新建 .watch 表盘</string>
-    <string name="settings_watchface_editor_new_sub">使用内置编辑器创建基础图层并实时预览</string>
+    <string name="settings_watchface_editor_new_sub">在 Flue Studio 中新建表盘，实时预览</string>
     <string name="settings_watchface_editor_current">编辑当前标准表盘</string>
-    <string name="settings_watchface_editor_current_sub_fmt">在隔离草稿中编辑 %s，另存为新表盘</string>
+    <string name="settings_watchface_editor_current_sub_fmt">在 Flue Studio 中编辑 %s，另存为新表盘</string>
     <string name="settings_watchface_more">更多表盘选项</string>
     <string name="settings_watchface_more_sub">长按打开方式、表盘字体与底部渐隐</string>
     <string name="settings_watchface_long_press_mode">长按表盘打开方式</string>
@@ -1735,4 +1735,5 @@
     <string name="watch_store_web_view_render_failed">网页版加载失败，已改用系统浏览器打开</string>
     <string name="settings_watchface_tap_haptics">点击震动</string>
     <string name="settings_watchface_tap_haptics_sub">点击 .watch 表盘互动按钮时提供震动反馈</string>
+    <string name="flue_studio_not_installed">Flue Studio 未安装，编辑器与表盘商店都在那里</string>
 </resources>

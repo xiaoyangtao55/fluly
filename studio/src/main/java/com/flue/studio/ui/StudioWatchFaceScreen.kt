@@ -1,5 +1,6 @@
 package com.flue.studio.ui
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -40,12 +41,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flue.launcher.WatchEditorActivity
+import com.flue.launcher.WatchStoreActivity
 import com.flue.launcher.watchface.WatchFaceDescriptor
 import com.flue.launcher.watchface.standard.WatchmakerWatchFaceHost
-import com.flue.launcher.watchface.standard.WatchmakerWatchFaceStorage
-import kotlinx.coroutines.Dispatchers
+import com.flue.studio.StudioServices
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Studio 的表盘预览页：直接挂 `:watchface-runtime` 的渲染器跑真表盘。
@@ -58,7 +60,8 @@ fun StudioWatchFaceScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var faces by remember { mutableStateOf<List<WatchFaceDescriptor>>(emptyList()) }
+    val host = StudioServices.editorHost
+    val faces by host.availableWatchFaces.collectAsStateWithLifecycle()
     var selectedId by remember { mutableStateOf<String?>(null) }
     var roundScreen by remember { mutableStateOf(true) }
     var busy by remember { mutableStateOf(false) }
@@ -69,38 +72,26 @@ fun StudioWatchFaceScreen(modifier: Modifier = Modifier) {
     val selected = faces.firstOrNull { it.id == selectedId } ?: faces.firstOrNull()
 
     fun reload() {
-        scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { WatchmakerWatchFaceStorage.scanWithDiagnostics(context) }
-            }
-            result.onSuccess { scanned ->
-                faces = scanned.descriptors
-                if (faces.none { it.id == selectedId }) selectedId = faces.firstOrNull()?.id
-                status = scanned.failures.firstOrNull()?.let {
-                    "${scanned.failures.size} 个表盘读取失败：${it.directoryName} · ${it.message}"
-                }
-            }.onFailure { error ->
-                status = "扫描表盘失败：${error.message ?: error.javaClass.simpleName}"
-            }
-        }
+        host.notifyWatchFacesChanged()
+        status = null
     }
 
-    LaunchedEffect(Unit) { reload() }
+    // 编辑器保存、商店装完都会走宿主那份列表，这里跟着它刷新选中项即可。
+    LaunchedEffect(faces) {
+        if (faces.none { it.id == selectedId }) selectedId = faces.firstOrNull()?.id
+    }
 
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         busy = true
         status = "正在安装表盘…"
         scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching { WatchmakerWatchFaceStorage.importArchive(context, uri) }
-            }
+            val result = host.importWatchFaceArchive(uri)
             busy = false
             result.onSuccess { descriptor ->
                 status = "已安装：${descriptor.displayName}"
                 selectedId = descriptor.id
                 refreshToken += 1
-                reload()
             }.onFailure { error ->
                 status = "安装失败：${error.message ?: error.javaClass.simpleName}"
             }
@@ -182,6 +173,27 @@ fun StudioWatchFaceScreen(modifier: Modifier = Modifier) {
             }
         }
 
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedButton(
+                onClick = {
+                    context.startActivity(
+                        Intent(context, WatchEditorActivity::class.java)
+                            .putExtra(WatchEditorActivity.EXTRA_WATCH_FACE_ID, selected?.id),
+                    )
+                },
+                enabled = selected != null,
+            ) { Text("编辑") }
+            Button(
+                onClick = { context.startActivity(Intent(context, WatchEditorActivity::class.java)) },
+            ) { Text("新建表盘") }
+            OutlinedButton(
+                onClick = { context.startActivity(Intent(context, WatchStoreActivity::class.java)) },
+            ) { Text("商店") }
+        }
+
         status?.let { line ->
             Text(
                 text = line,
@@ -218,12 +230,9 @@ fun StudioWatchFaceScreen(modifier: Modifier = Modifier) {
                         },
                         onDelete = {
                             scope.launch {
-                                val deleted = withContext(Dispatchers.IO) {
-                                    WatchmakerWatchFaceStorage.delete(context, face)
-                                }
+                                val deleted = host.deleteImportedWatchFaces(listOf(face.id)).isSuccess
                                 status = if (deleted) "已删除：${face.displayName}" else "删除失败：${face.displayName}"
                                 if (deleted && face.id == selected?.id) selectedId = null
-                                reload()
                             }
                         },
                     )

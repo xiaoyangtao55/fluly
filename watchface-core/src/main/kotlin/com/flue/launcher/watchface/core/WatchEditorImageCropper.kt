@@ -1,4 +1,4 @@
-package com.flue.launcher.watchface.editor
+package com.flue.launcher.watchface.core
 
 import android.content.ContentResolver
 import android.graphics.Bitmap
@@ -7,10 +7,9 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.net.Uri
 import android.provider.OpenableColumns
-import com.flue.launcher.watchface.core.WatchEditorSourceRect
-import com.flue.launcher.watchface.core.watchEditorCropSampleSize
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.InputStream
 
 /**
@@ -57,7 +56,7 @@ object WatchEditorImageCropper {
             BitmapFactory.decodeStream(input, null, options)
         }
         if (options.outWidth <= 0 || options.outHeight <= 0) {
-            throw WatchEditorException("无法识别所选图片")
+            throw IOException("无法识别所选图片")
         }
         return SourceBounds(options.outWidth, options.outHeight)
     }
@@ -74,7 +73,7 @@ object WatchEditorImageCropper {
         }
         val bitmap = openStream(resolver, uri).use { input ->
             BitmapFactory.decodeStream(input, null, options)
-        } ?: throw WatchEditorException("图片解码失败")
+        } ?: throw IOException("图片解码失败")
         return bitmap
     }
 
@@ -129,7 +128,7 @@ object WatchEditorImageCropper {
                 null,
                 BitmapFactory.Options().apply { inSampleSize = fullSample },
             )
-        } ?: throw WatchEditorException("图片解码失败")
+        } ?: throw IOException("图片解码失败")
         val scaleX = full.width.toFloat() / bounds.width
         val scaleY = full.height.toFloat() / bounds.height
         val left = (sourceRect.left * scaleX).toInt().coerceIn(0, full.width - 1)
@@ -146,7 +145,7 @@ object WatchEditorImageCropper {
     fun toPngStream(bitmap: Bitmap): InputStream {
         val output = ByteArrayOutputStream()
         if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) {
-            throw WatchEditorException("图片编码失败")
+            throw IOException("图片编码失败")
         }
         return ByteArrayInputStream(output.toByteArray())
     }
@@ -160,5 +159,5 @@ object WatchEditorImageCropper {
         }
 
     private fun openStream(resolver: ContentResolver, uri: Uri): InputStream =
-        resolver.openInputStream(uri) ?: throw WatchEditorException("无法读取所选图片")
+        resolver.openInputStream(uri) ?: throw IOException("无法读取所选图片")
 }

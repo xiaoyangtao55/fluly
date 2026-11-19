@@ -99,14 +99,12 @@ import com.flue.launcher.watchface.WatchFaceDescriptor
 import com.flue.launcher.watchface.WatchFaceDescriptors
 import com.flue.launcher.watchface.jbwatch.JBWATCH_ID_PREFIX
 import com.flue.launcher.watchface.jbwatch.JbWatchFaceStorage
-import com.flue.launcher.watchface.editor.WatchEditorSession
 import com.flue.launcher.watchface.standard.WATCHMAKER_ID_PREFIX
 import com.flue.launcher.watchface.standard.WatchCanvasPreset
 import com.flue.launcher.watchface.standard.WatchCanvasSettings
 import com.flue.launcher.watchface.standard.WatchDateLocale
 import com.flue.launcher.watchface.standard.WatchmakerWatchFaceStorage
 import com.flue.launcher.watchface.standard.watchArchiveDeclaresProtection
-import com.flue.launcher.watchface.store.FlueDownloadTuning
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -305,7 +303,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         val KEY_VIDEO_CUSTOM_TEXT = stringPreferencesKey("video_custom_text")
         val KEY_BUILTIN_MANAGER_THUMBNAILS = booleanPreferencesKey("builtin_manager_thumbnails")
         val KEY_HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
-        val KEY_WATCH_STORE_SEGMENTED_DOWNLOAD = booleanPreferencesKey("watch_store_segmented_download")
         val KEY_APP_LANGUAGE = stringPreferencesKey("app_language")
         val KEY_GLASS_HIGHLIGHT = booleanPreferencesKey("glass_highlight_enabled")
         val KEY_WIDGET_GLASS_HIGHLIGHT = booleanPreferencesKey("widget_glass_highlight_enabled")
@@ -809,8 +806,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val builtInManagerThumbnails: StateFlow<Boolean> = _builtInManagerThumbnails.asStateFlow()
     private val _hideFromRecents = MutableStateFlow(true)
     val hideFromRecents: StateFlow<Boolean> = _hideFromRecents.asStateFlow()
-    private val _watchStoreSegmentedDownload = MutableStateFlow(true)
-    val watchStoreSegmentedDownload: StateFlow<Boolean> = _watchStoreSegmentedDownload.asStateFlow()
     // 启动语言真源是 SharedPreferences；DataStore 只保存镜像，不能回灌旧值。
     private val _appLanguage = MutableStateFlow(
         com.flue.launcher.i18n.FlueLocaleManager.getSavedLanguage(application)
@@ -1559,14 +1554,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 // RecentsVisibility 的读方遍布各 Activity 的 onCreate/onResume，
                 // 靠这条收集器推送保持缓存与 DataStore 一致，读方就不必阻塞读盘。
                 RecentsVisibility.updateCache(loadedHideFromRecents)
-
-                val loadedSegmentedDownload = prefs[KEY_WATCH_STORE_SEGMENTED_DOWNLOAD] ?: true
-                if (_watchStoreSegmentedDownload.value != loadedSegmentedDownload) {
-                    _watchStoreSegmentedDownload.value = loadedSegmentedDownload
-                }
-                // 传输层是在 Composable 的 remember 里 new 出来的，拿不到 ViewModel，
-                // 只能靠这个进程级引用把开关递过去。
-                FlueDownloadTuning.segmentedDownloads = loadedSegmentedDownload
 
                 // Locale is needed synchronously from Application/Activity.attachBaseContext,
                 // so SharedPreferences is the sole authority. DataStore keeps a mirror for
@@ -3193,31 +3180,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    /** Installs a community-store download through the standard .watch path. */
-    suspend fun installWatchStoreArchive(
-        archive: File,
-        installAsRound: Boolean,
-    ): Result<WatchFaceDescriptor> {
-        return runCatching {
-            watchFaceRefreshJob?.cancel()
-            require(archive.isFile) { "市场下载的 .watch 文件不存在" }
-            val descriptor = withContext(Dispatchers.IO) {
-                val imported = WatchmakerWatchFaceStorage.importArchiveFile(
-                    getApplication(),
-                    archive,
-                    forceNewInstall = true,
-                )
-                WatchEditorSession.open(getApplication(), imported).use { editor ->
-                    editor.updateRootAttribute("shape", if (installAsRound) "R" else "S")
-                    editor.saveCurrentRevision()
-                }
-                WatchmakerWatchFaceStorage.scan(getApplication())
-                    .firstOrNull { it.id == imported.id }
-                    ?: imported
-            }
-            finishImportedWatchFaceImport(descriptor)
-        }
-    }
 
     suspend fun importWatchFaceArchive(uri: Uri): Result<WatchFaceDescriptor> {
         return runCatching {
@@ -3680,13 +3642,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         persist { store.edit { it[KEY_HIDE_FROM_RECENTS] = enabled } }
     }
 
-    fun setWatchStoreSegmentedDownload(enabled: Boolean) {
-        _watchStoreSegmentedDownload.value = enabled
-        // 立刻生效，不等落盘：下一次下载读的是这个字段。
-        FlueDownloadTuning.segmentedDownloads = enabled
-        persist { store.edit { it[KEY_WATCH_STORE_SEGMENTED_DOWNLOAD] = enabled } }
-    }
-
     fun setGlassHighlightEnabled(enabled: Boolean) {
         _glassHighlightEnabled.value = enabled
         persist { store.edit { it[KEY_GLASS_HIGHLIGHT] = enabled } }
@@ -3995,8 +3950,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         _builtInVideoCustomText.value = ""
         _builtInManagerThumbnails.value = true
         _hideFromRecents.value = true
-        _watchStoreSegmentedDownload.value = true
-        FlueDownloadTuning.segmentedDownloads = true
         InternalWatchFaceStorage.clearFont(getApplication())
         appRepository.setHiddenComponents(emptySet())
         appRepository.setIconRenderingOptions(
@@ -4129,7 +4082,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 it.remove(KEY_VIDEO_CUSTOM_TEXT)
                 it[KEY_BUILTIN_MANAGER_THUMBNAILS] = true
                 it[KEY_HIDE_FROM_RECENTS] = true
-                it[KEY_WATCH_STORE_SEGMENTED_DOWNLOAD] = true
                 it.remove(KEY_LAST_WATCHFACE_ERROR)
             }
         }

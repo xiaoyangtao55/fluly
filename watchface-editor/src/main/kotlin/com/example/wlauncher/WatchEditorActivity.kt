@@ -204,9 +204,9 @@ import com.flue.launcher.watchface.WatchFaceType
 import com.flue.launcher.watchface.editor.WATCH_EDITOR_EXPRESSION_GROUPS
 import com.flue.launcher.watchface.core.WatchCanvasSize
 import com.flue.launcher.watchface.editor.WatchEditorHandle
-import com.flue.launcher.watchface.editor.WatchEditorImageCropper
-import com.flue.launcher.watchface.editor.WatchEditorImageFormat
-import com.flue.launcher.watchface.editor.WatchEditorImageSourceInfo
+import com.flue.launcher.watchface.core.WatchEditorImageCropper
+import com.flue.launcher.watchface.core.WatchEditorImageFormat
+import com.flue.launcher.watchface.core.WatchEditorImageSourceInfo
 import com.flue.launcher.watchface.editor.WatchEditorLayer
 import com.flue.launcher.watchface.editor.WatchEditorLayerKey
 import com.flue.launcher.watchface.editor.WatchEditorTreeRow

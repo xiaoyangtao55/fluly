@@ -40,6 +40,12 @@
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- 编辑器 / 商店在 Flue Studio 里，HOME 只负责把用户送过去。Android 11+ 不做
+         包可见性声明就查不到它，「打开 Studio」会永远走「未安装」分支。 -->
+    <queries>
+        <package android:name="com.flue.studio" />
+    </queries>
+
     <application
         android:name=".FlueApplication"
         android:allowBackup="false"
@@ -167,33 +173,11 @@
             android:theme="@style/Theme.WatchLauncher"
             android:screenOrientation="portrait" />
 
-        <activity
-            android:name=".WatchStoreActivity"
-            android:exported="false"
-            android:label="@string/watch_store_title"
-            android:theme="@style/Theme.WatchLauncher"
-            android:screenOrientation="portrait" />
-
         <!--
           C1 网页版兜底宿主。exported="false"：只有 Flue 自己能启动它 —— 它加载的是带登录
           cookie 的站点，绝不能让别的 App 用 EXTRA_URL 指使它去打开任意地址（宿主内部还有
           一道站内白名单，这里是第一道）。
         -->
-        <activity
-            android:name="com.flue.launcher.ui.store.WatchStoreWebActivity"
-            android:exported="false"
-            android:label="@string/watch_store_title"
-            android:theme="@style/Theme.WatchLauncher"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".WatchEditorActivity"
-            android:exported="false"
-            android:label="@string/watch_editor_title"
-            android:theme="@style/Theme.WatchLauncher"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" />
-
         <activity
             android:name=".CanvasAdjustActivity"
             android:exported="false"

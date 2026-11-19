@@ -116,7 +116,6 @@ dependencies {
     implementation(project(":agent"))
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
-    implementation(project(":watchface-editor"))
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)
@@ -143,10 +142,7 @@ dependencies {
     // resolve the official extension properties at compile time.
     implementation(libs.miuix.core)
     implementation(libs.miuix.icons)
-    implementation(libs.ffmpeg.kit.video)
-    // ffmpeg-kit-maintained 8.1.7 publishes an empty dependency POM even though
-    // its Java API still calls com.arthenica.smartexception.java.Exceptions.
-    implementation(libs.smart.exception.java)
+    // 视频转码（ffmpeg-kit）只服务编辑器，已经随编辑器搬进 :watchface-editor。
     // WatchMaker face scripts run inside a Flue-owned whitelist sandbox.  LuaJ is
     // used only as the pure-Java VM/compiler; its file, package and Java bridge
     // libraries are never exposed to a face.

@@ -42,6 +42,9 @@ kotlin {
  * （例如 [com.flue.launcher.ui.style.FlueOverlayPreferenceSource]）。
  */
 dependencies {
+    // 图像裁剪覆层要用 :watchface-core 的裁剪几何与受限解码；core 是纯模型/算法，不反向依赖 UI。
+    api(project(":watchface-core"))
+
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.compose)

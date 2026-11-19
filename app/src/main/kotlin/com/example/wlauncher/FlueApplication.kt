@@ -17,7 +17,6 @@ import com.flue.launcher.ui.style.FlueOverlayPreferences
 import com.flue.launcher.ui.style.FlueOverlayPreferenceSource
 import com.flue.launcher.viewmodel.LauncherViewModel
 import com.flue.launcher.viewmodel.dataStore
-import com.flue.launcher.watchface.editor.WatchEditorHostProvider
 import com.flue.launcher.watchface.standard.WatchMediaSessionHost
 import com.flue.launcher.watchface.standard.WatchWeatherRepository
 import com.flue.launcher.watchface.standard.WatchWeatherSources
@@ -44,9 +43,6 @@ class FlueApplication : Application() {
         // 运行时模块不能反向依赖 HOME 的通知监听服务，媒体会话查询组件由这里注入。
         WatchMediaSessionHost.listenerComponent =
             android.content.ComponentName(this, com.flue.launcher.service.WLauncherNotificationListener::class.java)
-        // 编辑器 / 商店模块通过这个口子拿主题偏好、表盘列表和安装能力。
-        WatchEditorHostProvider.host = WatchEditorHostImpl(this)
-        installWatchEditorHostUi()
         // 基类 FlueComponentActivity 已下沉到 :ui-kit，它原本在 onResume/onPause 里
         // 刷勿扰状态、给诊断控制器记账 —— 这两件事都是启动器的，所以由这里注回去。
         FlueActivityLifecycleHooks.onResume = { activity ->

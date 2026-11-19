@@ -50,10 +50,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.flue.launcher.watchface.editor.R
+import com.flue.launcher.uikit.R
 import com.flue.launcher.ui.theme.ProvideDialogUiScale
 import com.flue.launcher.watchface.core.WatchEditorCropRect
-import com.flue.launcher.watchface.editor.WatchEditorImageCropper
+import com.flue.launcher.watchface.core.WatchEditorImageCropper
 import com.flue.launcher.watchface.core.WatchEditorSourceRect
 import com.flue.launcher.watchface.core.constrainWatchEditorCropRect
 import com.flue.launcher.watchface.core.mapWatchEditorCropToSource
