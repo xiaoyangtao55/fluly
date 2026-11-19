@@ -21,6 +21,7 @@ dependencyResolutionManagement {
 rootProject.name = "WatchLauncher"
 include(":app")
 include(":ui-kit")
+include(":watchface-editor")
 include(":agent")
 include(":watchface-core")
 include(":watchface-runtime")

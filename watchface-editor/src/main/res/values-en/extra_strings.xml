@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 从 app 迁出：这些文案只属于本模块的界面。 -->
+<resources>
+    <string name="image_crop_failed">This image could not be read</string>
+    <string name="internal_file_browser_loading">Reading files…</string>
+    <string name="watch_editor_use">Use</string>
+    <string name="wf_tools_watch_document">Read the .watch watch-face documentation</string>
+    <string name="wf_tools_promo">For more advanced watch face editing, get “WFTools”</string>
+    <string name="wf_tools_no_browser_fmt">No browser found. Please visit %1$s manually.</string>
+</resources>

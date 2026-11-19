@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 从 app 迁出：这些文案只属于本模块的界面。 -->
+<resources>
+    <string name="image_crop_failed">无法读取这张图片</string>
+    <string name="internal_file_browser_loading">正在读取文件…</string>
+    <string name="watch_editor_use">使用</string>
+    <string name="wf_tools_watch_document">参阅 .watch 表盘文档</string>
+    <string name="wf_tools_promo">欲获得更专业的表盘编辑能力，请下载「WFTools」</string>
+    <string name="wf_tools_no_browser_fmt">未找到浏览器，请手动访问 %1$s</string>
+</resources>

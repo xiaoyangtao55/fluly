@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 从 app 迁出：这些文案只属于本模块的界面。 -->
+<resources>
+    <string name="image_crop_failed">この画像を読み込めません</string>
+    <string name="internal_file_browser_loading">ファイルを読み込み中…</string>
+    <string name="watch_editor_use">使用</string>
+    <string name="wf_tools_watch_document">.watch 文字盤ドキュメントを参照</string>
+    <string name="wf_tools_promo">より高度な文字盤編集には「WFTools」をご利用ください</string>
+    <string name="wf_tools_no_browser_fmt">ブラウザが見つかりません。%1$s を手動で開いてください。</string>
+</resources>

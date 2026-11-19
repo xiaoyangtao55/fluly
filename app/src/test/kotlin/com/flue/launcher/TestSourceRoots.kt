@@ -22,11 +22,19 @@ object TestSourceRoots {
         "../watchface-core/src/main/kotlin",
         "watchface-runtime/src/main/kotlin",
         "../watchface-runtime/src/main/kotlin",
+        "watchface-editor/src/main/kotlin",
+        "../watchface-editor/src/main/kotlin",
         "agent/src/main/kotlin",
         "../agent/src/main/kotlin",
     ).map(::File).filter(File::isDirectory)
 
-    fun read(relative: String): String {
+    /** 读源码并把行尾统一成 `\n`：Windows 的 `core.autocrlf` 检出会让结构断言假红。 */
+    fun read(relative: String): String = readOrNull(relative)
+        ?.replace("\r\n", "\n")
+        ?: error("找不到源码 $relative（已查源码根：${roots.joinToString { it.path }}）")
+
+    /** 找不到时返回 null：有些测试对「文件是否已删除」本身做断言。 */
+    fun readOrNull(relative: String): String? {
         val candidates = buildList {
             add(relative)
             if (relative.startsWith("com/example/wlauncher/")) {
@@ -47,6 +55,6 @@ object TestSourceRoots {
                 if (file.isFile) return file.readText()
             }
         }
-        error("找不到源码 $relative（已查源码根：${roots.joinToString { it.path }}）")
+        return null
     }
 }

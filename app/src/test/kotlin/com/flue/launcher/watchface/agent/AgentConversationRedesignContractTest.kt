@@ -1,9 +1,9 @@
 package com.flue.launcher.watchface.agent
 
-import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.flue.launcher.TestSourceRoots
 
 class AgentConversationRedesignContractTest {
     @Test
@@ -47,14 +47,8 @@ class AgentConversationRedesignContractTest {
         assertFalse(panel.contains("@Composable\n@Composable"))
     }
 
-    private fun source(relative: String): String = File(sourceRoot(), relative).readText()
+    private fun source(relative: String): String = TestSourceRoots.read(relative)
 
     private fun sourceOrEmpty(relative: String): String =
-        File(sourceRoot(), relative).takeIf(File::isFile)?.readText().orEmpty()
-
-    private fun sourceRoot(): File = sequenceOf(
-        File("src/main/kotlin"),
-        File("app/src/main/kotlin"),
-        File("../app/src/main/kotlin"),
-    ).firstOrNull(File::isDirectory) ?: error("找不到 Android Kotlin 源码目录")
+        TestSourceRoots.readOrNull(relative)?.replace("\r\n", "\n").orEmpty()
 }

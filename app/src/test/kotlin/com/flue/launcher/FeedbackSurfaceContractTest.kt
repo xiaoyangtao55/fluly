@@ -93,11 +93,14 @@ class FeedbackSurfaceContractTest {
     }
 
     private fun sourceText(relativePath: String): String {
+        // 编辑器的部分源码已经搬进 :watchface-editor，根里也要带上它。
         val sourceRoot = sequenceOf(
             File("src/main"),
             File("app/src/main"),
             File("../app/src/main"),
-        ).firstOrNull(File::isDirectory)
+            File("watchface-editor/src/main"),
+            File("../watchface-editor/src/main"),
+        ).firstOrNull { root -> File(root, relativePath).isFile }
             ?: error("找不到主源码目录，工作目录是 ${File(".").absolutePath}")
         return File(sourceRoot, relativePath).also {
             check(it.isFile) { "找不到源码文件：${it.absolutePath}" }

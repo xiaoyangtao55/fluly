@@ -12,9 +12,11 @@ class RoundScreenActivityContractTest {
 
         assertTrue(
             "表盘市场必须订阅 screenShapeOverride，否则手动圆屏模式不会传入独立 Activity",
-            source.contains(
-                "val screenShapeOverride by launcherViewModel.screenShapeOverride.collectAsStateWithLifecycle()",
-            ),
+            // 订阅源从 LauncherViewModel 换成了宿主接口（WatchEditorHost），
+            // 所以这里只钉「订阅了 screenShapeOverride」这件事，不钉接收者名字。
+            Regex(
+                """val screenShapeOverride by \w+\.screenShapeOverride\.collectAsStateWithLifecycle\(\)""",
+            ).containsMatchIn(source),
         )
         assertTrue(
             "表盘市场主题必须使用 screenShapeOverride，否则圆屏安全区逻辑不会生效",
@@ -90,15 +92,16 @@ class RoundScreenActivityContractTest {
     }
 
     private fun sourceFile(name: String): File {
+        // 商店 / 编辑器的 Activity 已搬进 :watchface-editor，两处包目录都要查。
         val mainSource = sequenceOf(
             File("src/main/kotlin/com/example/wlauncher"),
             File("app/src/main/kotlin/com/example/wlauncher"),
             File("../app/src/main/kotlin/com/example/wlauncher"),
-        ).firstOrNull(File::isDirectory)
-            ?: error("找不到主源码目录，工作目录是 ${File(".").absolutePath}")
-        return File(mainSource, name).also {
-            check(it.isFile) { "找不到源码文件：${it.absolutePath}" }
-        }
+            File("watchface-editor/src/main/kotlin/com/example/wlauncher"),
+            File("../watchface-editor/src/main/kotlin/com/example/wlauncher"),
+        ).firstOrNull { File(it, name).isFile }
+            ?: error("找不到源码 $name，工作目录是 ${File(".").absolutePath}")
+        return File(mainSource, name)
     }
 
     /**

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 从 app 迁出：这些文案只属于本模块的界面。 -->
+<resources>
+    <string name="watch_editor_brightness">Brightness</string>
+    <string name="watch_editor_cancel">Cancel</string>
+    <string name="watch_editor_color_picker">Color picker</string>
+    <string name="watch_editor_hue">Hue</string>
+    <string name="watch_editor_saturation">Saturation</string>
+    <string name="watch_editor_use">Use</string>
+</resources>

@@ -1,9 +1,9 @@
 package com.flue.launcher.watchface.agent
 
-import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.flue.launcher.TestSourceRoots
 
 /** Contract tests for the assistant panel's streaming status and picker chrome. */
 class AgentAssistantPanelUiContractTest {
@@ -47,12 +47,5 @@ class AgentAssistantPanelUiContractTest {
         assertFalse(panel.contains("AgentToolInvocationStep(call, null"))
     }
 
-    private fun source(relative: String): String {
-        val root = sequenceOf(
-            File("src/main/kotlin"),
-            File("app/src/main/kotlin"),
-            File("../app/src/main/kotlin"),
-        ).firstOrNull(File::isDirectory) ?: error("找不到 Android Kotlin 源码目录")
-        return File(root, relative).readText()
-    }
+    private fun source(relative: String): String = TestSourceRoots.read(relative)
 }

@@ -51,11 +51,8 @@ android {
         versionName = "2.4.0"
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
 
-        // Default watch-store endpoint. Derivative builds can point it elsewhere
-        // without touching source: -PflueWatchStoreBaseUrl=https://host/api
-        val watchStoreBaseUrl = providers.gradleProperty("flueWatchStoreBaseUrl")
-            .getOrElse("https://jbwatchface.ai-life.xyz/api")
-        buildConfigField("String", "WATCH_STORE_BASE_URL", "\"$watchStoreBaseUrl\"")
+        // 商店默认地址现在由 :watchface-editor 的 buildConfigField 提供
+        // （-PflueWatchStoreBaseUrl=https://host/api 仍然有效），app 不再自己存一份。
     }
 
     signingConfigs {
@@ -119,6 +116,7 @@ dependencies {
     implementation(project(":agent"))
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
+    implementation(project(":watchface-editor"))
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)
