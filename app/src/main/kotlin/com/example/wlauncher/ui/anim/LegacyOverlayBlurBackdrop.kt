@@ -28,6 +28,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
 import kotlin.coroutines.resume
+import com.flue.launcher.watchface.standard.LegacyPrebuiltBlur
 
 /**
  * 通知中心压在负一屏 / 控制中心上时，供它当背景用的预制烘焙模糊帧。
@@ -101,7 +102,7 @@ internal fun rememberLegacyOverlayBlurBackdrop(
             if (!latestCaptureAllowed.value) return@LaunchedEffect
             // 盒模糊是纯 CPU 卷积，必须离开主线程 —— 全屏尺寸在低端机上要几十毫秒。
             blurred = withContext(Dispatchers.Default) {
-                runCatching { createLegacyPrebuiltBlur(captured) }.getOrNull()
+                runCatching { LegacyPrebuiltBlur.create(captured) }.getOrNull()
             } ?: return@LaunchedEffect
             coroutineContext.ensureActive()
             if (!latestCaptureAllowed.value) return@LaunchedEffect

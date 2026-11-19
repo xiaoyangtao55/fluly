@@ -9,35 +9,6 @@ import androidx.core.content.ContextCompat
 import com.flue.launcher.R
 import java.io.File
 
-const val BUILT_IN_WATCHFACE_ID = "builtin"
-const val BUILT_IN_PHOTO_WATCHFACE_ID = "builtin_photo"
-const val BUILT_IN_VIDEO_WATCHFACE_ID = "builtin_video"
-
-enum class WatchFaceType {
-    BUILTIN,
-    JBWATCH,
-    /** Native Watchmaker 1.0/Studio 2.0 archive. */
-    WATCHMAKER,
-}
-
-/** Flue-owned metadata for built-in, standard .watch, and JB watch faces. */
-data class WatchFaceDescriptor(
-    val id: String,
-    val type: WatchFaceType,
-    val displayName: String,
-    val summary: String = "",
-    val previewFilePath: String? = null,
-    val versionCode: Long = 0,
-    val author: String? = null,
-    val sourceDirPath: String? = null,
-    val supportsSettings: Boolean = false,
-) {
-    val isBuiltin: Boolean get() = type == WatchFaceType.BUILTIN
-    val isJbWatch: Boolean get() = type == WatchFaceType.JBWATCH
-    val isWatchmaker: Boolean get() = type == WatchFaceType.WATCHMAKER
-    val stableKey: String get() = id
-}
-
 object WatchFaceDescriptors {
     fun builtInDescriptors(context: Context): List<WatchFaceDescriptor> = listOf(
         WatchFaceDescriptor(

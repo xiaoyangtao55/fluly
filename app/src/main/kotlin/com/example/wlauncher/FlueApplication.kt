@@ -10,6 +10,7 @@ import com.flue.launcher.i18n.FlueLocaleManager
 import com.flue.launcher.ui.theme.ThemeMode
 import com.flue.launcher.ui.theme.UiStyle
 import com.flue.launcher.ui.theme.DEFAULT_UI_STYLE
+import com.flue.launcher.watchface.standard.WatchMediaSessionHost
 import com.flue.launcher.watchface.standard.WatchWeatherRepository
 import com.flue.launcher.watchface.standard.WatchWeatherSources
 import com.flue.launcher.util.RecentsVisibility
@@ -30,6 +31,9 @@ class FlueApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // 运行时模块不能反向依赖 HOME 的通知监听服务，媒体会话查询组件由这里注入。
+        WatchMediaSessionHost.listenerComponent =
+            android.content.ComponentName(this, com.flue.launcher.service.WLauncherNotificationListener::class.java)
         // Agent 模块拿不到 App 的 BuildConfig，版本号由宿主注入。
         com.flue.launcher.watchface.agent.AgentRuntimeInfo.versionName = BuildConfig.VERSION_NAME
         FlueLog.configureDiagnostics(this)

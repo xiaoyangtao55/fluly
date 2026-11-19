@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="watch_face_tap_unavailable_fmt">文字盤のタップ操作を実行できません: %1$s</string>
+    <string name="watch_face_tap_missing_app_fmt">アプリが見つかりません: %1$s</string>
+    <string name="watch_face_action_no_media">再生中のアプリがありません</string>
+    <string name="watch_face_action_unmapped_fmt">「%1$s」に対応するアプリがありません。設定 → ウォッチフェイスのタップ動作で指定できます</string>
+    <!-- JB 表盘加载态（与 HOME 的同名文案保持一致） -->
+    <string name="watch_face_loading">文字盤を読み込んでいます</string>
+</resources>

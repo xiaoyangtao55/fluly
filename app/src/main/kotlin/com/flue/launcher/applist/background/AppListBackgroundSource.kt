@@ -12,7 +12,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import com.flue.launcher.ui.anim.createLegacyPrebuiltBlur
+import com.flue.launcher.watchface.standard.LegacyPrebuiltBlur
 import com.flue.launcher.watchface.BUILT_IN_PHOTO_WATCHFACE_ID
 import com.flue.launcher.watchface.BUILT_IN_VIDEO_WATCHFACE_ID
 import java.io.File
@@ -35,7 +35,7 @@ import kotlinx.coroutines.withContext
  * ## 模糊分两条路
  *
  * - **31+**：缓存里存**清晰图**，模糊在绘制期用 `RenderEffect` 做（真高斯，拖滑块即时生效）。
- * - **30 及以下**：缓存里存**已烘焙好的模糊图**（[createLegacyPrebuiltBlur] 的降采样盒模糊，
+ * - **30 及以下**：缓存里存**已烘焙好的模糊图**（[LegacyPrebuiltBlur.create] 的降采样盒模糊，
  *   在 `Dispatchers.Default` 上算一次）。与控制中心 / 通知中心同一套策略、同一份代码。
  *
  * 这条分叉只在本文件里，渲染侧（[AppListBackgroundPainting]）看不到。
@@ -141,7 +141,7 @@ internal fun rememberAppListBackgroundImage(
         } ?: return@produceState
         val prepared = if (bakedRadius >= 1) {
             withContext(Dispatchers.Default) {
-                runCatching { createLegacyPrebuiltBlur(decoded, bakedRadius) }.getOrNull()
+                runCatching { LegacyPrebuiltBlur.create(decoded, bakedRadius) }.getOrNull()
             } ?: decoded
         } else {
             decoded

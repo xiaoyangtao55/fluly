@@ -140,6 +140,10 @@
             两个动作：com.ailife.clox.WRITE_DATA 是为了兼容现有集成方，
             com.flue.launcher.WRITE_DATA 给新写的用。
         -->
+        <!--
+            接收器实现已随渲染层搬进 :watchface-runtime；FQCN 未变，
+            所以这里仍按 app 包名（com.flue.launcher.*）寻址。
+        -->
         <receiver
             android:name=".watchface.standard.WatchExternalDataReceiver"
             android:exported="true">

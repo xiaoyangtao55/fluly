@@ -32,7 +32,7 @@ kotlin {
  * 表盘「共享底座」：画布尺寸、形状几何、裁剪数学。
  *
  * 这里只放纯计算与纯模型，不碰渲染、不碰 Compose、不碰资源，
- * 好让渲染层(:app watchface/standard)与编辑器(:app watchface/editor)
+ * 好让渲染层(:watchface-runtime)与编辑器(:app watchface/editor)
  * 各自依赖它，而不是互相依赖。
  */
 dependencies {

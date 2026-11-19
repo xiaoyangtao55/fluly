@@ -219,6 +219,7 @@ private fun CanvasAdjustScreen(
                 // 本页没有覆层进出，退场动画恒关，免得面板一动表盘文字就跟着淡。
                 textExitAnimationEnabled = false,
                 textExitAnimationActive = false,
+                roundScreen = isFlueScreenRound(),
             )
         }
 

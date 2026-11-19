@@ -97,6 +97,7 @@ import com.flue.launcher.ui.drawer.appListBackend
 import com.flue.launcher.ui.drawer.appListPalette
 import com.flue.launcher.ui.drawer.vibrateHaptic
 import com.flue.launcher.ui.common.flueOverlayMaskShape
+import com.flue.launcher.ui.common.isFlueScreenRound
 import com.flue.launcher.ui.home.WatchFaceLayer
 import com.flue.launcher.ui.home.WatchFaceLoadingMode
 import com.flue.launcher.ui.home.WatchFaceLoadingScreen
@@ -2208,6 +2209,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                                 textExitAnimationEnabled = watchFaceTextExitAnimation,
                                 textExitAnimationActive = textExitAnimationActive,
                                 overlayTransitionActive = watchFaceOverlayTransitionActive,
+                                roundScreen = isFlueScreenRound(),
                             )
                             if (watchFaceBottomFadeEnabled) {
                                 WatchFaceBottomFadeOverlay(

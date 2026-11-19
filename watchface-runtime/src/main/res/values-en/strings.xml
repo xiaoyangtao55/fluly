@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="watch_face_tap_unavailable_fmt">Watch face tap action unavailable: %1$s</string>
+    <string name="watch_face_tap_missing_app_fmt">App not found: %1$s</string>
+    <string name="watch_face_action_no_media">Nothing is playing right now</string>
+    <string name="watch_face_action_unmapped_fmt">No app can handle “%1$s” — pick one under Settings → Watch face tap actions</string>
+    <!-- JB 表盘加载态（与 HOME 的同名文案保持一致） -->
+    <string name="watch_face_loading">Loading watch face</string>
+</resources>

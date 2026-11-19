@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.flue.launcher.watchface.standard.LegacyPrebuiltBlur
 
 class ScaleBlurModifierTest {
     @Test
@@ -262,9 +263,9 @@ class ScaleBlurModifierTest {
 
     @Test
     fun legacyPreparedBlurUsesReducedThreePassPolicy() {
-        assertEquals(12, LEGACY_BACKDROP_BLUR_DOWNSAMPLE_DIVISOR)
-        assertEquals(3, LEGACY_BACKDROP_BLUR_PASSES)
-        assertEquals(6, LEGACY_BACKDROP_BLUR_RADIUS)
+        assertEquals(12, LegacyPrebuiltBlur.DOWNSAMPLE_DIVISOR)
+        assertEquals(3, LegacyPrebuiltBlur.PASSES)
+        assertEquals(6, LegacyPrebuiltBlur.RADIUS)
     }
 
     @Test

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="watch_face_tap_unavailable_fmt">表盘点击动作不可用：%1$s</string>
+    <string name="watch_face_tap_missing_app_fmt">找不到应用 %1$s</string>
+    <string name="watch_face_action_no_media">当前没有正在播放的应用</string>
+    <string name="watch_face_action_unmapped_fmt">没有可响应「%1$s」的应用，可在设置 → 表盘点击动作里指定</string>
+    <!-- JB 表盘加载态（与 HOME 的同名文案保持一致） -->
+    <string name="watch_face_loading">表盘加载中</string>
+</resources>
