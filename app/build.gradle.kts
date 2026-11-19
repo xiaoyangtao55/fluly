@@ -115,6 +115,7 @@ kotlin {
 }
 
 dependencies {
+    implementation(project(":agent"))
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)

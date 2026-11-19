@@ -3,7 +3,8 @@ package com.flue.launcher.watchface.agent
 import com.flue.launcher.watchface.agent.tools.WatchAgentToolCall
 import com.flue.launcher.watchface.agent.tools.WatchAgentValidateFaceRequest
 import com.flue.launcher.watchface.agent.tools.InMemoryWatchAgentToolHost
-import com.flue.launcher.watchface.agent.tools.WatchEditorSessionAgentToolHost
+import com.flue.launcher.watchface.editor.bridge.WatchEditorSessionAgentToolHost
+import com.flue.launcher.watchface.editor.bridge.validateGlobalScript
 import com.flue.launcher.watchface.editor.WatchEditorSession
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -17,6 +18,8 @@ class WatchEditorSessionAgentToolHostTest {
         val host = InMemoryWatchAgentToolHost(
             initialWatchXml = "<Watch/>",
             initialGlobalScript = "function broken(\n",
+            // 脚本沙箱留在渲染层，agent 模块只声明接口，由宿主注入实现。
+            scriptValidator = { validateGlobalScript(it) },
         )
 
         val result = host.validateFace(WatchAgentValidateFaceRequest())

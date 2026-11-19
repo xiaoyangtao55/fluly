@@ -1,6 +1,6 @@
 package com.flue.launcher.watchface.agent
 
-import com.flue.launcher.watchface.agent.tools.WatchEditorSessionAgentToolHost
+import com.flue.launcher.watchface.editor.bridge.WatchEditorSessionAgentToolHost
 import com.flue.launcher.watchface.agent.workspace.WorkspaceManager
 import com.flue.launcher.watchface.editor.WatchEditorSession
 import java.nio.file.Files

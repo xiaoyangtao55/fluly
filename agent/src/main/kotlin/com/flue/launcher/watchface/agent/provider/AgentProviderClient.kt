@@ -261,7 +261,7 @@ class AgentProviderClient(
     private fun authHeaders(profile: AiProviderProfile, apiKey: String): Map<String, String> = buildMap {
         put("Content-Type", "application/json")
         put("Accept", "text/event-stream, application/json")
-        put("User-Agent", "Flue-Agent/${com.flue.launcher.BuildConfig.VERSION_NAME}")
+        put("User-Agent", com.flue.launcher.watchface.agent.AgentRuntimeInfo.userAgent)
         if (profile.protocol == AiProtocol.CLAUDE_MESSAGES) {
             put("x-api-key", apiKey)
             put("anthropic-version", "2023-06-01")

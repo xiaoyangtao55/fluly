@@ -12,6 +12,7 @@ graphics-shapes = "1.0.1"
 junit = "4.13.2"
 recyclerview = "1.4.0"
 robolectric = "4.16.1"
+coroutines = "1.10.2"
 # 0.9.x raises the Android AAR floor to compileSdk 37. Flue currently uses
 # AGP 8.13.2 / compileSdk 36, so keep the newest official API-36 build.
 miuix = "0.8.8"
@@ -24,6 +25,7 @@ xz = "1.12"
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 mediarouter = { module = "androidx.mediarouter:mediarouter", version.ref = "mediarouter" }
@@ -42,6 +44,7 @@ graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = 
 junit = { module = "junit:junit", version.ref = "junit" }
 recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons", version.ref = "miuix" }
 miuix-core = { module = "top.yukonga.miuix.kmp:miuix", version.ref = "miuix" }
 ffmpeg-kit-video = { module = "dev.ffmpegkit-maintained:ffmpeg-kit-video", version.ref = "ffmpeg-kit" }
@@ -53,3 +56,4 @@ xz = { module = "org.tukaani:xz", version.ref = "xz" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }

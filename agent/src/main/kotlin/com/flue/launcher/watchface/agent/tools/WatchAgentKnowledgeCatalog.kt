@@ -1,7 +1,7 @@
 package com.flue.launcher.watchface.agent.tools
 
 /** Curated, high-signal format notes; exhaustive references stay out of the base prompt. */
-internal object WatchAgentKnowledgeCatalog {
+public object WatchAgentKnowledgeCatalog {
     val entries = listOf(
         WatchAgentKnowledgeEntry(
             title = "WatchMaker 包与路径",

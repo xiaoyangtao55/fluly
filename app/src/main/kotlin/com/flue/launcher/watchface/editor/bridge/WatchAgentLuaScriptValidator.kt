@@ -1,5 +1,7 @@
-package com.flue.launcher.watchface.agent.tools
+package com.flue.launcher.watchface.editor.bridge
 
+import com.flue.launcher.watchface.agent.tools.WatchAgentDiagnostic
+import com.flue.launcher.watchface.agent.tools.WatchAgentDiagnosticSeverity
 import com.flue.launcher.watchface.standard.WatchFaceLuaRuntime
 
 /** Compiles the persisted WatchMaker global script with the same sandbox used at render time. */

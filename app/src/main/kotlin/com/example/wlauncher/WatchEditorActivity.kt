@@ -231,7 +231,7 @@ import com.flue.launcher.watchface.agent.workspace.WorkspaceManager
 import com.flue.launcher.watchface.agent.tools.WatchAgentDisplayMode
 import com.flue.launcher.watchface.agent.tools.WatchAgentPreviewMode
 import com.flue.launcher.watchface.agent.tools.WatchAgentPreviewResult
-import com.flue.launcher.watchface.agent.tools.WatchEditorSessionAgentToolHost
+import com.flue.launcher.watchface.editor.bridge.WatchEditorSessionAgentToolHost
 import com.flue.launcher.ui.editor.agent.WatchAgentFullscreen
 import com.flue.launcher.ui.editor.agent.WatchAgentPanel
 import com.flue.launcher.ui.theme.WatchColors

@@ -89,7 +89,7 @@ class OpenAiImageClient(
             setRequestProperty("Authorization", "Bearer $apiKey")
             setRequestProperty("Content-Type", contentType)
             setRequestProperty("Accept", "application/json")
-            setRequestProperty("User-Agent", "Flue-Agent/${com.flue.launcher.BuildConfig.VERSION_NAME}")
+            setRequestProperty("User-Agent", com.flue.launcher.watchface.agent.AgentRuntimeInfo.userAgent)
         }
         return try {
             connection.outputStream.use { it.write(body) }

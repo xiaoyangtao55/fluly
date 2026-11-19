@@ -30,6 +30,8 @@ class FlueApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Agent 模块拿不到 App 的 BuildConfig，版本号由宿主注入。
+        com.flue.launcher.watchface.agent.AgentRuntimeInfo.versionName = BuildConfig.VERSION_NAME
         FlueLog.configureDiagnostics(this)
         com.flue.launcher.status.DoNotDisturbState.initialize(this)
         // Standard, JB, and editor previews all resolve their null weather

@@ -35,10 +35,10 @@ class WorkspaceRuntimeTest {
 
     @Test
     fun `bundled proot executables are extracted so ProcessBuilder can execute them`() {
+        // 测试既可能在 agent 模块目录下跑，也可能在仓库根目录下跑。
         val buildScript = sequenceOf(
-            File("build.gradle.kts"),
-            File("app/build.gradle.kts"),
             File("../app/build.gradle.kts"),
+            File("app/build.gradle.kts"),
         ).firstOrNull(File::isFile)?.readText() ?: error("app/build.gradle.kts not found")
 
         assertTrue(buildScript.contains("jniLibs {"))

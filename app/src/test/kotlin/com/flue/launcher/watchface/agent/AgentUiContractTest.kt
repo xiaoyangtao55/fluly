@@ -196,11 +196,19 @@ class AgentUiContractTest {
     }
 
     private fun source(relative: String): String {
-        val root = sequenceOf(
-            File("src/main/kotlin"),
-            File("app/src/main/kotlin"),
-            File("../app/src/main/kotlin"),
-        ).firstOrNull(File::isDirectory) ?: error("找不到 Android Kotlin 源码目录")
-        return File(root, relative).readText()
+        // agent 已拆成独立 Gradle 模块，源码根不再只有 app 一处。
+        val roots = sequenceOf(
+            "src/main/kotlin",
+            "app/src/main/kotlin",
+            "../app/src/main/kotlin",
+            "../agent/src/main/kotlin",
+            "src/main/java",
+            "../app/src/main/java",
+        ).map(::File).filter(File::isDirectory).toList()
+        require(roots.isNotEmpty()) { "找不到 Android Kotlin 源码目录" }
+        return roots.map { File(it, relative) }
+            .firstOrNull(File::isFile)
+            ?.readText()
+            ?: error("在 ${roots.joinToString()} 下都找不到 $relative")
     }
 }

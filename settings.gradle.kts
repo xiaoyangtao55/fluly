@@ -20,3 +20,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "WatchLauncher"
 include(":app")
+include(":agent")

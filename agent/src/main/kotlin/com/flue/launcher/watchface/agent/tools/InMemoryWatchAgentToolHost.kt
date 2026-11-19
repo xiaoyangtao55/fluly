@@ -17,6 +17,7 @@ class InMemoryWatchAgentToolHost(
     initialGlobalScript: String = "",
     assets: List<WatchAgentAssetSummary> = emptyList(),
     private val knowledge: WatchAgentKnowledgeStore = WatchAgentKnowledgeStore.EMPTY,
+    private val scriptValidator: AgentScriptValidator? = null,
 ) : WatchAgentToolHost, WatchAgentUndoHost {
     private var watchXml = initialWatchXml
     private var globalScript = initialGlobalScript
@@ -109,7 +110,7 @@ class InMemoryWatchAgentToolHost(
                 )
             }
         }
-        validateGlobalScript(globalScript)?.let { diagnostics += it }
+        scriptValidator?.validate(globalScript)?.let { diagnostics += it }
         PATH_PATTERN.findAll(watchXml).forEach { match ->
             val raw = match.groupValues[2]
             raw.split('`').forEach { segment ->

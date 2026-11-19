@@ -5,7 +5,7 @@ import android.graphics.Color
 import com.flue.launcher.watchface.agent.tools.AgentWorkspaceImageTools
 import com.flue.launcher.watchface.agent.tools.WatchAgentToolCall
 import com.flue.launcher.watchface.agent.tools.WatchAgentToolRunner
-import com.flue.launcher.watchface.agent.tools.WatchEditorSessionAgentToolHost
+import com.flue.launcher.watchface.editor.bridge.WatchEditorSessionAgentToolHost
 import com.flue.launcher.watchface.agent.workspace.WorkspaceManager
 import com.flue.launcher.watchface.editor.WatchEditorSession
 import java.io.File

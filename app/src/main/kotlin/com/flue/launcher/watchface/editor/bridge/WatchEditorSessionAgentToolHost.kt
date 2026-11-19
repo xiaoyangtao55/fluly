@@ -1,5 +1,6 @@
-package com.flue.launcher.watchface.agent.tools
+package com.flue.launcher.watchface.editor.bridge
 
+import com.flue.launcher.watchface.agent.tools.*
 import com.flue.launcher.watchface.editor.WatchEditorAgentCandidate
 import com.flue.launcher.watchface.editor.WatchEditorSession
 import com.flue.launcher.watchface.agent.workspace.WorkspaceManager
