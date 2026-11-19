@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import com.flue.launcher.watchface.editor.WatchEditorImageCropper
-import com.flue.launcher.watchface.editor.WatchEditorSourceRect
+import com.flue.launcher.watchface.core.WatchEditorSourceRect
 import com.flue.launcher.watchface.store.WatchStoreAvatarRules
 import java.io.File
 import kotlinx.coroutines.Dispatchers

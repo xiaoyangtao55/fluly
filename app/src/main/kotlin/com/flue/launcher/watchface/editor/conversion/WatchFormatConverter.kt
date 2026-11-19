@@ -21,6 +21,7 @@ import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
+import com.flue.launcher.watchface.core.WatchCanvasSize
 
 /**
  * Input formats understood by the editor conversion seam.

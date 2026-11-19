@@ -2,6 +2,7 @@ package com.flue.launcher.watchface.editor
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.flue.launcher.watchface.core.WatchCanvasSize
 
 /**
  * 画布尺寸 → 设计空间的语义锁：基准边恒 512，只按声明宽高比拉长另一边。

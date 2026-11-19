@@ -1,4 +1,4 @@
-package com.flue.launcher.watchface.editor
+package com.flue.launcher.watchface.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

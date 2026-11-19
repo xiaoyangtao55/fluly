@@ -1,11 +1,9 @@
-package com.flue.launcher.watchface.editor
-
-import com.flue.launcher.watchface.standard.WatchmakerGeometry
+package com.flue.launcher.watchface.core
 
 /**
  * 表盘设计画布尺寸。
  *
- * WatchMaker 原生授权空间是 512×512 的正方形（见 [WatchmakerGeometry]），
+ * WatchMaker 原生授权空间是 512×512 的正方形（见 [DESIGN_SIZE]），
  * 所有图层坐标都以画布中心为原点。这里把「画布尺寸」提升为每块表盘自己的
  * 声明值，落在 watch.xml 根节点的 width / height 属性上：
  * 缺省时回落 512×512，与历史表盘完全兼容。
@@ -25,7 +23,7 @@ data class WatchCanvasSize(
     val aspectRatio: Float get() = width.toFloat() / height.toFloat()
 
     /**
-     * 设计空间宽度：基准边恒为 [WatchmakerGeometry.DESIGN_SIZE]，只按宽高比
+     * 设计空间宽度：基准边恒为 [DESIGN_SIZE]，只按宽高比
      * 拉长另一边。
      *
      * 关键语义是「只跟随宽高比、不跟随绝对像素」：声明 466×466 和 360×360 的
@@ -35,29 +33,37 @@ data class WatchCanvasSize(
      */
     val designExtentWidth: Float
         get() = if (aspectRatio >= 1f) {
-            WatchmakerGeometry.DESIGN_SIZE * aspectRatio
+            DESIGN_SIZE * aspectRatio
         } else {
-            WatchmakerGeometry.DESIGN_SIZE
+            DESIGN_SIZE
         }
 
     /** 设计空间高度，语义同 [designExtentWidth]。 */
     val designExtentHeight: Float
         get() = if (aspectRatio >= 1f) {
-            WatchmakerGeometry.DESIGN_SIZE
+            DESIGN_SIZE
         } else {
-            WatchmakerGeometry.DESIGN_SIZE / aspectRatio
+            DESIGN_SIZE / aspectRatio
         }
 
     val label: String get() = "$width × $height"
 
     companion object {
+        /**
+         * WatchMaker 原生设计空间边长。
+         *
+         * 这是渲染层与编辑器共用的基准常量：运行时 `WatchmakerGeometry.DESIGN_SIZE`
+         * 直接引用这里，保证两边只有一个数字。
+         */
+        const val DESIGN_SIZE = 512f
+
         const val MIN_EDGE = 64
         const val MAX_EDGE = 2048
 
         /** WatchMaker 原生画布，也是缺省值。 */
         val DEFAULT = WatchCanvasSize(
-            WatchmakerGeometry.DESIGN_SIZE.toInt(),
-            WatchmakerGeometry.DESIGN_SIZE.toInt(),
+            DESIGN_SIZE.toInt(),
+            DESIGN_SIZE.toInt(),
         )
 
         /** 越界值钳回合法区间，而不是抛异常——解析外部表盘时要能容错。 */

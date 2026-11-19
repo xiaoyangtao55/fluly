@@ -20,7 +20,8 @@ import kotlin.math.sin
 
 /** The canvas contract used by WatchMaker exports. Values are design pixels. */
 object WatchmakerGeometry {
-    const val DESIGN_SIZE = 512f
+    // 单一来源：画布尺寸模型在 :watchface-core，渲染层只是引用。
+    const val DESIGN_SIZE = com.flue.launcher.watchface.core.WatchCanvasSize.DESIGN_SIZE
 
     fun coordinate(raw: String?, fallback: Float): Float =
         raw?.trim()?.toFloatOrNull()?.takeIf(Float::isFinite) ?: fallback

@@ -30,6 +30,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import com.flue.launcher.R
+import com.flue.launcher.watchface.core.WatchCanvasSize
+import com.flue.launcher.watchface.core.WatchCanvasPreset
+import com.flue.launcher.watchface.core.WatchCanvasPresetNote
 
 /**
  * 当前设备屏幕对应的画布尺寸（物理像素）。

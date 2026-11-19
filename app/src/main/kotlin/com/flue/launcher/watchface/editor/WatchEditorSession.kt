@@ -43,6 +43,7 @@ import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.flue.launcher.watchface.core.WatchCanvasSize
 
 /**
  * A cache-backed, lossless editing session for a standard Watchmaker .watch

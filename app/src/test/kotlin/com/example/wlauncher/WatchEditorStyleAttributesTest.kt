@@ -4,9 +4,9 @@ package com.flue.launcher
 
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
-import com.flue.launcher.watchface.editor.shape.WATCH_SHAPE_ATTRIBUTE_VALUES
-import com.flue.launcher.watchface.editor.shape.watchShapeAttributeValue
-import com.flue.launcher.watchface.editor.shape.watchShapeKindOf
+import com.flue.launcher.watchface.core.WATCH_SHAPE_ATTRIBUTE_VALUES
+import com.flue.launcher.watchface.core.watchShapeAttributeValue
+import com.flue.launcher.watchface.core.watchShapeKindOf
 import com.flue.launcher.watchface.standard.WatchOutlineMode
 import com.flue.launcher.watchface.standard.WatchShadowMode
 import com.flue.launcher.watchface.standard.WatchShapeShaderKind

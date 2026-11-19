@@ -15,6 +15,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.zip.ZipFile
+import com.flue.launcher.watchface.core.WatchCanvasSize
 
 class WatchEditorSessionTest {
     private val pngHeader = byteArrayOf(

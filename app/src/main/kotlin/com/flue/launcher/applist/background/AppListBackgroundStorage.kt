@@ -3,7 +3,7 @@ package com.flue.launcher.applist.background
 import android.content.Context
 import android.net.Uri
 import com.flue.launcher.watchface.editor.WatchEditorImageCropper
-import com.flue.launcher.watchface.editor.WatchEditorSourceRect
+import com.flue.launcher.watchface.core.WatchEditorSourceRect
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

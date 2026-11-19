@@ -52,16 +52,16 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.flue.launcher.R
 import com.flue.launcher.ui.theme.ProvideDialogUiScale
-import com.flue.launcher.watchface.editor.WatchEditorCropRect
+import com.flue.launcher.watchface.core.WatchEditorCropRect
 import com.flue.launcher.watchface.editor.WatchEditorImageCropper
-import com.flue.launcher.watchface.editor.WatchEditorSourceRect
-import com.flue.launcher.watchface.editor.constrainWatchEditorCropRect
-import com.flue.launcher.watchface.editor.mapWatchEditorCropToSource
-import com.flue.launcher.watchface.editor.moveWatchEditorCropRect
-import com.flue.launcher.watchface.editor.resizeWatchEditorCropRect
-import com.flue.launcher.watchface.editor.resolveWatchEditorCropHandle
-import com.flue.launcher.watchface.editor.scaleWatchEditorCropRect
-import com.flue.launcher.watchface.editor.watchEditorFitImageRect
+import com.flue.launcher.watchface.core.WatchEditorSourceRect
+import com.flue.launcher.watchface.core.constrainWatchEditorCropRect
+import com.flue.launcher.watchface.core.mapWatchEditorCropToSource
+import com.flue.launcher.watchface.core.moveWatchEditorCropRect
+import com.flue.launcher.watchface.core.resizeWatchEditorCropRect
+import com.flue.launcher.watchface.core.resolveWatchEditorCropHandle
+import com.flue.launcher.watchface.core.scaleWatchEditorCropRect
+import com.flue.launcher.watchface.core.watchEditorFitImageRect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

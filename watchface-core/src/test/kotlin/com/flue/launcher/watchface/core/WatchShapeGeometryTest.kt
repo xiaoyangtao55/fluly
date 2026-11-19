@@ -1,4 +1,4 @@
-package com.flue.launcher.watchface.editor.shape
+package com.flue.launcher.watchface.core
 
 import android.graphics.Path
 import android.graphics.RectF

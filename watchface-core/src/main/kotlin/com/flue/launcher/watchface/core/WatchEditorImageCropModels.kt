@@ -1,4 +1,4 @@
-package com.flue.launcher.watchface.editor
+package com.flue.launcher.watchface.core
 
 import kotlin.math.abs
 import kotlin.math.max

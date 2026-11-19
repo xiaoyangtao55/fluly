@@ -116,6 +116,7 @@ kotlin {
 
 dependencies {
     implementation(project(":agent"))
+    implementation(project(":watchface-core"))
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)
