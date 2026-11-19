@@ -49,8 +49,8 @@ import com.flue.launcher.watchface.core.buildWatchShapePath
 import com.flue.launcher.watchface.core.watchShapeClampCornerRadius
 import com.flue.launcher.watchface.core.watchShapeHasRoundedCorner
 import com.flue.launcher.watchface.core.watchShapeKindOf
-import com.flue.launcher.watchface.agent.tools.WatchAgentExpressionClassifier
-import com.flue.launcher.watchface.agent.tools.WatchAgentExpressionKind
+import com.flue.launcher.watchface.core.WatchAgentExpressionClassifier
+import com.flue.launcher.watchface.core.WatchAgentExpressionKind
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

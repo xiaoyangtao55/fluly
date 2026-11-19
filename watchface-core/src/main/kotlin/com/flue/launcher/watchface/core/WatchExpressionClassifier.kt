@@ -1,4 +1,4 @@
-package com.flue.launcher.watchface.agent.tools
+package com.flue.launcher.watchface.core
 
 import java.util.Locale
 

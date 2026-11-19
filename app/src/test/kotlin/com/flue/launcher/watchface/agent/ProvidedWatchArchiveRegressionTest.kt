@@ -1,7 +1,7 @@
 package com.flue.launcher.watchface.agent
 
-import com.flue.launcher.watchface.agent.tools.WatchAgentExpressionClassifier
-import com.flue.launcher.watchface.agent.tools.WatchAgentExpressionKind
+import com.flue.launcher.watchface.core.WatchAgentExpressionClassifier
+import com.flue.launcher.watchface.core.WatchAgentExpressionKind
 import com.flue.launcher.watchface.standard.WatchmakerDefinitionParser
 import java.io.File
 import java.util.zip.ZipFile

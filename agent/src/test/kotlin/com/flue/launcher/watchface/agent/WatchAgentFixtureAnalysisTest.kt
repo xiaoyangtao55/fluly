@@ -1,8 +1,7 @@
 package com.flue.launcher.watchface.agent
 
-import com.flue.launcher.watchface.agent.tools.WatchAgentAssetPathNormalizer
-import com.flue.launcher.watchface.agent.tools.WatchAgentExpressionClassifier
-import com.flue.launcher.watchface.agent.tools.WatchAgentExpressionKind
+import com.flue.launcher.watchface.core.WatchAgentExpressionClassifier
+import com.flue.launcher.watchface.core.WatchAgentExpressionKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -11,6 +10,7 @@ import org.junit.Test
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.zip.ZipFile
+import com.flue.launcher.watchface.core.WatchAgentAssetPathNormalizer
 
 class WatchAgentFixtureAnalysisTest {
     @Test

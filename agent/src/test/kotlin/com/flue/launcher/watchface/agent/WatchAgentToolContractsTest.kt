@@ -1,6 +1,9 @@
 package com.flue.launcher.watchface.agent
 
 import com.flue.launcher.watchface.agent.tools.*
+import com.flue.launcher.watchface.core.WatchAgentAttributeKind
+import com.flue.launcher.watchface.core.WatchAgentExpressionClassifier
+import com.flue.launcher.watchface.core.WatchAgentExpressionKind
 import com.flue.launcher.watchface.agent.prompt.WatchAgentPrompt
 import com.flue.launcher.watchface.agent.workspace.WorkspacePermissionSettings
 import com.flue.launcher.watchface.agent.workspace.ProotShellRunner
@@ -14,6 +17,7 @@ import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
+import com.flue.launcher.watchface.core.WatchAgentAssetPathNormalizer
 
 class WatchAgentToolContractsTest {
     @Test

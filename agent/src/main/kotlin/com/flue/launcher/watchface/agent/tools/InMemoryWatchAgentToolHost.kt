@@ -6,6 +6,8 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import javax.xml.XMLConstants
 import javax.xml.parsers.DocumentBuilderFactory
+import com.flue.launcher.watchface.core.WatchAgentAssetPathNormalizer
+import com.flue.launcher.watchface.core.WatchAgentExpressionClassifier
 
 /**
  * Small host implementation for JVM tests and tooling previews. Production

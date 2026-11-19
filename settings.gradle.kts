@@ -22,3 +22,4 @@ rootProject.name = "WatchLauncher"
 include(":app")
 include(":agent")
 include(":watchface-core")
+include(":studio")

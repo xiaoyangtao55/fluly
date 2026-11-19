@@ -1,5 +1,7 @@
 package com.flue.launcher.watchface.agent.tools
 
+import com.flue.launcher.watchface.core.WatchAgentExpressionKind
+
 interface WatchAgentToolHost {
     val currentRevision: Long
     val boundWatchScope: String? get() = null

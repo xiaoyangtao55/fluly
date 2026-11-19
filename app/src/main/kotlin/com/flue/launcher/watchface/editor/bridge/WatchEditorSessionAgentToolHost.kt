@@ -7,6 +7,8 @@ import com.flue.launcher.watchface.agent.workspace.WorkspaceManager
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
+import com.flue.launcher.watchface.core.WatchAgentExpressionClassifier
+import com.flue.launcher.watchface.core.WatchAgentExpressionKind
 
 /** Bridges Agent document tools to the real lossless editor session. */
 class WatchEditorSessionAgentToolHost(
