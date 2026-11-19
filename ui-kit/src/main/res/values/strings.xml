@@ -10,4 +10,150 @@
     <string name="internal_file_browser_permission_title">允许浏览设备文件</string>
     <string name="internal_file_browser_read_failed">无法读取这个目录</string>
     <string name="internal_file_browser_select_current_folder">导出到当前目录</string>
+
+    <string name="watch_editor_search_app_hint">搜索应用名或包名</string>
+
+    <string name="settings_tap_actions_current">当前绑定</string>
+
+    <string name="watch_editor_tap_action_preset_search">搜索动作名或函数名</string>
+
+    <string name="watch_editor_tap_action_preset">预设函数</string>
+
+    <string name="watch_editor_tap_action_preset_sub">表盘里只存动作名，具体打开哪个应用在「设置 → 表盘点击动作」里绑定</string>
+
+    <string name="tap_action_agenda">日程</string>
+
+    <string name="tap_action_agenda_sub">查看接下来的安排</string>
+
+    <string name="tap_action_alarm">闹钟</string>
+
+    <string name="tap_action_alarm_sub">打开闹钟列表</string>
+
+    <string name="tap_action_browser">浏览器</string>
+
+    <string name="tap_action_browser_sub">打开网页浏览器</string>
+
+    <string name="tap_action_calculator">计算器</string>
+
+    <string name="tap_action_calculator_sub">打开计算器</string>
+
+    <string name="tap_action_calendar">日历</string>
+
+    <string name="tap_action_calendar_sub">打开日历查看日期与事件</string>
+
+    <string name="tap_action_camera">相机</string>
+
+    <string name="tap_action_camera_sub">直接打开拍摄应用</string>
+
+    <string name="tap_action_category_communication">通讯与社交</string>
+
+    <string name="tap_action_category_communication_sub">电话、消息、联系人与社交应用</string>
+
+    <string name="tap_action_category_information">信息与健康</string>
+
+    <string name="tap_action_category_information_sub">天气、日历、运动与身体数据</string>
+
+    <string name="tap_action_category_media">影像与媒体</string>
+
+    <string name="tap_action_category_media_sub">相机、相册、音乐与网页</string>
+
+    <string name="tap_action_category_tools">工具与系统</string>
+
+    <string name="tap_action_category_tools_sub">时钟、地图、支付与常用系统工具</string>
+
+    <string name="tap_action_clock">时钟</string>
+
+    <string name="tap_action_clock_sub">打开闹钟与时钟应用</string>
+
+    <string name="tap_action_compass">指南针</string>
+
+    <string name="tap_action_compass_sub">打开方向与方位工具</string>
+
+    <string name="tap_action_contacts">联系人</string>
+
+    <string name="tap_action_contacts_sub">打开通讯录</string>
+
+    <string name="tap_action_dialer">电话</string>
+
+    <string name="tap_action_dialer_sub">打开拨号与通话应用</string>
+
+    <string name="tap_action_email">电子邮件</string>
+
+    <string name="tap_action_email_sub">打开收件箱或邮件应用</string>
+
+    <string name="tap_action_fitness">健身</string>
+
+    <string name="tap_action_fitness_sub">打开运动与健身记录</string>
+
+    <string name="tap_action_flashlight">手电筒</string>
+
+    <string name="tap_action_flashlight_sub">打开照明工具</string>
+
+    <string name="tap_action_gallery">相册</string>
+
+    <string name="tap_action_gallery_sub">浏览照片与图片</string>
+
+    <string name="tap_action_health">健康</string>
+
+    <string name="tap_action_health_sub">查看综合健康数据</string>
+
+    <string name="tap_action_heart_rate">心率</string>
+
+    <string name="tap_action_heart_rate_sub">打开测量或查看心率的应用</string>
+
+    <string name="tap_action_keep">便笺</string>
+
+    <string name="tap_action_keep_sub">打开笔记或待办应用</string>
+
+    <string name="tap_action_launcher">应用列表</string>
+
+    <string name="tap_action_launcher_sub">打开桌面或应用列表</string>
+
+    <string name="tap_action_map">地图</string>
+
+    <string name="tap_action_map_sub">打开地图与导航应用</string>
+
+    <string name="tap_action_messaging">消息</string>
+
+    <string name="tap_action_messaging_sub">打开短信或即时消息应用</string>
+
+    <string name="tap_action_music">音乐</string>
+
+    <string name="tap_action_music_sub">打开你常用的音乐播放器</string>
+
+    <string name="tap_action_payment">支付</string>
+
+    <string name="tap_action_payment_sub">打开钱包或付款应用</string>
+
+    <string name="tap_action_recorder">录音机</string>
+
+    <string name="tap_action_recorder_sub">打开录音应用</string>
+
+    <string name="tap_action_settings">系统设置</string>
+
+    <string name="tap_action_settings_sub">打开设备设置</string>
+
+    <string name="tap_action_social">社交</string>
+
+    <string name="tap_action_social_sub">打开常用社交应用</string>
+
+    <string name="tap_action_sports">运动</string>
+
+    <string name="tap_action_sports_sub">打开运动训练应用</string>
+
+    <string name="tap_action_stopwatch">秒表</string>
+
+    <string name="tap_action_stopwatch_sub">打开秒表计时</string>
+
+    <string name="tap_action_timer">计时器</string>
+
+    <string name="tap_action_timer_sub">打开倒计时工具</string>
+
+    <string name="tap_action_voice_search">语音搜索</string>
+
+    <string name="tap_action_voice_search_sub">用语音助手搜索或执行命令</string>
+
+    <string name="tap_action_weather">天气</string>
+
+    <string name="tap_action_weather_sub">打开你常用的天气应用</string>
 </resources>

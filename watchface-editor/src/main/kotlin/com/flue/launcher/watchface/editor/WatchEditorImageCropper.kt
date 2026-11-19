@@ -7,11 +7,11 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import android.net.Uri
 import android.provider.OpenableColumns
+import com.flue.launcher.watchface.core.WatchEditorSourceRect
+import com.flue.launcher.watchface.core.watchEditorCropSampleSize
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import com.flue.launcher.watchface.core.WatchEditorSourceRect
-import com.flue.launcher.watchface.core.watchEditorCropSampleSize
 
 /**
  * Bitmap decoding for the image-import crop step. Every decode is bounded:

@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flue.launcher.R
+import com.flue.launcher.uikit.R
 import com.flue.launcher.ui.style.FlueAlertDialog
 import com.flue.launcher.ui.theme.LauncherTheme
 import kotlinx.coroutines.Dispatchers
@@ -58,7 +58,7 @@ import kotlinx.coroutines.withContext
  * @param clearLabel 非 null 时出「清除」按钮（点击动作用它解除映射）。
  */
 @Composable
-internal fun WatchAppPickerDialog(
+fun WatchAppPickerDialog(
     title: String,
     subtitle: String?,
     selected: ComponentName?,

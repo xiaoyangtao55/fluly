@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flue.launcher.R
+import com.flue.launcher.uikit.R
 import com.flue.launcher.ui.style.FlueAlertDialog
 import com.flue.launcher.ui.theme.LauncherTheme
 import java.util.Locale
@@ -48,7 +48,7 @@ import java.util.Locale
  * 名单迟早会漂 —— 一漂就是「表盘写了 A、映射存在 B」，点下去静默无反应，最难查的那种。
  */
 @Composable
-internal fun WatchTapActionPresetDialog(
+fun WatchTapActionPresetDialog(
     current: String?,
     onPick: (String) -> Unit,
     onDismiss: () -> Unit,

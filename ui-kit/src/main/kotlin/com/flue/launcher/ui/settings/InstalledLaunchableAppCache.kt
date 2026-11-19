@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
 
 /** Lightweight process cache shared by every watch app picker. */
-internal data class InstalledLaunchableApp(
+data class InstalledLaunchableApp(
     val label: String,
     val packageName: String,
     val activityClass: String,
@@ -35,7 +35,7 @@ internal data class InstalledLaunchableApp(
  * 这里存的是应用自己的图标位图，与 Flue 的风格无关，所以不需要跟着风格切换失效。
  * 应用装卸由 [invalidate] 统一清（名单与图标一起清 —— 图标留着会指向已卸载的组件）。
  */
-internal object InstalledLaunchableAppCache {
+object InstalledLaunchableAppCache {
     private data class Snapshot(
         val loadedAtMs: Long,
         val apps: List<InstalledLaunchableApp>,

@@ -2,7 +2,6 @@ package com.flue.launcher.applist.background
 
 import android.content.Context
 import android.net.Uri
-import com.flue.launcher.watchface.editor.WatchEditorImageCropper
 import com.flue.launcher.watchface.core.WatchEditorSourceRect
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -24,12 +23,11 @@ internal suspend fun cropAndStoreAppListBackground(
     previousPath: String?,
 ): String? = withContext(Dispatchers.IO) {
     runCatching {
-        val bitmap = WatchEditorImageCropper.cropRegion(context.contentResolver, uri, sourceRect)
+        val png = AppListBackgroundCrop.cropToPng(context.contentResolver, uri, sourceRect)
+            ?: error("背景图裁剪失败")
         val directory = File(context.filesDir, APP_LIST_BACKGROUND_DIRECTORY).apply { mkdirs() }
         val target = File(directory, "bg_${System.currentTimeMillis()}.png")
-        WatchEditorImageCropper.toPngStream(bitmap).use { input ->
-            target.outputStream().use { output -> input.copyTo(output) }
-        }
+        target.outputStream().use { output -> output.write(png) }
         // 新图写成功了才清理目录里其他文件（含上一张）。
         directory.listFiles()?.forEach { file ->
             if (file.isFile && file.absolutePath != target.absolutePath) file.delete()

@@ -1,9 +1,9 @@
 package com.flue.launcher.ui.settings
 
 import androidx.annotation.StringRes
-import com.flue.launcher.R
+import com.flue.launcher.uikit.R
 
-internal data class WatchTapActionDefinition(
+data class WatchTapActionDefinition(
     val id: String,
     val mappingKeys: List<String>,
     @StringRes val titleRes: Int,
@@ -24,7 +24,7 @@ internal data class WatchTapActionDefinition(
     val canonicalKey: String get() = mappingKeys.first()
 }
 
-internal data class WatchTapActionCategory(
+data class WatchTapActionCategory(
     val id: String,
     @StringRes val titleRes: Int,
     @StringRes val descriptionRes: Int,
@@ -32,7 +32,7 @@ internal data class WatchTapActionCategory(
 )
 
 /** Human-facing groups; compatibility aliases are deliberately edited as one binding. */
-internal object WatchTapActionCatalog {
+object WatchTapActionCatalog {
     val categories = listOf(
         WatchTapActionCategory(
             id = "information",

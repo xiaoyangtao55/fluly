@@ -10,4 +10,150 @@
     <string name="internal_file_browser_permission_title">Allow device file browsing</string>
     <string name="internal_file_browser_read_failed">This folder cannot be read</string>
     <string name="internal_file_browser_select_current_folder">Export to this folder</string>
+
+    <string name="watch_editor_search_app_hint">Search app name or package</string>
+
+    <string name="settings_tap_actions_current">Current binding</string>
+
+    <string name="watch_editor_tap_action_preset_search">Search action or function name</string>
+
+    <string name="watch_editor_tap_action_preset">Presets</string>
+
+    <string name="watch_editor_tap_action_preset_sub">The face stores only the action name; pick which app it opens under Settings → Watch face tap actions</string>
+
+    <string name="tap_action_agenda">Agenda</string>
+
+    <string name="tap_action_agenda_sub">See your upcoming schedule</string>
+
+    <string name="tap_action_alarm">Alarm</string>
+
+    <string name="tap_action_alarm_sub">Open the alarm list</string>
+
+    <string name="tap_action_browser">Browser</string>
+
+    <string name="tap_action_browser_sub">Open a web browser</string>
+
+    <string name="tap_action_calculator">Calculator</string>
+
+    <string name="tap_action_calculator_sub">Open a calculator</string>
+
+    <string name="tap_action_calendar">Calendar</string>
+
+    <string name="tap_action_calendar_sub">View dates and events</string>
+
+    <string name="tap_action_camera">Camera</string>
+
+    <string name="tap_action_camera_sub">Open a camera app</string>
+
+    <string name="tap_action_category_communication">Communication and social</string>
+
+    <string name="tap_action_category_communication_sub">Calls, messages, contacts, and social apps</string>
+
+    <string name="tap_action_category_information">Information and health</string>
+
+    <string name="tap_action_category_information_sub">Weather, calendar, activity, and body data</string>
+
+    <string name="tap_action_category_media">Photos and media</string>
+
+    <string name="tap_action_category_media_sub">Camera, gallery, music, and the web</string>
+
+    <string name="tap_action_category_tools">Tools and system</string>
+
+    <string name="tap_action_category_tools_sub">Clock, maps, payments, and system utilities</string>
+
+    <string name="tap_action_clock">Clock</string>
+
+    <string name="tap_action_clock_sub">Open alarms and the clock</string>
+
+    <string name="tap_action_compass">Compass</string>
+
+    <string name="tap_action_compass_sub">Open a direction and bearing tool</string>
+
+    <string name="tap_action_contacts">Contacts</string>
+
+    <string name="tap_action_contacts_sub">Open your address book</string>
+
+    <string name="tap_action_dialer">Phone</string>
+
+    <string name="tap_action_dialer_sub">Open calling and the dialer</string>
+
+    <string name="tap_action_email">Email</string>
+
+    <string name="tap_action_email_sub">Open your inbox or email app</string>
+
+    <string name="tap_action_fitness">Fitness</string>
+
+    <string name="tap_action_fitness_sub">Open workouts and activity records</string>
+
+    <string name="tap_action_flashlight">Flashlight</string>
+
+    <string name="tap_action_flashlight_sub">Open a lighting tool</string>
+
+    <string name="tap_action_gallery">Gallery</string>
+
+    <string name="tap_action_gallery_sub">Browse photos and images</string>
+
+    <string name="tap_action_health">Health</string>
+
+    <string name="tap_action_health_sub">View your overall health data</string>
+
+    <string name="tap_action_heart_rate">Heart rate</string>
+
+    <string name="tap_action_heart_rate_sub">Measure or review your heart rate</string>
+
+    <string name="tap_action_keep">Notes</string>
+
+    <string name="tap_action_keep_sub">Open notes or tasks</string>
+
+    <string name="tap_action_launcher">App list</string>
+
+    <string name="tap_action_launcher_sub">Open the launcher or app list</string>
+
+    <string name="tap_action_map">Maps</string>
+
+    <string name="tap_action_map_sub">Open maps and navigation</string>
+
+    <string name="tap_action_messaging">Messages</string>
+
+    <string name="tap_action_messaging_sub">Open SMS or instant messaging</string>
+
+    <string name="tap_action_music">Music</string>
+
+    <string name="tap_action_music_sub">Open your preferred music player</string>
+
+    <string name="tap_action_payment">Payment</string>
+
+    <string name="tap_action_payment_sub">Open a wallet or payment app</string>
+
+    <string name="tap_action_recorder">Recorder</string>
+
+    <string name="tap_action_recorder_sub">Open an audio recorder</string>
+
+    <string name="tap_action_settings">System settings</string>
+
+    <string name="tap_action_settings_sub">Open device settings</string>
+
+    <string name="tap_action_social">Social</string>
+
+    <string name="tap_action_social_sub">Open your preferred social app</string>
+
+    <string name="tap_action_sports">Sports</string>
+
+    <string name="tap_action_sports_sub">Open a sports training app</string>
+
+    <string name="tap_action_stopwatch">Stopwatch</string>
+
+    <string name="tap_action_stopwatch_sub">Open stopwatch timing</string>
+
+    <string name="tap_action_timer">Timer</string>
+
+    <string name="tap_action_timer_sub">Open a countdown timer</string>
+
+    <string name="tap_action_voice_search">Voice search</string>
+
+    <string name="tap_action_voice_search_sub">Search or run a command with your assistant</string>
+
+    <string name="tap_action_weather">Weather</string>
+
+    <string name="tap_action_weather_sub">Open your preferred weather app</string>
 </resources>

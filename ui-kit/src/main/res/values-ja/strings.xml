@@ -10,4 +10,150 @@
     <string name="internal_file_browser_permission_title">デバイスのファイル閲覧を許可</string>
     <string name="internal_file_browser_read_failed">このフォルダーを読み取れません</string>
     <string name="internal_file_browser_select_current_folder">このフォルダーに書き出す</string>
+
+    <string name="watch_editor_search_app_hint">アプリ名またはパッケージを検索</string>
+
+    <string name="settings_tap_actions_current">現在の割り当て</string>
+
+    <string name="watch_editor_tap_action_preset_search">動作名または関数名を検索</string>
+
+    <string name="watch_editor_tap_action_preset">プリセット</string>
+
+    <string name="watch_editor_tap_action_preset_sub">文字盤には動作名だけが保存されます。開くアプリは「設定 → 文字盤のタップ動作」で割り当てます</string>
+
+    <string name="tap_action_agenda">予定</string>
+
+    <string name="tap_action_agenda_sub">これからの予定を確認します</string>
+
+    <string name="tap_action_alarm">アラーム</string>
+
+    <string name="tap_action_alarm_sub">アラーム一覧を開きます</string>
+
+    <string name="tap_action_browser">ブラウザ</string>
+
+    <string name="tap_action_browser_sub">ウェブブラウザを開きます</string>
+
+    <string name="tap_action_calculator">電卓</string>
+
+    <string name="tap_action_calculator_sub">電卓を開きます</string>
+
+    <string name="tap_action_calendar">カレンダー</string>
+
+    <string name="tap_action_calendar_sub">日付と予定を確認します</string>
+
+    <string name="tap_action_camera">カメラ</string>
+
+    <string name="tap_action_camera_sub">撮影アプリを開きます</string>
+
+    <string name="tap_action_category_communication">連絡とソーシャル</string>
+
+    <string name="tap_action_category_communication_sub">電話、メッセージ、連絡先、SNS</string>
+
+    <string name="tap_action_category_information">情報と健康</string>
+
+    <string name="tap_action_category_information_sub">天気、カレンダー、運動、身体データ</string>
+
+    <string name="tap_action_category_media">写真とメディア</string>
+
+    <string name="tap_action_category_media_sub">カメラ、ギャラリー、音楽、ウェブ</string>
+
+    <string name="tap_action_category_tools">ツールとシステム</string>
+
+    <string name="tap_action_category_tools_sub">時計、地図、支払い、システムツール</string>
+
+    <string name="tap_action_clock">時計</string>
+
+    <string name="tap_action_clock_sub">アラームと時計を開きます</string>
+
+    <string name="tap_action_compass">コンパス</string>
+
+    <string name="tap_action_compass_sub">方角を確認するツールを開きます</string>
+
+    <string name="tap_action_contacts">連絡先</string>
+
+    <string name="tap_action_contacts_sub">連絡先一覧を開きます</string>
+
+    <string name="tap_action_dialer">電話</string>
+
+    <string name="tap_action_dialer_sub">通話とダイヤラーを開きます</string>
+
+    <string name="tap_action_email">メール</string>
+
+    <string name="tap_action_email_sub">受信トレイまたはメールアプリを開きます</string>
+
+    <string name="tap_action_fitness">フィットネス</string>
+
+    <string name="tap_action_fitness_sub">運動とアクティビティ記録を開きます</string>
+
+    <string name="tap_action_flashlight">懐中電灯</string>
+
+    <string name="tap_action_flashlight_sub">照明ツールを開きます</string>
+
+    <string name="tap_action_gallery">ギャラリー</string>
+
+    <string name="tap_action_gallery_sub">写真と画像を表示します</string>
+
+    <string name="tap_action_health">健康</string>
+
+    <string name="tap_action_health_sub">健康データをまとめて確認します</string>
+
+    <string name="tap_action_heart_rate">心拍数</string>
+
+    <string name="tap_action_heart_rate_sub">心拍数を測定または確認します</string>
+
+    <string name="tap_action_keep">メモ</string>
+
+    <string name="tap_action_keep_sub">メモまたはタスクを開きます</string>
+
+    <string name="tap_action_launcher">アプリ一覧</string>
+
+    <string name="tap_action_launcher_sub">ランチャーまたはアプリ一覧を開きます</string>
+
+    <string name="tap_action_map">地図</string>
+
+    <string name="tap_action_map_sub">地図とナビゲーションを開きます</string>
+
+    <string name="tap_action_messaging">メッセージ</string>
+
+    <string name="tap_action_messaging_sub">SMSまたはメッセージアプリを開きます</string>
+
+    <string name="tap_action_music">音楽</string>
+
+    <string name="tap_action_music_sub">いつもの音楽プレーヤーを開きます</string>
+
+    <string name="tap_action_payment">支払い</string>
+
+    <string name="tap_action_payment_sub">ウォレットまたは決済アプリを開きます</string>
+
+    <string name="tap_action_recorder">録音</string>
+
+    <string name="tap_action_recorder_sub">録音アプリを開きます</string>
+
+    <string name="tap_action_settings">システム設定</string>
+
+    <string name="tap_action_settings_sub">端末の設定を開きます</string>
+
+    <string name="tap_action_social">ソーシャル</string>
+
+    <string name="tap_action_social_sub">いつものSNSアプリを開きます</string>
+
+    <string name="tap_action_sports">スポーツ</string>
+
+    <string name="tap_action_sports_sub">スポーツトレーニングを開きます</string>
+
+    <string name="tap_action_stopwatch">ストップウォッチ</string>
+
+    <string name="tap_action_stopwatch_sub">ストップウォッチを開きます</string>
+
+    <string name="tap_action_timer">タイマー</string>
+
+    <string name="tap_action_timer_sub">カウントダウンを開きます</string>
+
+    <string name="tap_action_voice_search">音声検索</string>
+
+    <string name="tap_action_voice_search_sub">音声で検索や操作を行います</string>
+
+    <string name="tap_action_weather">天気</string>
+
+    <string name="tap_action_weather_sub">いつもの天気アプリを開きます</string>
 </resources>
