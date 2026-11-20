@@ -1,14 +1,7 @@
 package com.flue.launcher
 
-import androidx.compose.ui.res.stringResource
-import com.flue.launcher.i18n.FlueComponentActivity
-import com.flue.launcher.i18n.FlueLocaleManager
-
-
 import android.Manifest
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -21,279 +14,195 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings as AndroidSettings
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.annotation.StringRes
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
-import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.spring
-import com.flue.launcher.ui.settings.miuix.SettingsIcon
-import com.flue.launcher.ui.settings.SettingsSearchEntry
-import com.flue.launcher.ui.settings.SettingsSearchField
-import com.flue.launcher.ui.settings.searchSettingsEntries
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.onClick
-import androidx.compose.ui.semantics.onLongClick
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.scrollBy
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.gestures.rememberTransformableState
-import androidx.compose.foundation.gestures.transformable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.offset
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Refresh
-import com.flue.launcher.ui.style.FlueAlertDialog
-import com.flue.launcher.ui.style.FlueButton
-import com.flue.launcher.ui.style.FlueDialogButtons
-import com.flue.launcher.ui.style.FlueFullScreenOverlay
-import com.flue.launcher.ui.style.FlueSingleChoiceDialog
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.core.graphics.drawable.toBitmap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.zIndex
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.findRootCoordinates
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.FileProvider
-import androidx.core.content.ContextCompat
+import androidx.compose.ui.zIndex
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.flue.launcher.logging.FlueLog
-import com.flue.launcher.backup.FlueBackupExportSummary
+import com.flue.launcher.aod.AodSupplementalNotice
+import com.flue.launcher.aod.rememberAodSettingsState
+import com.flue.launcher.applist.background.AppListBackgroundMode
+import com.flue.launcher.applist.background.cropAndStoreAppListBackground
 import com.flue.launcher.backup.FlueBackupOptions
 import com.flue.launcher.backup.FlueBackupPreview
+import com.flue.launcher.i18n.FlueComponentActivity
+import com.flue.launcher.i18n.FlueLocaleManager
+import com.flue.launcher.logging.FlueLog
+import com.flue.launcher.motion.LocalFlueMotionProfile
 import com.flue.launcher.service.FlueAccessibilityService
 import com.flue.launcher.service.FlueDeviceAdminController
 import com.flue.launcher.service.ScreenLockControlMode
 import com.flue.launcher.service.screenLockControlMode
-import com.flue.launcher.ui.common.FlueScreenShape
+import com.flue.launcher.ui.anim.FlueTransitionMotion
 import com.flue.launcher.ui.common.FlueColorPickerDialog
-import com.flue.launcher.ui.common.flueColorToHex
-import com.flue.launcher.applist.background.AppListBackgroundConfig
 import com.flue.launcher.ui.common.FlueImageCropOverlay
-import com.flue.launcher.applist.background.AppListBackgroundMode
-import com.flue.launcher.applist.background.AppListBackgroundPreviewCard
-import com.flue.launcher.applist.background.cropAndStoreAppListBackground
-import com.flue.launcher.applist.background.rememberAppListBackgroundPainting
-import com.flue.launcher.ui.common.MAX_OVERLAY_MASK_CORNER_RADIUS_DP
-import com.flue.launcher.ui.common.bottomFisheyeScale
-import com.flue.launcher.ui.common.isFlueScreenRound
-import com.flue.launcher.ui.common.normalizeOverlayMaskCornerRadiusDp
-import com.flue.launcher.ui.style.flueOverscroll
-import com.flue.launcher.ui.style.flueScrollEndHaptic
+import com.flue.launcher.ui.common.FlueScreenShape
 import com.flue.launcher.ui.common.InternalFileBrowserHost
 import com.flue.launcher.ui.common.InternalFileBrowserRequest
-import com.flue.launcher.motion.LocalFlueMotionProfile
-import com.flue.launcher.motion.FlueMotionProfile
-import com.flue.launcher.motion.FlueMotionProfiles
-import com.flue.launcher.layout.FLUE_LAYOUT_CRESCENT_BULGE_MAX
-import com.flue.launcher.layout.FLUE_LAYOUT_PROFILE_NAME_MAX_LENGTH
-import com.flue.launcher.layout.FlueLayoutProfiles
-import com.flue.launcher.ui.style.FlueGroupDivider
-import com.flue.launcher.ui.style.FlueGroupPosition
-import com.flue.launcher.ui.style.FlueSlider
-import com.flue.launcher.ui.style.FlueSwitch
-import com.flue.launcher.ui.style.FlueSwitchIndicator
-import com.flue.launcher.ui.style.flueGroupShape
-import com.flue.launcher.ui.style.flueRowHorizontalPadding
-import com.flue.launcher.ui.style.flueSettingsGroup
-import com.flue.launcher.motion.MotionEasing
-import com.flue.launcher.motion.MotionPhaseKey
-import com.flue.launcher.ui.smartstack.MusicTextSwitchAnimations
+import com.flue.launcher.ui.common.isFlueScreenRound
 import com.flue.launcher.ui.drawer.appListPalette
-import com.flue.launcher.ui.style.vibrateHaptic
-import com.flue.launcher.ui.input.flueRotaryScrollable
-import com.flue.launcher.ui.input.ROTARY_SCROLL_MULTIPLIER
-import com.flue.launcher.ui.input.RotaryHapticGate
-import com.flue.launcher.ui.input.requestFocusAfterFirstFrame
 import com.flue.launcher.ui.navigation.LayoutMode
+import com.flue.launcher.ui.settings.AboutCard
+import com.flue.launcher.ui.settings.ActionCard
+import com.flue.launcher.ui.settings.AppListBackgroundPage
+import com.flue.launcher.ui.settings.BackgroundPreviewSources
+import com.flue.launcher.ui.settings.BackupOptionRows
+import com.flue.launcher.ui.settings.BlockingProgressDialog
+import com.flue.launcher.ui.settings.DebugPage
+import com.flue.launcher.ui.settings.DebugTapState
+import com.flue.launcher.ui.settings.DisplaySizePage
+import com.flue.launcher.ui.settings.DonateMethodCard
+import com.flue.launcher.ui.settings.DonatePreviewDialog
+import com.flue.launcher.ui.settings.EntryIcon
+import com.flue.launcher.ui.settings.MessageCard
+import com.flue.launcher.ui.settings.MotionProfilePage
+import com.flue.launcher.ui.settings.OverlayMaskCornerRadiusDialog
+import com.flue.launcher.ui.settings.ProfileRenameDialog
+import com.flue.launcher.ui.settings.SectionTitle
+import com.flue.launcher.ui.settings.SettingsCategoryCard
+import com.flue.launcher.ui.settings.SettingsChoiceRow
+import com.flue.launcher.ui.settings.SettingsEntry
+import com.flue.launcher.ui.settings.SettingsEntryBinding
+import com.flue.launcher.ui.settings.SettingsHierarchy
+import com.flue.launcher.ui.settings.SettingsPageScaffold
+import com.flue.launcher.ui.settings.SettingsSearchField
+import com.flue.launcher.ui.settings.SettingsSliderRow
+import com.flue.launcher.ui.settings.SettingsSwitchRow
 import com.flue.launcher.ui.settings.WatchFaceSettingCard
-import com.flue.launcher.ui.settings.miuix.MiuixIcons
-import com.flue.launcher.ui.settings.miuix.MiuixSettingsCard
-import com.flue.launcher.ui.settings.miuix.MiuixSettingsRow
-import com.flue.launcher.ui.theme.LauncherTheme
-import com.flue.launcher.ui.theme.ProvideDialogUiScale
-import com.flue.launcher.ui.theme.ProvideGlobalUiScale
-import com.flue.launcher.ui.anim.FlueTransitionMotion
-import com.flue.launcher.ui.theme.ThemeMode
-import com.flue.launcher.ui.theme.UiStyle
-import com.flue.launcher.ui.theme.WatchColors
-import com.flue.launcher.ui.theme.SettingsMaterialTheme
-import com.flue.launcher.ui.theme.RoundElementRole
-import com.flue.launcher.ui.theme.roundAwareCardShape
-import com.flue.launcher.ui.theme.roundAwareCompactShape
-import com.flue.launcher.util.FlueStudioLauncher
-import com.flue.launcher.util.RecentsVisibility
-import com.flue.launcher.util.FlowCrescentDirection
-import com.flue.launcher.util.flowCrescentOffsetPx
-import com.flue.launcher.viewmodel.LauncherViewModel
-import com.flue.launcher.watchface.BUILT_IN_PHOTO_WATCHFACE_ID
-import com.flue.launcher.watchface.BUILT_IN_VIDEO_WATCHFACE_ID
-import com.flue.launcher.watchface.BuiltInWatchFaceOptions
-import com.flue.launcher.watchface.InternalWatchFaceStorage
-import com.flue.launcher.watchface.WatchFaceDescriptor
-import com.flue.launcher.watchface.standard.WatchDateLocale
-import com.flue.launcher.watchface.standard.WatchTemperatureUnit
-import com.flue.launcher.watchface.standard.WatchWeatherLocation
-import com.flue.launcher.watchface.standard.WatchWeatherRepository
-import com.flue.launcher.watchface.standard.WatchLocationPermissionPolicy
-import com.flue.launcher.watchface.standard.hasHeartRatePermission
-import com.flue.launcher.watchface.standard.requiredHeartRatePermission
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
 import com.flue.launcher.ui.settings.WatchTapActionAppPickerDialog
 import com.flue.launcher.ui.settings.WatchTapActionBindingCard
 import com.flue.launcher.ui.settings.WatchTapActionCatalog
 import com.flue.launcher.ui.settings.WatchTapActionDefinition
-import com.flue.launcher.ui.settings.DebugTapState
-import com.flue.launcher.diagnostics.DiagnosticsSettingsSection
-import com.flue.launcher.diagnostics.DiagnosticsInformationSection
-import com.flue.launcher.aod.AodSupplementalNotice
-import com.flue.launcher.aod.rememberAodSettingsState
+import com.flue.launcher.ui.settings.backupSummaryText
+import com.flue.launcher.ui.settings.buildSettingsSearchIndex
+import com.flue.launcher.ui.settings.exportDoneDetailText
+import com.flue.launcher.ui.settings.itemFisheye
+import com.flue.launcher.ui.settings.miuix.MiuixIcons
+import com.flue.launcher.ui.settings.miuix.SettingsIcon
+import com.flue.launcher.ui.settings.searchSettingsEntries
+import com.flue.launcher.ui.settings.settingsEntryGroup
+import com.flue.launcher.ui.settings.settingsEntryScreen
+import com.flue.launcher.ui.settings.valueOfRow
+import com.flue.launcher.ui.settings.withRow
+import com.flue.launcher.ui.smartstack.MusicTextSwitchAnimations
+import com.flue.launcher.ui.style.FlueAlertDialog
 import com.flue.launcher.ui.style.FlueLoadingIndicator
+import com.flue.launcher.ui.style.FlueSingleChoiceDialog
+import com.flue.launcher.ui.style.flueSettingsGroup
+import com.flue.launcher.ui.theme.LauncherTheme
+import com.flue.launcher.ui.theme.ProvideGlobalUiScale
+import com.flue.launcher.ui.theme.SettingsMaterialTheme
+import com.flue.launcher.ui.theme.ThemeMode
+import com.flue.launcher.ui.theme.WatchColors
+import com.flue.launcher.util.FlowCrescentDirection
+import com.flue.launcher.util.FlueStudioLauncher
+import com.flue.launcher.util.RecentsVisibility
+import com.flue.launcher.util.flowCrescentOffsetPx
+import com.flue.launcher.viewmodel.LauncherViewModel
+import com.flue.launcher.watchface.BuiltInWatchFaceOptions
+import com.flue.launcher.watchface.InternalWatchFaceStorage
+import com.flue.launcher.watchface.WatchFaceDescriptor
 import com.flue.launcher.watchface.selection.WatchFaceLongPressMode
+import com.flue.launcher.watchface.standard.WatchDateLocale
+import com.flue.launcher.watchface.standard.WatchLocationPermissionPolicy
+import com.flue.launcher.watchface.standard.WatchTemperatureUnit
+import com.flue.launcher.watchface.standard.WatchWeatherLocation
+import com.flue.launcher.watchface.standard.WatchWeatherRepository
+import com.flue.launcher.watchface.standard.hasHeartRatePermission
+import com.flue.launcher.watchface.standard.requiredHeartRatePermission
+import java.io.File
+import java.util.Locale
+import kotlin.math.roundToInt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.icon.MiuixIcons as OfficialMiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add as OfficialAdd
-import top.yukonga.miuix.kmp.icon.extended.Back as OfficialBack
 import top.yukonga.miuix.kmp.icon.extended.Carrier as OfficialCarrier
 import top.yukonga.miuix.kmp.icon.extended.Folder as OfficialFolder
 import top.yukonga.miuix.kmp.icon.extended.Refresh as OfficialRefresh
 import top.yukonga.miuix.kmp.icon.extended.Settings as OfficialSettings
-import top.yukonga.miuix.kmp.icon.extended.Ok as OfficialOk
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
-import java.io.File
-import java.util.Locale
-import kotlin.math.roundToInt
-import kotlin.math.abs
 
-private val ABOUT_VERSION = BuildConfig.VERSION_NAME
-private data class OpenSourceProject(val name: String, val url: String)
-private val OPEN_SOURCE_PROJECTS = listOf(
+internal val ABOUT_VERSION = BuildConfig.VERSION_NAME
+internal data class OpenSourceProject(val name: String, val url: String)
+internal val OPEN_SOURCE_PROJECTS = listOf(
     OpenSourceProject("compose-miuix-ui/miuix", "https://github.com/compose-miuix-ui/miuix"),
     OpenSourceProject("ailife8881/wftools", "https://gitlab.com/ailife8881/wftools"),
     OpenSourceProject("ailife8881/clox", "https://gitlab.com/ailife8881/clox"),
@@ -309,29 +218,29 @@ private val OPEN_SOURCE_PROJECTS = listOf(
 )
 // 两个交流群。第二个是后来开的，容量满了才会用到，所以入口做成「点一下问你进哪个」
 // 而不是并排两张卡 —— 关于页在 230dp 圆屏上已经很挤，多一张卡就要多滚一屏。
-private const val COMMUNITY_GROUP_NUMBER = "1097162313"
-private const val COMMUNITY_GROUP_2_NUMBER = "318567840"
-private const val AUTHOR_QQ_NUMBER = "3513903055"
-private const val AUTHOR_BILIBILI_URL = "https://m.bilibili.com/space/1609437970"
+internal const val COMMUNITY_GROUP_NUMBER = "1097162313"
+internal const val COMMUNITY_GROUP_2_NUMBER = "318567840"
+internal const val AUTHOR_QQ_NUMBER = "3513903055"
+internal const val AUTHOR_BILIBILI_URL = "https://m.bilibili.com/space/1609437970"
 private const val DIAGNOSTIC_LOG_DURATION_MS = 5 * 60 * 1000L
 const val EXTRA_SETTINGS_DESTINATION = "settings_destination"
 const val EXTRA_SETTINGS_RETURN_TO_FACE = "settings_return_to_face"
 const val SETTINGS_DESTINATION_WATCH_FACES = "watch_faces"
 const val SETTINGS_DESTINATION_TOOLS = "tools"
-private val LocalSettingsLeftSafeInsetPercent = compositionLocalOf { 0 }
-private val LocalSettingsRotaryHapticsEnabled = compositionLocalOf { true }
+internal val LocalSettingsLeftSafeInsetPercent = compositionLocalOf { 0 }
+internal val LocalSettingsRotaryHapticsEnabled = compositionLocalOf { true }
 
 /**
  * 搜索跳转目标。[token] 每次点击自增，用来让同一个 key 也能重新触发定位。
  * [onConsumed] 由 scaffold 在定位完成后回调，避免返回上一页时又跳一次。
  */
-private data class SettingsSearchTarget(
+internal data class SettingsSearchTarget(
     val itemKey: String,
     val token: Int,
     val onConsumed: () -> Unit,
 )
 
-private val LocalSettingsSearchTarget = compositionLocalOf<SettingsSearchTarget?> { null }
+internal val LocalSettingsSearchTarget = compositionLocalOf<SettingsSearchTarget?> { null }
 
 enum class SettingsDestination {
     ROOT,
@@ -394,7 +303,7 @@ private data class SettingsLaunchConfig(
     val requestId: Long = 0L
 )
 
-private data class BlockingProgressState(
+internal data class BlockingProgressState(
     val title: String,
     /** 副标题。为空时只显示标题（导出完成不再回显文件路径）。 */
     val detail: String? = null,
@@ -403,13 +312,12 @@ private data class BlockingProgressState(
     val shareUri: Uri? = null
 )
 
-private enum class BlockingProgressCompletionAction {
+internal enum class BlockingProgressCompletionAction {
     None,
     ExportBackup,
     ImportBackup,
     WatchFaceArchiveImport
 }
-
 
 class SettingsActivity : FlueComponentActivity() {
     private var launchRequestId = 0L
@@ -556,7 +464,6 @@ private fun SettingsRootScreen(
     val availableIconPacks by vm.availableIconPacks.collectAsStateWithLifecycle()
     val selectedIconPackPackage by vm.selectedIconPackPackage.collectAsStateWithLifecycle()
 
-
     val watchFaceLastError by vm.watchFaceLastError.collectAsStateWithLifecycle()
     val layoutMode by vm.layoutMode.collectAsStateWithLifecycle()
     val sideScreenEnabled by vm.sideScreenEnabled.collectAsStateWithLifecycle()
@@ -567,30 +474,16 @@ private fun SettingsRootScreen(
     val splashIcon by vm.splashIcon.collectAsStateWithLifecycle()
     val splashDelay by vm.splashDelay.collectAsStateWithLifecycle()
     val directLaunchAppListEnabled by vm.directLaunchAppListEnabled.collectAsStateWithLifecycle()
-    val honeycombCols by vm.honeycombCols.collectAsStateWithLifecycle()
     val honeycombEdgeBlurRadius by vm.honeycombEdgeBlurRadius.collectAsStateWithLifecycle()
     val honeycombTopFade by vm.honeycombTopFade.collectAsStateWithLifecycle()
     val honeycombBottomFade by vm.honeycombBottomFade.collectAsStateWithLifecycle()
-    val appListFisheyeEnabled by vm.appListFisheyeEnabled.collectAsStateWithLifecycle()
-    val materialHoneycombTopFisheyeEnabled by vm.materialHoneycombTopFisheyeEnabled.collectAsStateWithLifecycle()
-    val appListFisheyeRangeRows by vm.appListFisheyeRangeRows.collectAsStateWithLifecycle()
-    val appListFisheyeStrengthPercent by vm.appListFisheyeStrengthPercent.collectAsStateWithLifecycle()
-    val appListEdgeSpacingCompressionEnabled by vm.appListEdgeSpacingCompressionEnabled.collectAsStateWithLifecycle()
     val appListLeftSafeInsetPercent by vm.appListLeftSafeInsetPercent.collectAsStateWithLifecycle()
-    val appListFlowCrescentBulgePercent by vm.appListFlowCrescentBulgePercent.collectAsStateWithLifecycle()
-    val appListFlowCrescentToRight by vm.appListFlowCrescentToRight.collectAsStateWithLifecycle()
-    val layoutProfiles by vm.layoutProfiles.collectAsStateWithLifecycle()
     val activeLayoutProfile by vm.activeLayoutProfile.collectAsStateWithLifecycle()
-    val appListScalePercent by vm.appListScalePercent.collectAsStateWithLifecycle()
     val globalUiScalePercent by vm.globalUiScalePercent.collectAsStateWithLifecycle()
     val overlayMaskCornerRadiusDp by vm.overlayMaskCornerRadiusDp.collectAsStateWithLifecycle()
     val appListWatchFaceColors by vm.appListWatchFaceColors.collectAsStateWithLifecycle()
     val appListRowBorderEnabled by vm.appListRowBorderEnabled.collectAsStateWithLifecycle()
-    val appListGridIconPlateEnabled by vm.appListGridIconPlateEnabled.collectAsStateWithLifecycle()
     val appListFoldersEnabled by vm.appListFoldersEnabled.collectAsStateWithLifecycle()
-    val appListScrollIndicatorEnabled by
-        vm.appListScrollIndicatorEnabled.collectAsStateWithLifecycle()
-    val appListEdgeAlignEnabled by vm.appListEdgeAlignEnabled.collectAsStateWithLifecycle()
     val musicTextSwitchAnimation by vm.musicTextSwitchAnimation.collectAsStateWithLifecycle()
     val iconShadowEnabled by vm.iconShadowEnabled.collectAsStateWithLifecycle()
     val appListReturnShrinkEnabled by vm.appListReturnShrinkEnabled.collectAsStateWithLifecycle()
@@ -840,37 +733,7 @@ private fun SettingsRootScreen(
     // ---- 应用列表背景 ------------------------------------------------------
     val appListBackground by vm.appListBackground.collectAsStateWithLifecycle()
     var appListBackgroundColorPickerVisible by remember { mutableStateOf(false) }
-    /**
-     * 拖动中的模糊 / 遮罩百分比。
-     *
-     * 两条滑块都是**抬手才落盘**（每帧提交等于拖动时连烘十几张模糊图），可预览卡必须跟手 ——
-     * 所以拖动值单独存一份，只喂给预览。非空即「正在拖」。
-     */
-    var appListBackgroundBlurDrag by remember { mutableStateOf<Int?>(null) }
-    var appListBackgroundScrimDrag by remember { mutableStateOf<Int?>(null) }
-    // 落盘值追上拖动值之后就把覆盖清掉。不能在 onValueChangeFinished 里直接清：StateFlow 的
-    // 那一跳要等一次协程调度，中间会有一帧读到旧值，预览就闪一下。
-    LaunchedEffect(appListBackground.blurPercent, appListBackgroundBlurDrag) {
-        if (appListBackgroundBlurDrag == appListBackground.blurPercent) {
-            appListBackgroundBlurDrag = null
-        }
-    }
-    LaunchedEffect(appListBackground.scrimPercent, appListBackgroundScrimDrag) {
-        if (appListBackgroundScrimDrag == appListBackground.scrimPercent) {
-            appListBackgroundScrimDrag = null
-        }
-    }
-    /** 预览用的配置：落盘值叠上拖动中的临时值。 */
-    val appListBackgroundPreviewConfig = remember(
-        appListBackground,
-        appListBackgroundBlurDrag,
-        appListBackgroundScrimDrag,
-    ) {
-        appListBackground.copy(
-            blurPercent = appListBackgroundBlurDrag ?: appListBackground.blurPercent,
-            scrimPercent = appListBackgroundScrimDrag ?: appListBackground.scrimPercent,
-        )
-    }
+    // 拖动中的模糊/遮罩值与预览配置已随整页搬到 AppListBackgroundScreen.kt。
     /** 选好、还没裁剪的图。非空即裁剪覆层可见。 */
     var appListBackgroundCropUri by remember { mutableStateOf<Uri?>(null) }
     val appListBackgroundImagePicker = rememberLauncherForActivityResult(OpenDocument()) { uri ->
@@ -891,13 +754,6 @@ private fun SettingsRootScreen(
         uiStyle = uiStyle,
         useWatchFaceColor = false,
     )
-    // 按**屏幕**尺寸解码而不是按卡片尺寸：缓存键里带着目标尺寸，用屏幕尺寸就能和启动器那份
-    // 现成的缓存对上（老师是从列表上滑进设置的，那张图基本一定是热的），一次多余解码都不用。
-    val appListPreviewViewport = with(LocalDensity.current) {
-        LocalConfiguration.current.let { config ->
-            config.screenWidthDp.dp.roundToPx() to config.screenHeightDp.dp.roundToPx()
-        }
-    }
     val backupCreatePicker = rememberLauncherForActivityResult(CreateDocument("application/zip")) { uri ->
         val options = pendingBackupExportOptions
         pendingBackupExportOptions = null
@@ -993,28 +849,6 @@ private fun SettingsRootScreen(
     LaunchedEffect(destination) {
         if (destination != SettingsDestination.ABOUT) debugTapState = DebugTapState()
     }
-    // 背景预览卡的底图。**只在背景页才真的解码**：不在那一页时喂一份默认配置（纯色档 →
-    // 图源为 null），于是进任何别的设置页都不会白解一张全屏位图出来。
-    val appListBackgroundPreviewPainting = rememberAppListBackgroundPainting(
-        config = if (destination == SettingsDestination.APP_LIST_BACKGROUND) {
-            appListBackgroundPreviewConfig
-        } else {
-            AppListBackgroundConfig.Default
-        },
-        fallbackColor = appListPreviewPalette.background,
-        darkMode = appListPreviewDarkMode,
-        viewportWidthPx = appListPreviewViewport.first,
-        viewportHeightPx = appListPreviewViewport.second,
-        watchFaceId = selectedWatchFaceId,
-        watchFaceStableKey = selectedWatchFace.stableKey,
-        watchFacePreviewPath = selectedWatchFace.previewFilePath,
-        builtInPhotoPath = builtInPhotoPath,
-        builtInVideoPath = builtInVideoPath,
-        watchFaceRefreshToken = watchFaceRefreshToken,
-        blurPercentOverride = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S &&
-            appListBackgroundBlurDrag != null
-        ) 0 else null,
-    )
     var backStack by remember {
         mutableStateOf(initialSettingsBackStack(launchConfig.initialDestination, launchConfig.returnToFaceOnBack))
     }
@@ -1480,7 +1314,6 @@ private fun SettingsRootScreen(
     // 索引文案走 strings.xml，语言切换会重建 Activity，remember(context) 足够。
     val searchIndex = remember(context) { buildSettingsSearchIndex(context) }
     val selectedIconPackLabel = availableIconPacks.firstOrNull { it.packageName == selectedIconPackPackage }?.label
-
 
     val scrollFor: (SettingsDestination) -> SavedScrollPosition = { target ->
         pageScrollPositions.positionOf(target)
@@ -1996,479 +1829,230 @@ private fun SettingsRootScreen(
         }
 
             SettingsDestination.WATCH_FACE_MORE -> SettingsPageScaffold(
-            title = stringResource(R.string.settings_watchface_more),
-            onBack = { handleBack() },
-            headerTime = headerTime,
-            initialFirstVisibleItemIndex = scrollFor(SettingsDestination.WATCH_FACE_MORE).index,
-            initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.WATCH_FACE_MORE).offset,
-            roundFirstActionIndex = 2,
-            onScrollChanged = { index, offset -> updateScroll(SettingsDestination.WATCH_FACE_MORE, index, offset) }
-        ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("watchface_long_press_mode") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_watchface_long_press_mode),
-                        subtitle = stringResource(
-                            if (watchFaceLongPressMode == WatchFaceLongPressMode.CARDS) {
-                                R.string.settings_watchface_long_press_mode_cards_sub
-                            } else {
-                                R.string.settings_watchface_long_press_mode_list_sub
-                            },
-                        ),
-                        scale = itemFisheye(
-                            listState,
-                            "watchface_long_press_mode",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        icon = {
-                            SettingsIcon(
-                                material = OfficialMiuixIcons.OfficialSettings,
-                                miuix = OfficialMiuixIcons.OfficialSettings,
-                            )
-                        },
-                        onClick = { watchFaceLongPressModeDialogVisible = true },
-                        groupPosition = position,
-                    )
+                title = stringResource(R.string.settings_watchface_more),
+                onBack = { handleBack() },
+                headerTime = headerTime,
+                initialFirstVisibleItemIndex = scrollFor(SettingsDestination.WATCH_FACE_MORE).index,
+                initialFirstVisibleItemScrollOffset =
+                    scrollFor(SettingsDestination.WATCH_FACE_MORE).offset,
+                roundFirstActionIndex = 2,
+                onScrollChanged = { index, offset ->
+                    updateScroll(SettingsDestination.WATCH_FACE_MORE, index, offset)
                 }
-            }
-            item("watch_weather_header") {
-                SectionTitle(
-                    stringResource(R.string.settings_watch_weather),
-                    itemFisheye(listState, "watch_weather_header", screenCenterY, screenHeightPx),
-                )
-            }
-            flueSettingsGroup {
-                row("watch_weather_manual_city") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_watch_weather_city),
-                        subtitle = weatherLocationLabel.takeIf(String::isNotBlank)?.let { label ->
-                            stringResource(R.string.settings_watch_weather_city_selected_fmt, label)
-                        } ?: if (locationPermissionGranted && weatherUsingSystemLocation) {
-                            stringResource(R.string.settings_watch_weather_city_system)
-                        } else {
-                            stringResource(R.string.settings_watch_weather_city_unset)
-                        },
-                        scale = itemFisheye(
-                            listState,
-                            "watch_weather_manual_city",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        icon = {
-                            SettingsIcon(material = OfficialMiuixIcons.OfficialSettings, miuix = OfficialMiuixIcons.OfficialSettings)
-                        },
-                        onClick = {
-                            weatherCityDraft = ""
-                            weatherCityCandidates = emptyList()
-                            weatherCitySearchError = null
-                            weatherCityDialogVisible = true
-                        },
-                        groupPosition = position,
-                    )
-                }
-                row("watch_weather_system_location") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_watch_weather_use_system),
-                        subtitle = if (locationPermissionGranted && weatherUsingSystemLocation) {
-                            weatherLocationLabel.takeIf(String::isNotBlank)?.let { label ->
-                                stringResource(R.string.settings_watch_weather_use_system_active_fmt, label)
-                            } ?: stringResource(R.string.settings_watch_weather_use_system_active)
-                        } else {
-                            stringResource(R.string.settings_watch_weather_use_system_sub)
-                        },
-                        scale = itemFisheye(
-                            listState,
-                            "watch_weather_system_location",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        icon = {
-                            SettingsIcon(material = OfficialMiuixIcons.OfficialRefresh, miuix = OfficialMiuixIcons.OfficialRefresh)
-                        },
-                        onClick = {
-                            if (locationPermissionGranted) {
-                                resolveAndUseSystemWeatherLocation()
-                            } else {
-                                locationPermissionLauncher.launch(WatchLocationPermissionPolicy.PERMISSIONS)
-                            }
-                        },
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("watch_weather_unit_header") {
-                SectionTitle(
-                    stringResource(R.string.settings_watch_weather_unit),
-                    itemFisheye(listState, "watch_weather_unit_header", screenCenterY, screenHeightPx),
-                )
-            }
-            item("watch_weather_unit_celsius") {
-                SettingsChoiceRow(
-                    title = stringResource(R.string.settings_watch_weather_celsius),
-                    subtitle = stringResource(R.string.settings_watch_weather_celsius_sub),
-                    selected = weatherTemperatureUnit == WatchTemperatureUnit.CELSIUS,
-                    onClick = {
-                        weatherRepository.setTemperatureUnit(WatchTemperatureUnit.CELSIUS)
-                        weatherTemperatureUnit = WatchTemperatureUnit.CELSIUS
-                    },
-                    scale = itemFisheye(
-                        listState,
-                        "watch_weather_unit_celsius",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            item("watch_weather_unit_fahrenheit") {
-                SettingsChoiceRow(
-                    title = stringResource(R.string.settings_watch_weather_fahrenheit),
-                    subtitle = stringResource(R.string.settings_watch_weather_fahrenheit_sub),
-                    selected = weatherTemperatureUnit == WatchTemperatureUnit.FAHRENHEIT,
-                    onClick = {
-                        weatherRepository.setTemperatureUnit(WatchTemperatureUnit.FAHRENHEIT)
-                        weatherTemperatureUnit = WatchTemperatureUnit.FAHRENHEIT
-                    },
-                    scale = itemFisheye(
-                        listState,
-                        "watch_weather_unit_fahrenheit",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            item("watch_weather_refresh") {
-                ActionCard(
-                    title = stringResource(R.string.settings_watch_weather_refresh),
-                    subtitle = stringResource(R.string.settings_watch_weather_refresh_sub),
-                    scale = itemFisheye(
-                        listState,
-                        "watch_weather_refresh",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                    icon = {
-                        SettingsIcon(material = OfficialMiuixIcons.OfficialRefresh, miuix = OfficialMiuixIcons.OfficialRefresh)
-                    },
-                    onClick = {
-                        weatherRepository.requestRefresh()
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.toast_weather_refresh_requested),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    },
-                )
-            }
-            // 点击动作映射对**所有**表盘格式都有意义（.watch 与 JBWatch 都有 tap_action），
-            // 所以放在 isWatchmaker 判断之外。老师指定它在「更多表盘设置」里。
-            flueSettingsGroup {
-                row("tap_actions") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_tap_actions),
-                        subtitle = stringResource(R.string.settings_tap_actions_sub),
-                        scale = itemFisheye(listState, "tap_actions", screenCenterY, screenHeightPx),
-                        icon = { SettingsIcon(material = OfficialMiuixIcons.OfficialSettings, miuix = OfficialMiuixIcons.OfficialSettings) },
-                        onClick = { navigateTo(SettingsDestination.TAP_ACTION_CATEGORIES) },
-                        groupPosition = position,
-                    )
-                }
-                row("watchface_tap_haptics") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_tap_haptics),
-                        subtitle = stringResource(R.string.settings_watchface_tap_haptics_sub),
-                        checked = watchFaceTapHapticsEnabled,
-                        onToggle = vm::setWatchFaceTapHapticsEnabled,
-                        scale = itemFisheye(listState, "watchface_tap_haptics", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            if (selectedWatchFace.isWatchmaker) {
-                // 画布调节只留这一个入口：预设、四条滑杆、跟随开关、重置全都搬进
-                // CanvasAdjustActivity —— 在设置页里调，效果在另一个页面上，用户
-                // 只能靠脑补；搬过去之后底下就是真实表盘，拖滑杆当场看到结果。
-                flueSettingsGroup {
-                    row("watchface_canvas_entry") { position ->
-                        ActionCard(
-                            title = stringResource(R.string.settings_watchface_canvas_section),
-                            subtitle = stringResource(R.string.settings_watchface_canvas_entry_sub),
-                            scale = itemFisheye(
-                                listState,
-                                "watchface_canvas_entry",
-                                screenCenterY,
-                                screenHeightPx,
-                            ),
-                            icon = { SettingsIcon(material = OfficialMiuixIcons.OfficialSettings, miuix = OfficialMiuixIcons.OfficialSettings) },
-                            onClick = {
-                                CanvasAdjustActivity.start(context, selectedWatchFaceId)
-                            },
-                            groupPosition = position,
-                        )
-                    }
-                    row("watchface_gravity_parallax") { position ->
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.settings_watchface_gravity_parallax),
-                            subtitle = if (watchfaceGravityParallaxEnabled) {
-                                stringResource(R.string.settings_watchface_gravity_parallax_on)
-                            } else {
-                                stringResource(R.string.settings_watchface_gravity_parallax_off)
-                            },
-                            checked = watchfaceGravityParallaxEnabled,
-                            onToggle = vm::setWatchfaceGravityParallaxEnabled,
-                            scale = itemFisheye(
-                                listState,
-                                "watchface_gravity_parallax",
-                                screenCenterY,
-                                screenHeightPx,
-                            ),
-                            groupPosition = position,
-                        )
-                    }
-                }
-                // 紧跟景深开关：这一项只对景深表盘有意义，放一起才看得懂它管什么。
-                flueSettingsGroup {
-                    row("watchface_gravity_backdrop_blur") { position ->
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.settings_watchface_gravity_backdrop_blur),
-                            subtitle = if (watchfaceGravityBackdropBlurEnabled) {
-                                stringResource(R.string.settings_watchface_gravity_backdrop_blur_on)
-                            } else {
-                                stringResource(R.string.settings_watchface_gravity_backdrop_blur_off)
-                            },
-                            checked = watchfaceGravityBackdropBlurEnabled,
-                            onToggle = vm::setWatchfaceGravityBackdropBlurEnabled,
-                            scale = itemFisheye(
-                                listState,
-                                "watchface_gravity_backdrop_blur",
-                                screenCenterY,
-                                screenHeightPx,
-                            ),
-                            groupPosition = position,
-                        )
-                    }
-                    row("watchmaker_body_sensors") { position ->
-                        ActionCard(
-                            title = stringResource(R.string.settings_watchface_heart_rate),
-                            subtitle = if (bodySensorsPermissionGranted) {
-                                stringResource(R.string.settings_watchface_heart_rate_on)
-                            } else {
-                                stringResource(R.string.settings_watchface_heart_rate_off)
-                            },
-                            scale = itemFisheye(
-                                listState,
-                                "watchmaker_body_sensors",
-                                screenCenterY,
-                                screenHeightPx,
-                            ),
-                            icon = {
-                                val statusIcon = if (bodySensorsPermissionGranted) {
-                                        OfficialMiuixIcons.OfficialOk
-                                    } else {
-                                        OfficialMiuixIcons.OfficialSettings
-                                    }
-                                SettingsIcon(
-                                    material = statusIcon,
-                                    miuix = statusIcon,
-                                )
-                            },
-                            onClick = {
-                                if (bodySensorsPermissionGranted) {
-                                    Toast.makeText(context, context.getString(R.string.toast_body_sensors_granted), Toast.LENGTH_SHORT).show()
-                                } else {
-                                    bodySensorsPermissionLauncher.launch(requiredHeartRatePermission())
-                                }
-                            },
-                            groupPosition = position,
-                        )
-                    }
-                }
-                // 紧跟心率那一行：两者都是「表盘要读一类受保护数据」，放一起用户
-                // 才看得懂这一段在管什么。
-                item("watchmaker_calendar") {
-                    ActionCard(
-                        title = stringResource(R.string.settings_watchface_calendar),
-                        subtitle = if (calendarPermissionGranted) {
-                            stringResource(R.string.settings_watchface_calendar_on)
-                        } else {
-                            stringResource(R.string.settings_watchface_calendar_off)
-                        },
-                        scale = itemFisheye(
-                            listState,
-                            "watchmaker_calendar",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        icon = {
-                            val statusIcon = if (calendarPermissionGranted) {
-                                OfficialMiuixIcons.OfficialOk
-                            } else {
-                                OfficialMiuixIcons.OfficialSettings
-                            }
-                            SettingsIcon(
-                                material = statusIcon,
-                                miuix = statusIcon,
-                            )
-                        },
-                        onClick = {
-                            if (calendarPermissionGranted) {
-                                Toast.makeText(
-                                    context,
-                                    context.getString(R.string.toast_calendar_granted),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                            } else {
-                                calendarPermissionLauncher.launch(Manifest.permission.READ_CALENDAR)
-                            }
-                        },
-                    )
-                }
-            }
-            if (selectedWatchFace.isBuiltin) {
-                item("watchface_font") {
-                    ActionCard(
-                        title = stringResource(R.string.settings_watchface_font),
-                        subtitle = builtInWatchFaceFontPath?.let { File(it).name }
-                            ?: stringResource(R.string.settings_watchface_font_default),
-                        scale = itemFisheye(listState, "watchface_font", screenCenterY, screenHeightPx),
-                        icon = { SettingsIcon(material = OfficialMiuixIcons.OfficialSettings, miuix = OfficialMiuixIcons.OfficialSettings) },
-                        onClick = {
-                            fontPicker.launch(
-                                arrayOf(
-                                    "font/*",
-                                    "application/x-font-ttf",
-                                    "application/x-font-otf",
-                                    "application/vnd.ms-opentype",
-                                    "application/octet-stream"
-                                )
-                            )
+            ) { listState, screenCenterY, screenHeightPx, _ ->
+                // 这一屏既有分节标题又有三种断卡方式，所以走整屏版渲染器。
+                settingsEntryScreen(
+                    entries = SettingsHierarchy.renderedGroup("watch_face_more"),
+                    binding = object : SettingsEntryBinding {
+                        override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                            "watchface_tap_haptics" -> watchFaceTapHapticsEnabled
+                            "watchface_gravity_parallax" -> watchfaceGravityParallaxEnabled
+                            "watchface_gravity_backdrop_blur" -> watchfaceGravityBackdropBlurEnabled
+                            "watchface_bottom_fade" -> watchFaceBottomFadeEnabled
+                            "watchface_text_entry_animation" -> watchFaceTextEntryAnimation
+                            "watchface_text_exit_animation" -> watchFaceTextExitAnimation
+                            "watchface_status_indicators" -> watchFaceStatusIndicators
+                            "watchface_dnd_indicator" -> watchFaceDndIndicator
+                            "watchface_charging_power_text" -> watchFaceChargingPowerText
+                            else -> false
                         }
-                    )
-                }
-                if (!builtInWatchFaceFontPath.isNullOrBlank()) {
-                    item("watchface_font_clear") {
-                        ActionCard(
-                            title = stringResource(R.string.settings_watchface_font_clear),
-                            subtitle = stringResource(R.string.settings_watchface_font_clear_sub),
-                            scale = itemFisheye(listState, "watchface_font_clear", screenCenterY, screenHeightPx),
-                            icon = { SettingsIcon(material = OfficialMiuixIcons.OfficialRefresh, miuix = OfficialMiuixIcons.OfficialRefresh) },
-                            onClick = { vm.setBuiltInWatchFaceFontPath(null) }
-                        )
-                    }
-                }
-            }
-            flueSettingsGroup {
-                row("watchface_bottom_fade") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_bottom_fade),
-                        subtitle = if (watchFaceBottomFadeEnabled) {
-                            stringResource(R.string.settings_watchface_bottom_fade_on)
-                        } else {
-                            stringResource(R.string.settings_watchface_bottom_fade_off)
-                        },
-                        checked = watchFaceBottomFadeEnabled,
-                        onToggle = vm::setWatchFaceBottomFadeEnabled,
-                        scale = itemFisheye(listState, "watchface_bottom_fade", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("watchface_text_entry_animation") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_text_entry_animation),
-                        subtitle = stringResource(R.string.settings_watchface_text_entry_animation_sub),
-                        checked = watchFaceTextEntryAnimation,
-                        onToggle = vm::setWatchFaceTextEntryAnimationEnabled,
-                        scale = itemFisheye(listState, "watchface_text_entry_animation", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("watchface_text_exit_animation") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_text_exit_animation),
-                        subtitle = stringResource(R.string.settings_watchface_text_exit_animation_sub),
-                        checked = watchFaceTextExitAnimation,
-                        onToggle = vm::setWatchFaceTextExitAnimationEnabled,
-                        scale = itemFisheye(listState, "watchface_text_exit_animation", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("watchface_date_locale_header") {
-                SectionTitle(
-                    stringResource(R.string.settings_watchface_date_language),
-                    itemFisheye(listState, "watchface_date_locale_header", screenCenterY, screenHeightPx)
-                )
-            }
-            item("watchface_date_locale_system") {
-                SettingsChoiceRow(
-                    title = stringResource(R.string.settings_theme_system),
-                    subtitle = stringResource(R.string.settings_watchface_date_system_sub),
-                    selected = watchfaceDateLocale == WatchDateLocale.PREFERENCE_SYSTEM,
-                    onClick = { vm.setWatchfaceDateLocale(WatchDateLocale.PREFERENCE_SYSTEM) },
-                    scale = itemFisheye(listState, "watchface_date_locale_system", screenCenterY, screenHeightPx)
-                )
-            }
-            item("watchface_date_locale_zh") {
-                SettingsChoiceRow(
-                    title = "中文",
-                    subtitle = stringResource(R.string.settings_watchface_date_zh_sub),
-                    selected = watchfaceDateLocale == WatchDateLocale.PREFERENCE_CHINESE,
-                    onClick = { vm.setWatchfaceDateLocale(WatchDateLocale.PREFERENCE_CHINESE) },
-                    scale = itemFisheye(listState, "watchface_date_locale_zh", screenCenterY, screenHeightPx)
-                )
-            }
-            item("watchface_date_locale_en") {
-                SettingsChoiceRow(
-                    title = "English",
-                    subtitle = stringResource(R.string.settings_watchface_date_en_sub),
-                    selected = watchfaceDateLocale == WatchDateLocale.PREFERENCE_ENGLISH,
-                    onClick = { vm.setWatchfaceDateLocale(WatchDateLocale.PREFERENCE_ENGLISH) },
-                    scale = itemFisheye(listState, "watchface_date_locale_en", screenCenterY, screenHeightPx)
-                )
-            }
-            item("watchface_date_locale_ja") {
-                SettingsChoiceRow(
-                    title = "日本語",
-                    subtitle = stringResource(R.string.settings_watchface_date_ja_sub),
-                    selected = watchfaceDateLocale == WatchDateLocale.PREFERENCE_JAPANESE,
-                    onClick = { vm.setWatchfaceDateLocale(WatchDateLocale.PREFERENCE_JAPANESE) },
-                    scale = itemFisheye(listState, "watchface_date_locale_ja", screenCenterY, screenHeightPx)
-                )
-            }
-            flueSettingsGroup {
-                row("watchface_status_indicators") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_status),
-                        subtitle = stringResource(R.string.settings_watchface_status_sub),
-                        checked = watchFaceStatusIndicators,
-                        onToggle = vm::setWatchFaceStatusIndicatorsEnabled,
-                        scale = itemFisheye(listState, "watchface_status_indicators", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("watchface_dnd_indicator") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_dnd_indicator),
-                        subtitle = stringResource(R.string.settings_watchface_dnd_indicator_sub),
-                        checked = watchFaceDndIndicator,
-                        onToggle = vm::setWatchFaceDndIndicatorEnabled,
-                        scale = itemFisheye(listState, "watchface_dnd_indicator", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("watchface_charging_power_text") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_charging_power),
-                        subtitle = stringResource(R.string.settings_watchface_charging_power_sub),
-                        checked = watchFaceChargingPowerText,
-                        onToggle = vm::setWatchFaceChargingPowerTextEnabled,
-                        scale = itemFisheye(listState, "watchface_charging_power_text", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
 
-        }
+                        override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                            when (entry.id) {
+                                "watchface_tap_haptics" -> vm.setWatchFaceTapHapticsEnabled(checked)
+                                "watchface_gravity_parallax" ->
+                                    vm.setWatchfaceGravityParallaxEnabled(checked)
+                                "watchface_gravity_backdrop_blur" ->
+                                    vm.setWatchfaceGravityBackdropBlurEnabled(checked)
+                                "watchface_bottom_fade" -> vm.setWatchFaceBottomFadeEnabled(checked)
+                                "watchface_text_entry_animation" ->
+                                    vm.setWatchFaceTextEntryAnimationEnabled(checked)
+                                "watchface_text_exit_animation" ->
+                                    vm.setWatchFaceTextExitAnimationEnabled(checked)
+                                "watchface_status_indicators" ->
+                                    vm.setWatchFaceStatusIndicatorsEnabled(checked)
+                                "watchface_dnd_indicator" -> vm.setWatchFaceDndIndicatorEnabled(checked)
+                                "watchface_charging_power_text" ->
+                                    vm.setWatchFaceChargingPowerTextEnabled(checked)
+                            }
+                        }
+
+                        override fun selectedOption(entry: SettingsEntry.Picker): String? = when (entry.id) {
+                            // 枚举里还有「跟随系统」这类值，用 else 兜底成默认选项。
+                            "watch_weather_unit" -> when (weatherTemperatureUnit) {
+                                WatchTemperatureUnit.CELSIUS -> "celsius"
+                                else -> "fahrenheit"
+                            }
+                            "watchface_date_locale" -> when (watchfaceDateLocale) {
+                                WatchDateLocale.PREFERENCE_CHINESE -> "zh"
+                                WatchDateLocale.PREFERENCE_ENGLISH -> "en"
+                                WatchDateLocale.PREFERENCE_JAPANESE -> "ja"
+                                else -> "system"
+                            }
+                            else -> null
+                        }
+
+                        override fun onPick(entry: SettingsEntry.Picker, optionId: String) {
+                            when (entry.id) {
+                                "watch_weather_unit" -> {
+                                    val unit = when (optionId) {
+                                        "celsius" -> WatchTemperatureUnit.CELSIUS
+                                        else -> WatchTemperatureUnit.FAHRENHEIT
+                                    }
+                                    weatherRepository.setTemperatureUnit(unit)
+                                    weatherTemperatureUnit = unit
+                                }
+                                "watchface_date_locale" -> {
+                                    val locale = when (optionId) {
+                                        "zh" -> WatchDateLocale.PREFERENCE_CHINESE
+                                        "en" -> WatchDateLocale.PREFERENCE_ENGLISH
+                                        "ja" -> WatchDateLocale.PREFERENCE_JAPANESE
+                                        else -> WatchDateLocale.PREFERENCE_SYSTEM
+                                    }
+                                    vm.setWatchfaceDateLocale(locale)
+                                }
+                            }
+                        }
+
+                        override fun onOpen(entry: SettingsEntry) {
+                            val action = (entry as? SettingsEntry.Action)?.action ?: return
+                            when (action) {
+                                "open_long_press_mode_dialog" -> watchFaceLongPressModeDialogVisible = true
+                                "open_weather_city_dialog" -> {
+                                    weatherCityDraft = ""
+                                    weatherCityCandidates = emptyList()
+                                    weatherCitySearchError = null
+                                    weatherCityDialogVisible = true
+                                }
+                                "use_system_weather_location" -> {
+                                    if (locationPermissionGranted) {
+                                        resolveAndUseSystemWeatherLocation()
+                                    } else {
+                                        locationPermissionLauncher.launch(
+                                            WatchLocationPermissionPolicy.PERMISSIONS
+                                        )
+                                    }
+                                }
+                                "refresh_weather" -> {
+                                    weatherRepository.requestRefresh()
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.toast_weather_refresh_requested),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                                "navigate_tap_actions" ->
+                                    navigateTo(SettingsDestination.TAP_ACTION_CATEGORIES)
+                                "open_canvas_adjust" ->
+                                    CanvasAdjustActivity.start(context, selectedWatchFaceId)
+                                "request_body_sensors" -> {
+                                    if (bodySensorsPermissionGranted) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.toast_body_sensors_granted),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    } else {
+                                        bodySensorsPermissionLauncher.launch(requiredHeartRatePermission())
+                                    }
+                                }
+                                "request_calendar" -> {
+                                    if (calendarPermissionGranted) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.toast_calendar_granted),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    } else {
+                                        calendarPermissionLauncher.launch(Manifest.permission.READ_CALENDAR)
+                                    }
+                                }
+                                "pick_watchface_font" -> fontPicker.launch(
+                                    arrayOf(
+                                        "font/*",
+                                        "application/x-font-ttf",
+                                        "application/x-font-otf",
+                                        "application/vnd.ms-opentype",
+                                        "application/octet-stream"
+                                    )
+                                )
+                                "clear_watchface_font" -> vm.setBuiltInWatchFaceFontPath(null)
+                            }
+                        }
+
+                        // 这一屏的副标题几乎全是状态回显：城市名、授权与否、字体文件名。
+                        // 写进数据会立刻过期，只能在这里按当前状态算。
+                        @Composable
+                        override fun subtitle(entry: SettingsEntry): String? = when (entry.id) {
+                            "watchface_long_press_mode" -> stringResource(
+                                if (watchFaceLongPressMode == WatchFaceLongPressMode.CARDS) {
+                                    R.string.settings_watchface_long_press_mode_cards_sub
+                                } else {
+                                    R.string.settings_watchface_long_press_mode_list_sub
+                                }
+                            )
+                            "watch_weather_manual_city" ->
+                                weatherLocationLabel.takeIf(String::isNotBlank)?.let { label ->
+                                    stringResource(R.string.settings_watch_weather_city_selected_fmt, label)
+                                } ?: if (locationPermissionGranted && weatherUsingSystemLocation) {
+                                    stringResource(R.string.settings_watch_weather_city_system)
+                                } else {
+                                    stringResource(R.string.settings_watch_weather_city_unset)
+                                }
+                            "watch_weather_system_location" ->
+                                if (locationPermissionGranted && weatherUsingSystemLocation) {
+                                    weatherLocationLabel.takeIf(String::isNotBlank)?.let { label ->
+                                        stringResource(
+                                            R.string.settings_watch_weather_use_system_active_fmt,
+                                            label,
+                                        )
+                                    } ?: stringResource(R.string.settings_watch_weather_use_system_active)
+                                } else {
+                                    stringResource(R.string.settings_watch_weather_use_system_sub)
+                                }
+                            "watchmaker_body_sensors" -> stringResource(
+                                if (bodySensorsPermissionGranted) {
+                                    R.string.settings_watchface_heart_rate_on
+                                } else {
+                                    R.string.settings_watchface_heart_rate_off
+                                }
+                            )
+                            "watchmaker_calendar" -> stringResource(
+                                if (calendarPermissionGranted) {
+                                    R.string.settings_watchface_calendar_on
+                                } else {
+                                    R.string.settings_watchface_calendar_off
+                                }
+                            )
+                            "watchface_font" -> builtInWatchFaceFontPath?.let { File(it).name }
+                                ?: stringResource(R.string.settings_watchface_font_default)
+                            else -> null
+                        }
+
+                        // 授权类条目的图标就是状态：授予后齿轮变对勾。
+                        override fun icon(entry: SettingsEntry): EntryIcon? = when (entry.id) {
+                            "watchmaker_body_sensors" ->
+                                if (bodySensorsPermissionGranted) EntryIcon.OK else EntryIcon.SETTINGS
+                            "watchmaker_calendar" ->
+                                if (calendarPermissionGranted) EntryIcon.OK else EntryIcon.SETTINGS
+                            else -> null
+                        }
+
+                        override fun isVisible(entry: SettingsEntry): Boolean = when (entry.id) {
+                            "watchface_canvas_entry",
+                            "watchface_gravity_parallax",
+                            "watchface_gravity_backdrop_blur",
+                            "watchmaker_body_sensors",
+                            "watchmaker_calendar" -> selectedWatchFace.isWatchmaker
+                            "watchface_font" -> selectedWatchFace.isBuiltin
+                            "watchface_font_clear" ->
+                                selectedWatchFace.isBuiltin && !builtInWatchFaceFontPath.isNullOrBlank()
+                            else -> true
+                        }
+                    },
+                    scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+                )
+            }
 
             SettingsDestination.TAP_ACTION_CATEGORIES -> SettingsPageScaffold(
             title = stringResource(R.string.settings_tap_actions),
@@ -2533,295 +2117,39 @@ private fun SettingsRootScreen(
             }
         }
 
-            SettingsDestination.APP_LIST_BACKGROUND -> SettingsPageScaffold(
-            title = stringResource(R.string.settings_app_list_background),
-            onBack = { handleBack() },
-            headerTime = headerTime,
-            initialFirstVisibleItemIndex = scrollFor(SettingsDestination.APP_LIST_BACKGROUND).index,
-            initialFirstVisibleItemScrollOffset =
-                scrollFor(SettingsDestination.APP_LIST_BACKGROUND).offset,
-            // 预览卡插在最前面之后整体后移一位。圆屏仍旧把「背景模式」这行摆在屏幕正中 ——
-            // 卡片就在它上面，居中位置上方的半屏空间装得下（卡高不超过屏高 38%），
-            // 所以进页面时预览与选项都看得见。
-            roundFirstActionIndex = 2,
-            onScrollChanged = { index, offset ->
-                updateScroll(SettingsDestination.APP_LIST_BACKGROUND, index, offset)
-            }
-        ) { listState, screenCenterY, screenHeightPx, _ ->
-            val backgroundMode = appListBackground.mode
-            // 实时预览：模式、颜色、图片、模糊、遮罩改哪一项都立刻反映在这张卡上，
-            // 拖滑块时也跟手（拖动值单独存了一份，见 appListBackgroundPreviewConfig）。
-            item("app_list_background_preview") {
-                val previewScale = itemFisheye(
-                    listState,
-                    "app_list_background_preview",
-                    screenCenterY,
-                    screenHeightPx,
-                )
-                AppListBackgroundPreviewCard(
-                    painting = appListBackgroundPreviewPainting,
-                    iconColor = appListPreviewPalette.item,
-                    labelColor = appListPreviewPalette.text,
-                    squareCornerRadiusDp = overlayMaskCornerRadiusDp,
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = previewScale
-                        scaleY = previewScale
-                        alpha = previewScale.coerceIn(0.55f, 1f)
-                    },
-                )
-            }
-            item("app_list_background_mode_header") {
-                SectionTitle(
-                    stringResource(R.string.settings_app_list_background_mode),
-                    itemFisheye(
-                        listState,
-                        "app_list_background_mode_header",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            item("app_list_background_solid_system") {
-                SettingsChoiceRow(
-                    title = stringResource(R.string.settings_app_list_background_solid_system),
-                    subtitle = stringResource(
-                        R.string.settings_app_list_background_solid_system_sub,
-                    ),
-                    selected = backgroundMode == AppListBackgroundMode.SOLID_SYSTEM,
-                    onClick = {
-                        vm.setAppListBackgroundMode(AppListBackgroundMode.SOLID_SYSTEM)
-                    },
-                    scale = itemFisheye(
-                        listState,
-                        "app_list_background_solid_system",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            item("app_list_background_solid_custom") {
-                SettingsChoiceRow(
-                    title = stringResource(R.string.settings_app_list_background_solid_custom),
-                    subtitle = stringResource(
-                        R.string.settings_app_list_background_solid_custom_sub,
-                    ),
-                    selected = backgroundMode == AppListBackgroundMode.SOLID_CUSTOM,
-                    onClick = {
-                        vm.setAppListBackgroundMode(AppListBackgroundMode.SOLID_CUSTOM)
-                    },
-                    scale = itemFisheye(
-                        listState,
-                        "app_list_background_solid_custom",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            item("app_list_background_watch_face") {
-                SettingsChoiceRow(
-                    title = stringResource(R.string.settings_app_list_background_watch_face),
-                    subtitle = stringResource(R.string.settings_app_list_background_watch_face_sub),
-                    selected = backgroundMode == AppListBackgroundMode.WATCH_FACE,
-                    onClick = { vm.setAppListBackgroundMode(AppListBackgroundMode.WATCH_FACE) },
-                    scale = itemFisheye(
-                        listState,
-                        "app_list_background_watch_face",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            item("app_list_background_custom_image") {
-                SettingsChoiceRow(
-                    title = stringResource(R.string.settings_app_list_background_custom_image),
-                    subtitle = stringResource(
-                        R.string.settings_app_list_background_custom_image_sub,
-                    ),
-                    selected = backgroundMode == AppListBackgroundMode.CUSTOM_IMAGE,
-                    onClick = { vm.setAppListBackgroundMode(AppListBackgroundMode.CUSTOM_IMAGE) },
-                    scale = itemFisheye(
-                        listState,
-                        "app_list_background_custom_image",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            // 自定义颜色：只在那一档露出来。选完颜色会自动切到这一档（见弹窗回调）。
-            if (backgroundMode == AppListBackgroundMode.SOLID_CUSTOM) {
-                item("app_list_background_pick_color") {
-                    ActionCard(
-                        title = stringResource(R.string.settings_app_list_background_color),
-                        subtitle = flueColorToHex(Color(appListBackground.customColorArgb)),
-                        scale = itemFisheye(
-                            listState,
-                            "app_list_background_pick_color",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        icon = {
-                            SettingsIcon(
-                                material = OfficialMiuixIcons.OfficialSettings,
-                                miuix = OfficialMiuixIcons.OfficialSettings,
-                                tint = Color(appListBackground.customColorArgb),
-                            )
-                        },
-                        onClick = { appListBackgroundColorPickerVisible = true },
+            SettingsDestination.APP_LIST_BACKGROUND -> AppListBackgroundPage(
+                onBack = { handleBack() },
+                headerTime = headerTime,
+                initialScrollIndex = scrollFor(SettingsDestination.APP_LIST_BACKGROUND).index,
+                initialScrollOffset = scrollFor(SettingsDestination.APP_LIST_BACKGROUND).offset,
+                onScrollChanged = { index, offset ->
+                    updateScroll(SettingsDestination.APP_LIST_BACKGROUND, index, offset)
+                },
+                vm = vm,
+                background = appListBackground,
+                palette = appListPreviewPalette,
+                darkMode = appListPreviewDarkMode,
+                cornerRadiusDp = overlayMaskCornerRadiusDp,
+                sources = BackgroundPreviewSources(
+                    watchFaceId = selectedWatchFaceId,
+                    watchFaceStableKey = selectedWatchFace.stableKey,
+                    watchFacePreviewPath = selectedWatchFace.previewFilePath,
+                    builtInPhotoPath = builtInPhotoPath,
+                    builtInVideoPath = builtInVideoPath,
+                    watchFaceRefreshToken = watchFaceRefreshToken,
+                ),
+                // 颜色弹窗、系统选图器、内置文件浏览器都归根作用域管：
+                // 它们是 Dialog / ActivityResult，不在列表里。
+                onPickColor = { appListBackgroundColorPickerVisible = true },
+                onPickImage = { appListBackgroundImagePicker.launch(arrayOf("image/*")) },
+                onPickImageFromDevice = {
+                    internalFileBrowserRequest = InternalFileBrowserRequest(
+                        title = context.getString(R.string.settings_app_list_background_pick_image),
+                        extensions = APP_LIST_BACKGROUND_IMAGE_EXTENSIONS,
+                        onSelected = { uris -> appListBackgroundCropUri = uris.firstOrNull() },
                     )
-                }
-            }
-            // 自定义图片：点击走系统选择器，长按拉起内置文件选择器
-            // （与「导入表盘」同一套约定，老师已经熟悉这个手势）。
-            if (backgroundMode == AppListBackgroundMode.CUSTOM_IMAGE) {
-                item("app_list_background_pick_image") {
-                    ActionCard(
-                        title = if (appListBackground.imagePath.isNullOrBlank()) {
-                            stringResource(R.string.settings_app_list_background_pick_image)
-                        } else {
-                            stringResource(R.string.settings_app_list_background_change_image)
-                        },
-                        subtitle = stringResource(
-                            R.string.settings_app_list_background_pick_image_sub,
-                        ),
-                        scale = itemFisheye(
-                            listState,
-                            "app_list_background_pick_image",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        icon = {
-                            SettingsIcon(
-                                material = OfficialMiuixIcons.OfficialFolder,
-                                miuix = OfficialMiuixIcons.OfficialFolder,
-                            )
-                        },
-                        onClick = { appListBackgroundImagePicker.launch(arrayOf("image/*")) },
-                        onLongPress = {
-                            internalFileBrowserRequest = InternalFileBrowserRequest(
-                                title = context.getString(
-                                    R.string.settings_app_list_background_pick_image,
-                                ),
-                                extensions = APP_LIST_BACKGROUND_IMAGE_EXTENSIONS,
-                                onSelected = { uris ->
-                                    appListBackgroundCropUri = uris.firstOrNull()
-                                },
-                            )
-                        },
-                    )
-                }
-                if (!appListBackground.imagePath.isNullOrBlank()) {
-                    item("app_list_background_clear_image") {
-                        ActionCard(
-                            title = stringResource(
-                                R.string.settings_app_list_background_clear_image,
-                            ),
-                            subtitle = stringResource(
-                                R.string.settings_app_list_background_clear_image_sub,
-                            ),
-                            scale = itemFisheye(
-                                listState,
-                                "app_list_background_clear_image",
-                                screenCenterY,
-                                screenHeightPx,
-                            ),
-                            icon = {
-                                SettingsIcon(
-                                    material = OfficialMiuixIcons.OfficialRefresh,
-                                    miuix = OfficialMiuixIcons.OfficialRefresh,
-                                )
-                            },
-                            onClick = { vm.setAppListBackgroundImagePath(null) },
-                        )
-                    }
-                }
-            }
-            // 模糊与遮罩只对「有底图」的两档有意义 —— 纯色档下它们无处施加，
-            // 露出来只会让人以为是坏的。
-            if (backgroundMode.usesImage) {
-                item("app_list_background_effect_header") {
-                    SectionTitle(
-                        stringResource(R.string.settings_app_list_background_effects),
-                        itemFisheye(
-                            listState,
-                            "app_list_background_effect_header",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                    )
-                }
-                flueSettingsGroup {
-                    row("app_list_background_blur") { position ->
-                        SettingsSliderRow(
-                            title = stringResource(R.string.settings_app_list_background_blur),
-                            value = appListBackground.blurPercent.toFloat(),
-                            valueText = "${appListBackground.blurPercent}%",
-                            localValueText = { "${it.roundToInt()}%" },
-                            range = 0f..100f,
-                            steps = 0,
-                            // 拖动值只喂预览卡，不落盘。
-                            onValueChange = {
-                                appListBackgroundBlurDrag = it.roundToInt()
-                            },
-                            // 只在抬手时落盘：模糊要重新烘焙（30 及以下）或换一档 RenderEffect，
-                            // 每帧都提交等于拖动时连烘十几张。
-                            onValueChangeFinished = {
-                                vm.setAppListBackgroundBlurPercent(it.roundToInt())
-                                appListBackgroundBlurDrag = null
-                            },
-                            supportingText = stringResource(
-                                R.string.settings_app_list_background_blur_sub,
-                            ),
-                            scale = itemFisheye(
-                                listState,
-                                "app_list_background_blur",
-                                screenCenterY,
-                                screenHeightPx,
-                            ),
-                            groupPosition = position,
-                            footer = {
-                                FlueButton(
-                                    onClick = {
-                                        appListBackgroundBlurDrag = null
-                                        appListBackgroundScrimDrag = null
-                                        vm.resetAppListBackgroundEffects()
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Text(stringResource(R.string.settings_app_list_background_reset))
-                                }
-                            },
-                        )
-                    }
-                    row("app_list_background_scrim") { position ->
-                        SettingsSliderRow(
-                            title = stringResource(R.string.settings_app_list_background_scrim),
-                            value = appListBackground.scrimPercent.toFloat(),
-                            valueText = "${appListBackground.scrimPercent}%",
-                            localValueText = { "${it.roundToInt()}%" },
-                            range = 0f..100f,
-                            steps = 0,
-                            onValueChange = {
-                                appListBackgroundScrimDrag = it.roundToInt()
-                            },
-                            onValueChangeFinished = {
-                                vm.setAppListBackgroundScrimPercent(it.roundToInt())
-                                appListBackgroundScrimDrag = null
-                            },
-                            supportingText = stringResource(
-                                R.string.settings_app_list_background_scrim_sub,
-                            ),
-                            scale = itemFisheye(
-                                listState,
-                                "app_list_background_scrim",
-                                screenCenterY,
-                                screenHeightPx,
-                            ),
-                            groupPosition = position,
-                        )
-                    }
-                }
-            }
-        }
+                },
+            )
 
             SettingsDestination.APPEARANCE -> SettingsPageScaffold(
             title = stringResource(R.string.settings_appearance),
@@ -2832,745 +2160,123 @@ private fun SettingsRootScreen(
             roundFirstActionIndex = 2,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.APPEARANCE, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            item("layout_header") { SectionTitle(stringResource(R.string.settings_section_layout), itemFisheye(listState, "layout_header", screenCenterY, screenHeightPx)) }
-            // 布局那几项是同一组单选，必须合并成一张卡。以前是几个独立 item，于是
-            // 「布局」这一节在 MIUIX 下是分开的胶囊，而紧邻的界面风格 / 界面动画 /
-            // 屏幕形状都已经并好了，摆在一起就很割裂（老师报的「布局那里还是分开的」）。
-            flueSettingsGroup {
-                row("layout_honeycomb") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_layout_honeycomb),
-                        subtitle = stringResource(R.string.settings_layout_honeycomb_sub),
-                        selected = layoutMode == LayoutMode.Honeycomb,
-                        onClick = { vm.setLayoutMode(LayoutMode.Honeycomb) },
-                        scale = itemFisheye(listState, "layout_honeycomb", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("layout_list") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_layout_list),
-                        subtitle = stringResource(R.string.settings_layout_list_sub),
-                        selected = layoutMode == LayoutMode.List,
-                        onClick = { vm.setLayoutMode(LayoutMode.List) },
-                        scale = itemFisheye(listState, "layout_list", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("layout_grid") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_layout_grid),
-                        subtitle = stringResource(R.string.settings_layout_grid_sub),
-                        selected = layoutMode == LayoutMode.Grid,
-                        onClick = { vm.setLayoutMode(LayoutMode.Grid) },
-                        scale = itemFisheye(listState, "layout_grid", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("layout_flow") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_layout_flow),
-                        subtitle = stringResource(R.string.settings_layout_flow_sub),
-                        selected = layoutMode == LayoutMode.Flow,
-                        onClick = { vm.setLayoutMode(LayoutMode.Flow) },
-                        scale = itemFisheye(listState, "layout_flow", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("layout_ring") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_layout_ring),
-                        subtitle = stringResource(R.string.settings_layout_ring_sub),
-                        selected = layoutMode == LayoutMode.Ring,
-                        onClick = { vm.setLayoutMode(LayoutMode.Ring) },
-                        scale = itemFisheye(listState, "layout_ring", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("display_header") {
-                SectionTitle(stringResource(R.string.settings_display_header), itemFisheye(listState, "display_header", screenCenterY, screenHeightPx))
-            }
-            item("app_list_background_entry") {
-                SettingsCategoryCard(
-                    title = stringResource(R.string.settings_app_list_background),
-                    subtitle = appListBackgroundModeLabel(appListBackground.effectiveMode),
-                    onClick = { navigateTo(SettingsDestination.APP_LIST_BACKGROUND) },
-                    scale = itemFisheye(
-                        listState,
-                        "app_list_background_entry",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            item("display_size_menu") {
-                SettingsCategoryCard(
-                    title = stringResource(R.string.settings_display_fit),
-                    subtitle = stringResource(R.string.settings_display_fit_sub),
-                    onClick = { navigateTo(SettingsDestination.DISPLAY_SIZE) },
-                    scale = itemFisheye(listState, "display_size_menu", screenCenterY, screenHeightPx)
-                )
-            }
-            item("aod_settings") {
-                SettingsCategoryCard(
-                    title = stringResource(R.string.aod_title),
-                    subtitle = stringResource(R.string.aod_description),
-                    onClick = { navigateTo(SettingsDestination.AOD) },
-                    scale = itemFisheye(listState, "aod_settings", screenCenterY, screenHeightPx),
-                )
-            }
-            if (!flueScreenRound) {
-                item("overlay_mask_corner_radius") {
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_overlay_mask_corner_radius),
-                        subtitle = stringResource(
-                            R.string.settings_overlay_mask_corner_radius_sub_fmt,
-                            overlayMaskCornerRadiusDp,
-                        ),
-                        onClick = { showOverlayMaskCornerDialog = true },
-                        scale = itemFisheye(
-                            listState,
-                            "overlay_mask_corner_radius",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                    )
-                }
-            }
-            item("feature_toggles_menu") {
-                SettingsCategoryCard(
-                    title = stringResource(R.string.settings_feature_toggles),
-                    subtitle = stringResource(R.string.settings_feature_toggles_sub),
-                    onClick = { navigateTo(SettingsDestination.FEATURE_TOGGLES) },
-                    scale = itemFisheye(listState, "feature_toggles_menu", screenCenterY, screenHeightPx)
-                )
-            }
-            // 深浅色三档也是一组单选，同上并卡。
-            flueSettingsGroup {
-                row("theme_mode_system") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_theme_system),
-                        subtitle = stringResource(R.string.settings_theme_system_sub),
-                        selected = themeMode == ThemeMode.SYSTEM,
-                        onClick = { vm.setThemeMode(ThemeMode.SYSTEM) },
-                        scale = itemFisheye(listState, "theme_mode_system", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("theme_mode_dark") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_theme_dark),
-                        subtitle = stringResource(R.string.settings_theme_dark_sub),
-                        selected = themeMode == ThemeMode.DARK,
-                        onClick = { vm.setThemeMode(ThemeMode.DARK) },
-                        scale = itemFisheye(listState, "theme_mode_dark", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("theme_mode_light") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_theme_light),
-                        subtitle = stringResource(R.string.settings_theme_light_sub),
-                        selected = themeMode == ThemeMode.LIGHT,
-                        onClick = { vm.setThemeMode(ThemeMode.LIGHT) },
-                        scale = itemFisheye(listState, "theme_mode_light", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("transition_motion_header") {
-                SectionTitle(stringResource(R.string.settings_transition_motion_header), itemFisheye(listState, "transition_motion_header", screenCenterY, screenHeightPx))
-            }
-            flueSettingsGroup {
-                row("transition_motion_scale") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_transition_motion_scale),
-                        subtitle = stringResource(R.string.settings_transition_motion_scale_sub),
-                        selected = transitionMotion == FlueTransitionMotion.SCALE,
-                        onClick = { vm.setTransitionMotion(FlueTransitionMotion.SCALE) },
-                        scale = itemFisheye(listState, "transition_motion_scale", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("transition_motion_slide") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_transition_motion_slide),
-                        subtitle = stringResource(R.string.settings_transition_motion_slide_sub),
-                        selected = transitionMotion == FlueTransitionMotion.SLIDE,
-                        onClick = { vm.setTransitionMotion(FlueTransitionMotion.SLIDE) },
-                        scale = itemFisheye(listState, "transition_motion_slide", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("screen_shape_header") {
-                SectionTitle(stringResource(R.string.settings_screen_shape_header), itemFisheye(listState, "screen_shape_header", screenCenterY, screenHeightPx))
-            }
-            flueSettingsGroup {
-                row("screen_shape_auto") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_screen_shape_auto),
-                        subtitle = stringResource(R.string.settings_screen_shape_auto_sub),
-                        selected = screenShapeOverride == FlueScreenShape.AUTO,
-                        onClick = { vm.setScreenShapeOverride(FlueScreenShape.AUTO) },
-                        scale = itemFisheye(listState, "screen_shape_auto", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("screen_shape_round") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_screen_shape_round),
-                        subtitle = stringResource(R.string.settings_screen_shape_override_sub),
-                        selected = screenShapeOverride == FlueScreenShape.ROUND,
-                        onClick = { vm.setScreenShapeOverride(FlueScreenShape.ROUND) },
-                        scale = itemFisheye(listState, "screen_shape_round", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("screen_shape_square") { position ->
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_screen_shape_square),
-                        subtitle = stringResource(R.string.settings_screen_shape_override_sub),
-                        selected = screenShapeOverride == FlueScreenShape.SQUARE,
-                        onClick = { vm.setScreenShapeOverride(FlueScreenShape.SQUARE) },
-                        scale = itemFisheye(listState, "screen_shape_square", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("visual_effects_header") {
-                SectionTitle(stringResource(R.string.settings_visual_effects_header), itemFisheye(listState, "visual_effects_header", screenCenterY, screenHeightPx))
-            }
-            flueSettingsGroup {
-                row("blur_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_blur),
-                        subtitle = stringResource(R.string.settings_blur_sub),
-                        checked = blurEnabled,
-                        onToggle = vm::setBlurEnabled,
-                        scale = itemFisheye(listState, "blur_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("edge_blur_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_edge_blur),
-                        subtitle = stringResource(R.string.settings_edge_blur_sub),
-                        checked = edgeBlurEnabled,
-                        onToggle = vm::setEdgeBlurEnabled,
-                        scale = itemFisheye(listState, "edge_blur_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("edge_blur_radius") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_edge_blur_radius),
-                        value = honeycombEdgeBlurRadius,
-                        valueText = "%.1f dp".format(java.util.Locale.US, honeycombEdgeBlurRadius),
-                        localValueText = { "%.1f dp".format(java.util.Locale.US, it) },
-                        range = 0.5f..5f,
-                        steps = 8,
-                        onValueChange = vm::setHoneycombEdgeBlurRadius,
-                        enabled = blurEnabled && edgeBlurEnabled,
-                        scale = itemFisheye(listState, "edge_blur_radius", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("top_fade") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_top_fade),
-                        value = honeycombTopFade.toFloat(),
-                        valueText = "$honeycombTopFade dp",
-                        localValueText = { "${it.roundToInt()} dp" },
-                        range = 0f..160f,
-                        steps = 15,
-                        onValueChange = { vm.setHoneycombTopFade(it.toInt()) },
-                        scale = itemFisheye(listState, "top_fade", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("bottom_fade") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_bottom_fade),
-                        value = honeycombBottomFade.toFloat(),
-                        valueText = "$honeycombBottomFade dp",
-                        localValueText = { "${it.roundToInt()} dp" },
-                        range = 0f..160f,
-                        steps = 15,
-                        onValueChange = { vm.setHoneycombBottomFade(it.toInt()) },
-                        scale = itemFisheye(listState, "bottom_fade", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("launch_header") { SectionTitle(stringResource(R.string.settings_section_launch), itemFisheye(listState, "launch_header", screenCenterY, screenHeightPx)) }
-            flueSettingsGroup {
-                row("splash_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_splash),
-                        subtitle = stringResource(R.string.settings_splash_sub),
-                        checked = splashIcon,
-                        onToggle = { vm.setSplashIcon(it) },
-                        scale = itemFisheye(listState, "splash_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("direct_launch_app_list") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_direct_launch_app_list),
-                        subtitle = if (directLaunchAppListEnabled) {
-                            stringResource(R.string.settings_direct_launch_app_list_on)
-                        } else {
-                            stringResource(R.string.settings_direct_launch_app_list_off)
-                        },
-                        checked = directLaunchAppListEnabled,
-                        onToggle = vm::setDirectLaunchAppListEnabled,
-                        scale = itemFisheye(listState, "direct_launch_app_list", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            if (splashIcon) {
-                item("splash_delay") {
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_splash_delay),
-                        value = splashDelay.toFloat(),
-                        valueText = "${splashDelay} ms",
-                        localValueText = { "${it.roundToInt()} ms" },
-                        range = 300f..1500f,
-                        steps = 11,
-                        onValueChange = { vm.setSplashDelay(it.toInt()) },
-                        scale = itemFisheye(listState, "splash_delay", screenCenterY, screenHeightPx)
-                    )
-                }
-            }
-        }
+            // 整屏迁到数据驱动渲染：条目顺序、行 key、成组范围都与手写版逐项对齐，
+            // 所以 item 索引不变，scaffold 的 roundFirstActionIndex = 2 仍然指同一行。
+            settingsEntryScreen(
+                entries = SettingsHierarchy.renderedGroup("appearance"),
+                binding = object : SettingsEntryBinding {
+                    override fun selectedOption(entry: SettingsEntry.Picker): String? = when (entry.id) {
+                        "layout" -> layoutMode.name.lowercase()
+                        "theme_mode" -> themeMode.name.lowercase()
+                        "transition_motion" -> transitionMotion.name.lowercase()
+                        "screen_shape" -> screenShapeOverride.name.lowercase()
+                        else -> null
+                    }
 
-            SettingsDestination.DISPLAY_SIZE -> SettingsPageScaffold(
-            title = stringResource(R.string.settings_display_fit),
-            onBack = { handleBack() },
-            headerTime = headerTime,
-            initialFirstVisibleItemIndex = scrollFor(SettingsDestination.DISPLAY_SIZE).index,
-            initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.DISPLAY_SIZE).offset,
-            onScrollChanged = { index, offset -> updateScroll(SettingsDestination.DISPLAY_SIZE, index, offset) }
-        ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("global_ui_scale") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_global_ui_size),
-                        value = globalUiScalePercent.toFloat(),
-                        valueText = "${globalUiScalePercent}%",
-                        localValueText = { "${((it / 5f).roundToInt() * 5).coerceIn(50, 150)}%" },
-                        range = 50f..150f,
-                        steps = 19,
-                        onValueChange = {},
-                        onValueChangeFinished = { vm.setGlobalUiScalePercent(((it / 5f).roundToInt() * 5).coerceIn(50, 150)) },
-                        scale = itemFisheye(listState, "global_ui_scale", screenCenterY, screenHeightPx),
-                        supportingText = stringResource(R.string.settings_global_ui_restart_hint),
-                        groupPosition = position,
-                        // 重启按钮挨着滑杆放在同一张卡里：这一项只有重启后才全量生效，
-                        // 动作离它太远会读成「另一个功能」。
-                        footer = {
-                            FlueButton(
-                                onClick = { restartFlueProcess(context) },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Icon(
-                                    imageVector = MiuixIcons.Refresh,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    stringResource(R.string.settings_global_ui_apply_restart),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        },
-                    )
-                }
-                row("honeycomb_cols") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_honeycomb_cols),
-                        value = honeycombCols.toFloat(),
-                        valueText = stringResource(R.string.settings_honeycomb_cols_fmt, honeycombCols),
-                        localValueText = { context.resources.getString(R.string.settings_honeycomb_cols_fmt, it.roundToInt()) },
-                        range = 1f..5f,
-                        steps = 3,
-                        onValueChange = { vm.setHoneycombCols(it.roundToInt()) },
-                        scale = itemFisheye(listState, "honeycomb_cols", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_scale") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_app_list_size),
-                        value = appListScalePercent.toFloat(),
-                        valueText = "${appListScalePercent}%",
-                        range = 50f..200f,
-                        steps = 14,
-                        onValueChange = { vm.setAppListScalePercent(it.toInt()) },
-                        scale = itemFisheye(listState, "app_list_scale", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                // 指示器和这三项同卡：它们都是「整块屏幕怎么摆」这一层，与布局样式无关。
-                // 不放进下面的鱼眼组是因为鱼眼那一卡里每一项都被 `enabled = appListFisheyeEnabled`
-                // 串着，指示器跟鱼眼毫无关系，混进去会被读成「关掉鱼眼这条也就没了」。
-                row("app_list_scroll_indicator") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_scroll_indicator),
-                        subtitle = if (appListScrollIndicatorEnabled) {
-                            stringResource(R.string.settings_scroll_indicator_on)
-                        } else {
-                            stringResource(R.string.settings_scroll_indicator_off)
-                        },
-                        checked = appListScrollIndicatorEnabled,
-                        onToggle = vm::setAppListScrollIndicatorEnabled,
-                        scale = itemFisheye(listState, "app_list_scroll_indicator", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_edge_align") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_app_list_edge_align),
-                        subtitle = if (appListEdgeAlignEnabled) {
-                            stringResource(R.string.settings_app_list_edge_align_on)
-                        } else {
-                            stringResource(R.string.settings_app_list_edge_align_off)
-                        },
-                        checked = appListEdgeAlignEnabled,
-                        onToggle = vm::setAppListEdgeAlignEnabled,
-                        scale = itemFisheye(listState, "app_list_edge_align", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-
-            // 鱼眼三段：总开关 → 子开关组 → 数值组。
-            // 以前是开关与滑块交替（开关 → 滑块 → 开关 → 滑块 → 开关 → 滑块），
-            // 读起来找不到主次。网格 / 心流各自专属那几项只在对应布局显示。
-            flueSettingsGroup {
-                row("app_list_fisheye") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_fisheye),
-                        subtitle = stringResource(R.string.settings_fisheye_sub),
-                        checked = appListFisheyeEnabled,
-                        onToggle = vm::setAppListFisheyeEnabled,
-                        scale = itemFisheye(listState, "app_list_fisheye", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                if (layoutMode != LayoutMode.Flow) {
-                row("app_list_edge_spacing_compression") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_edge_spacing),
-                        subtitle = stringResource(R.string.settings_edge_spacing_sub),
-                        checked = appListEdgeSpacingCompressionEnabled,
-                        enabled = appListFisheyeEnabled,
-                        onToggle = vm::setAppListEdgeSpacingCompressionEnabled,
-                        scale = itemFisheye(listState, "app_list_edge_spacing_compression", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                }
-                row("app_list_fisheye_range_rows") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_fisheye_range),
-                        supportingText = stringResource(R.string.settings_fisheye_range_sub),
-                        value = appListFisheyeRangeRows.toFloat(),                    valueText = stringResource(R.string.settings_fisheye_range_fmt, appListFisheyeRangeRows),
-                        localValueText = {
-                            val rows = it.roundToInt()
-                            context.resources.getString(R.string.settings_fisheye_range_fmt, rows)
-                        },
-                        range = 1f..8f,
-                        steps = 6,
-                        onValueChange = { vm.setAppListFisheyeRangeRows(it.roundToInt()) },
-                        enabled = appListFisheyeEnabled,
-                        scale = itemFisheye(listState, "app_list_fisheye_range_rows", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_fisheye_strength") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_fisheye_strength),
-                        supportingText = stringResource(R.string.settings_fisheye_strength_sub),
-                        value = appListFisheyeStrengthPercent.toFloat(),
-                        valueText = "${appListFisheyeStrengthPercent}%",
-                        localValueText = { "${it.roundToInt()}%" },
-                        range = 0f..200f,
-                        steps = 19,
-                        onValueChange = { vm.setAppListFisheyeStrengthPercent(it.roundToInt()) },
-                        enabled = appListFisheyeEnabled,
-                        scale = itemFisheye(listState, "app_list_fisheye_strength", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_left_safe_inset") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_left_safe_area),
-                        supportingText = stringResource(R.string.settings_left_safe_area_sub),
-                        value = appListLeftSafeInsetPercent.toFloat(),
-                        valueText = "${appListLeftSafeInsetPercent}%",
-                        localValueText = { "${((it / 5f).roundToInt() * 5).coerceIn(0, 50)}%" },
-                        range = 0f..50f,
-                        steps = 9,
-                        onValueChange = { vm.setAppListLeftSafeInsetPercent((it / 5f).roundToInt() * 5) },
-                        scale = itemFisheye(listState, "app_list_left_safe_inset", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            // 网格布局专属那一组。
-            //
-            // 这两项的实现都只看密集网格那条路：「首行额外缩放」只被
-            // `nativeDenseGridChildVisual` 读（其余布局连读都不读），底板则是网格格子
-            // 独有的那块 rowBackground。摆在鱼眼组里时，用列表 / 蜂窝 / 心流的人也会看到
-            // 一个拨了完全没反应的开关 —— 所以按布局收起来，与下面心流那一组同一个规矩。
-            if (layoutMode == LayoutMode.Grid) {
-                flueSettingsGroup {
-                    row("material_honeycomb_top_fisheye") { position ->
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.settings_fisheye_top_row),
-                            subtitle = stringResource(R.string.settings_fisheye_top_row_sub),
-                            checked = materialHoneycombTopFisheyeEnabled,
-                            // 顶部鱼眼是鱼眼的子项：`nativeDenseGridChildVisual` 里
-                            // 顶部带要 `fisheyeEnabled && honeycombTopFisheyeEnabled` 同时成立。
-                            enabled = appListFisheyeEnabled,
-                            onToggle = vm::setMaterialHoneycombTopFisheyeEnabled,
-                            scale = itemFisheye(listState, "material_honeycomb_top_fisheye", screenCenterY, screenHeightPx),
-                            groupPosition = position,
-                        )
-                    }
-                    row("app_list_grid_icon_plate") { position ->
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.settings_grid_icon_plate),
-                            subtitle = if (appListGridIconPlateEnabled) {
-                                stringResource(R.string.settings_grid_icon_plate_on)
-                            } else {
-                                stringResource(R.string.settings_grid_icon_plate_off)
-                            },
-                            checked = appListGridIconPlateEnabled,
-                            onToggle = vm::setAppListGridIconPlateEnabled,
-                            scale = itemFisheye(listState, "app_list_grid_icon_plate", screenCenterY, screenHeightPx),
-                            groupPosition = position,
-                        )
-                    }
-                }
-            }
-            if (layoutMode == LayoutMode.Flow) {
-                item("app_list_flow_shape_preview") {
-                    val previewScale = itemFisheye(
-                        listState,
-                        "app_list_flow_shape_preview",
-                        screenCenterY,
-                        screenHeightPx,
-                    )
-                    AppListFlowShapePreview(
-                        bulgePercent = appListFlowCrescentBulgePercent,
-                        toRight = appListFlowCrescentToRight,
-                        curve = activeLayoutProfile.flowShapeCurve,
-                        modifier = Modifier.graphicsLayer {
-                            scaleX = previewScale
-                            scaleY = previewScale
-                            alpha = previewScale.coerceIn(0.55f, 1f)
-                        },
-                    )
-                }
-                flueSettingsGroup {
-                    row("app_list_flow_crescent_direction") { position ->
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.settings_flow_crescent_direction),
-                            subtitle = if (appListFlowCrescentToRight) {
-                                stringResource(R.string.settings_flow_crescent_direction_right)
-                            } else {
-                                stringResource(R.string.settings_flow_crescent_direction_left)
-                            },
-                            checked = appListFlowCrescentToRight,
-                            onToggle = vm::setAppListFlowCrescentToRight,
-                            scale = itemFisheye(listState, "app_list_flow_crescent_direction", screenCenterY, screenHeightPx),
-                            groupPosition = position,
-                        )
-                    }
-                    row("app_list_flow_crescent_bulge") { position ->
-                        SettingsSliderRow(
-                            title = stringResource(R.string.settings_flow_crescent_bulge),
-                            supportingText = stringResource(R.string.settings_flow_crescent_bulge_sub),
-                            value = appListFlowCrescentBulgePercent.toFloat(),
-                            valueText = "${appListFlowCrescentBulgePercent}%",
-                            localValueText = { "${it.roundToInt()}%" },
-                            // 100% = 峰值正好贴边；100~150% 是老师要的「更深的弧」，
-                            // 代价是上下两端那几行会被推出可视区左侧（滚上来就回来了）。
-                            range = 0f..FLUE_LAYOUT_CRESCENT_BULGE_MAX.toFloat(),
-                            // 5% 一格：0..150 共 30 段，中间刻度 29 个。
-                            steps = 29,
-                            onValueChange = { vm.setAppListFlowCrescentBulgePercent(it.roundToInt()) },
-                            scale = itemFisheye(listState, "app_list_flow_crescent_bulge", screenCenterY, screenHeightPx),
-                            groupPosition = position,
-                        )
-                    }
-                    listOf(
-                        "X1" to activeLayoutProfile.flowShapeCurve.x1,
-                        "Y1" to activeLayoutProfile.flowShapeCurve.y1,
-                        "X2" to activeLayoutProfile.flowShapeCurve.x2,
-                        "Y2" to activeLayoutProfile.flowShapeCurve.y2,
-                    ).forEach { (parameter, value) ->
-                        row("app_list_flow_curve_$parameter") { position ->
-                            SettingsSliderRow(
-                                title = stringResource(R.string.settings_flow_curve_parameter_fmt, parameter),
-                                value = value,
-                                valueText = "%.2f".format(Locale.US, value),
-                                localValueText = { "%.2f".format(Locale.US, it) },
-                                range = 0f..1f,
-                                steps = 19,
-                                onValueChange = { next ->
-                                    val current = activeLayoutProfile.flowShapeCurve
-                                    vm.setAppListFlowShapeCurve(
-                                        when (parameter) {
-                                            "X1" -> current.copy(x1 = next)
-                                            "Y1" -> current.copy(y1 = next)
-                                            "X2" -> current.copy(x2 = next)
-                                            else -> current.copy(y2 = next)
-                                        },
-                                    )
-                                },
-                                scale = itemFisheye(
-                                    listState,
-                                    "app_list_flow_curve_$parameter",
-                                    screenCenterY,
-                                    screenHeightPx,
-                                ),
-                                groupPosition = position,
+                    override fun onPick(entry: SettingsEntry.Picker, optionId: String) {
+                        when (entry.id) {
+                            "layout" -> vm.setLayoutMode(LayoutMode.valueOf(optionId.uppercase()))
+                            "theme_mode" -> vm.setThemeMode(ThemeMode.valueOf(optionId.uppercase()))
+                            "transition_motion" -> vm.setTransitionMotion(
+                                FlueTransitionMotion.valueOf(optionId.uppercase()),
+                            )
+                            "screen_shape" -> vm.setScreenShapeOverride(
+                                FlueScreenShape.valueOf(optionId.uppercase()),
                             )
                         }
                     }
-                }
-            }
-            // 布局档案：鱼眼那几项是「当前档案」的内容，所以档案管理紧跟在它们后面，
-            // 而不是另开一页 —— 换档案与调参数分两页的话，改完这边看不见那边变化。
-            item("layout_profile_header") {
-                SectionTitle(
-                    stringResource(R.string.settings_layout_profile_header),
-                    itemFisheye(listState, "layout_profile_header", screenCenterY, screenHeightPx),
-                )
-            }
-            items(
-                items = layoutProfiles.filter { it.layoutMode == layoutMode },
-                key = { "layout_profile_${it.id}" },
-                contentType = { "layout_profile" },
-            ) { profile ->
-                SettingsChoiceRow(
-                    title = profile.name,
-                    subtitle = if (FlueLayoutProfiles.isBuiltIn(profile.id)) {
-                        stringResource(R.string.settings_layout_profile_preset)
-                    } else {
-                        stringResource(R.string.settings_layout_profile_custom)
-                    },
-                    selected = profile.id == activeLayoutProfile.id,
-                    onClick = { vm.setActiveLayoutProfile(profile.id) },
-                    scale = itemFisheye(
-                        listState,
-                        "layout_profile_${profile.id}",
-                        screenCenterY,
-                        screenHeightPx,
-                    ),
-                )
-            }
-            flueSettingsGroup {
-                row("layout_profile_copy") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_layout_profile_copy),
-                        subtitle = stringResource(R.string.settings_layout_profile_copy_sub),
-                        onClick = { vm.copyLayoutProfile() },
-                        scale = itemFisheye(listState, "layout_profile_copy", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("layout_profile_rename") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_profile_rename),
-                        // 内置档不给改名：它们的名字是「哪种布局的默认档」这一层含义，
-                        // 改掉之后档案列表就读不出来了。副本随便改。
-                        subtitle = if (FlueLayoutProfiles.isBuiltIn(activeLayoutProfile.id)) {
-                            stringResource(R.string.settings_profile_rename_builtin_sub)
-                        } else {
-                            activeLayoutProfile.name
-                        },
-                        onClick = {
-                            if (!FlueLayoutProfiles.isBuiltIn(activeLayoutProfile.id)) {
-                                renameLayoutProfileVisible = true
-                            }
-                        },
-                        scale = itemFisheye(listState, "layout_profile_rename", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("layout_profile_reset") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_layout_profile_reset),
-                        subtitle = stringResource(R.string.settings_layout_profile_reset_sub),
-                        onClick = { vm.resetActiveLayoutProfile() },
-                        scale = itemFisheye(listState, "layout_profile_reset", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                // 删除也是「布局方案管理」这一类，要和复制/重命名/重置同卡。
-                //
-                // 以前它是组外一个独立 item，因为带条件（内置方案不能删）。但 row 只是个
-                // 普通收集器、不是 composable，条件直接写在这里就行 —— 组的首尾位置是按
-                // 实际收进来的行数算的，少一行不会错位。摆在组外的后果是把一张卡劈成两半，
-                // 中间夹一个孤零零的胶囊（老师报的「布局那里 miuix 还是分开的」）。
-                if (!FlueLayoutProfiles.isBuiltIn(activeLayoutProfile.id)) {
-                    row("layout_profile_delete") { position ->
-                        ActionCard(
-                            title = stringResource(R.string.settings_layout_profile_delete),
-                            subtitle = stringResource(R.string.settings_layout_profile_delete_sub),
-                            onClick = { vm.deleteLayoutProfile(activeLayoutProfile.id) },
-                            scale = itemFisheye(listState, "layout_profile_delete", screenCenterY, screenHeightPx),
-                            groupPosition = position,
-                        )
+
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "blur_toggle" -> blurEnabled
+                        "edge_blur_toggle" -> edgeBlurEnabled
+                        "splash_toggle" -> splashIcon
+                        "direct_launch_app_list" -> directLaunchAppListEnabled
+                        else -> false
                     }
-                }
-            }
-            flueSettingsGroup {
-                row("layout_profile_export") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_layout_profile_export),
-                        subtitle = stringResource(R.string.settings_layout_profile_export_sub),
-                        onClick = { layoutExportPicker.launch("flue-layout-profiles.json") },
-                        scale = itemFisheye(listState, "layout_profile_export", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("layout_profile_import") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_layout_profile_import),
-                        subtitle = stringResource(R.string.settings_layout_profile_import_sub),
-                        onClick = {
-                            layoutImportPicker.launch(arrayOf("application/json", "text/plain"))
-                        },
-                        scale = itemFisheye(listState, "layout_profile_import", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("rotary_haptics") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_rotary_haptics),
-                        subtitle = if (rotaryHapticsEnabled) {
-                            stringResource(R.string.settings_rotary_haptics_on)
-                        } else {
-                            stringResource(R.string.settings_rotary_haptics_off)
-                        },
-                        checked = rotaryHapticsEnabled,
-                        onToggle = vm::setRotaryHapticsEnabled,
-                        scale = itemFisheye(listState, "rotary_haptics", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        when (entry.id) {
+                            "blur_toggle" -> vm.setBlurEnabled(checked)
+                            "edge_blur_toggle" -> vm.setEdgeBlurEnabled(checked)
+                            "splash_toggle" -> vm.setSplashIcon(checked)
+                            "direct_launch_app_list" -> vm.setDirectLaunchAppListEnabled(checked)
+                        }
+                    }
+
+                    override fun sliderValue(entry: SettingsEntry.Slider): Float = when (entry.id) {
+                        "edge_blur_radius" -> honeycombEdgeBlurRadius
+                        "top_fade" -> honeycombTopFade.toFloat()
+                        "bottom_fade" -> honeycombBottomFade.toFloat()
+                        "splash_delay" -> splashDelay.toFloat()
+                        else -> 0f
+                    }
+
+                    override fun onSliderChange(entry: SettingsEntry.Slider, value: Float) {
+                        when (entry.id) {
+                            "edge_blur_radius" -> vm.setHoneycombEdgeBlurRadius(value)
+                            "top_fade" -> vm.setHoneycombTopFade(value.roundToInt())
+                            "bottom_fade" -> vm.setHoneycombBottomFade(value.roundToInt())
+                            "splash_delay" -> vm.setSplashDelay(value.roundToInt())
+                        }
+                    }
+
+                    override fun onOpen(entry: SettingsEntry) {
+                        when (entry) {
+                            is SettingsEntry.Navigation -> {
+                                val next = SettingsDestination.entries
+                                    .firstOrNull { it.name == entry.destination } ?: return
+                                navigateTo(next)
+                            }
+                            is SettingsEntry.Action -> if (entry.action == "show_overlay_mask_corner_dialog") {
+                                showOverlayMaskCornerDialog = true
+                            }
+                            else -> Unit
+                        }
+                    }
+
+                    // 两项副标题是运行时状态：当前背景模式名、带 dp 数值的圆角说明。
+                    @Composable
+                    override fun subtitle(entry: SettingsEntry): String? = when (entry.id) {
+                        "app_list_background_entry" -> appListBackgroundModeLabel(appListBackground.effectiveMode)
+                        "overlay_mask_corner_radius" -> stringResource(
+                            R.string.settings_overlay_mask_corner_radius_sub_fmt,
+                            overlayMaskCornerRadiusDp,
+                        )
+                        else -> null
+                    }
+
+                    // 圆屏没有遮罩圆角；启动延时只在启动图标开启时出现。
+                    override fun isVisible(entry: SettingsEntry): Boolean = when (entry.id) {
+                        "overlay_mask_corner_radius" -> !flueScreenRound
+                        "splash_delay" -> splashIcon
+                        else -> true
+                    }
+
+                    override fun isEnabled(entry: SettingsEntry): Boolean = when (entry.id) {
+                        "edge_blur_radius" -> blurEnabled && edgeBlurEnabled
+                        else -> true
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
+
+            SettingsDestination.DISPLAY_SIZE -> DisplaySizePage(
+                onBack = { handleBack() },
+                headerTime = headerTime,
+                initialScrollIndex = scrollFor(SettingsDestination.DISPLAY_SIZE).index,
+                initialScrollOffset = scrollFor(SettingsDestination.DISPLAY_SIZE).offset,
+                onScrollChanged = { index, offset ->
+                    updateScroll(SettingsDestination.DISPLAY_SIZE, index, offset)
+                },
+                vm = vm,
+                context = context,
+                onRequestRenameProfile = { renameLayoutProfileVisible = true },
+                onExportProfiles = { layoutExportPicker.launch("flue-layout-profiles.json") },
+                onImportProfiles = {
+                    layoutImportPicker.launch(arrayOf("application/json", "text/plain"))
+                },
+            )
 
             // 「功能开关」从 16 项杂烩改为路牌页：五个按领域归类的三级页。
             SettingsDestination.AOD -> {
@@ -3720,58 +2426,25 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.FEATURE_TOGGLES).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.FEATURE_TOGGLES, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("cat_side_screen") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_side_screen_title),
-                        subtitle = stringResource(R.string.settings_side_screen_card_sub),
-                        onClick = { navigateTo(SettingsDestination.SIDE_SCREEN) },
-                        scale = itemFisheye(listState, "cat_side_screen", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("cat_notifications") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_notifications_title),
-                        subtitle = stringResource(R.string.settings_notifications_card_sub),
-                        onClick = { navigateTo(SettingsDestination.NOTIFICATION_SETTINGS) },
-                        scale = itemFisheye(listState, "cat_notifications", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("cat_gestures") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_gestures_title),
-                        subtitle = stringResource(R.string.settings_gestures_card_sub),
-                        onClick = { navigateTo(SettingsDestination.GESTURE_SETTINGS) },
-                        scale = itemFisheye(listState, "cat_gestures", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("cat_app_list_behavior") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_app_list_behavior_title),
-                        subtitle = stringResource(R.string.settings_app_list_behavior_card_sub),
-                        onClick = { navigateTo(SettingsDestination.APP_LIST_BEHAVIOR) },
-                        scale = itemFisheye(listState, "cat_app_list_behavior", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("glass_highlight_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_glass_highlight),
-                        subtitle = if (glassHighlightEnabled) {
-                            stringResource(R.string.settings_glass_highlight_on)
-                        } else {
-                            stringResource(R.string.settings_glass_highlight_off)
-                        },
-                        checked = glassHighlightEnabled,
-                        onToggle = vm::setGlassHighlightEnabled,
-                        scale = itemFisheye(listState, "glass_highlight_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("feature_toggles"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = glassHighlightEnabled
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        vm.setGlassHighlightEnabled(checked)
+                    }
+
+                    // destination 存的就是 SettingsDestination 的枚举名，
+                    // 所以这里不需要再维护一张 when 映射表。
+                    override fun onOpen(entry: SettingsEntry) {
+                        val name = (entry as? SettingsEntry.Navigation)?.destination ?: return
+                        val next = SettingsDestination.entries.firstOrNull { it.name == name } ?: return
+                        navigateTo(next)
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.SIDE_SCREEN -> SettingsPageScaffold(
@@ -3782,102 +2455,45 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.SIDE_SCREEN).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.SIDE_SCREEN, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("side_screen_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_side_screen),
-                        subtitle = stringResource(R.string.settings_side_screen_sub),
-                        checked = sideScreenEnabled,
-                        onToggle = vm::setSideScreenEnabled,
-                        scale = itemFisheye(listState, "side_screen_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("widget_center_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_widget_page),
-                        subtitle = if (showWidgetPage) {
-                            stringResource(R.string.settings_widget_page_on)
-                        } else {
-                            stringResource(R.string.settings_widget_page_off)
-                        },
-                        checked = showWidgetPage,
-                        onToggle = vm::setShowWidgetPage,
-                        scale = itemFisheye(listState, "widget_center_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("widget_glass_highlight") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_widget_glass_highlight),
-                        subtitle = if (widgetGlassHighlightEnabled) {
-                            stringResource(R.string.settings_widget_glass_highlight_on)
-                        } else {
-                            stringResource(R.string.settings_widget_glass_highlight_off)
-                        },
-                        checked = widgetGlassHighlightEnabled,
-                        enabled = sideScreenEnabled && showWidgetPage,
-                        onToggle = vm::setWidgetGlassHighlightEnabled,
-                        scale = itemFisheye(listState, "widget_glass_highlight", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("music_notification_swap_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_swap_music_notifications),
-                        subtitle = if (swapMusicNotificationComponents) {
-                            stringResource(R.string.settings_swap_music_notifications_on)
-                        } else {
-                            stringResource(R.string.settings_swap_music_notifications_off)
-                        },
-                        checked = swapMusicNotificationComponents,
-                        enabled = sideScreenEnabled,
-                        onToggle = vm::setSwapMusicNotificationComponents,
-                        scale = itemFisheye(listState, "music_notification_swap_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("music_controls_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_show_music),
-                        subtitle = if (showMusicControls) {
-                            stringResource(R.string.settings_show_music_on)
-                        } else {
-                            stringResource(R.string.settings_show_music_off)
-                        },
-                        checked = showMusicControls,
-                        enabled = sideScreenEnabled && swapMusicNotificationComponents,
-                        onToggle = vm::setShowMusicControls,
-                        scale = itemFisheye(listState, "music_controls_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("media_custom_actions_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_media_actions),
-                        subtitle = if (showMediaCustomActions) {
-                            stringResource(R.string.settings_media_actions_on)
-                        } else {
-                            stringResource(R.string.settings_media_actions_off)
-                        },
-                        checked = showMediaCustomActions,
-                        enabled = sideScreenEnabled && swapMusicNotificationComponents && showMusicControls,
-                        onToggle = vm::setShowMediaCustomActions,
-                        scale = itemFisheye(listState, "media_custom_actions_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("show_step_count") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_show_steps),
-                        subtitle = stringResource(R.string.settings_show_steps_sub),
-                        checked = showStepCount,
-                        onToggle = vm::setShowStepCountEnabled,
-                        scale = itemFisheye(listState, "show_step_count", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("side_screen"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "side_screen_toggle" -> sideScreenEnabled
+                        "widget_center_toggle" -> showWidgetPage
+                        "widget_glass_highlight" -> widgetGlassHighlightEnabled
+                        "music_notification_swap_toggle" -> swapMusicNotificationComponents
+                        "music_controls_toggle" -> showMusicControls
+                        "media_custom_actions_toggle" -> showMediaCustomActions
+                        "show_step_count" -> showStepCount
+                        else -> false
+                    }
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        when (entry.id) {
+                            "side_screen_toggle" -> vm.setSideScreenEnabled(checked)
+                            "widget_center_toggle" -> vm.setShowWidgetPage(checked)
+                            "widget_glass_highlight" -> vm.setWidgetGlassHighlightEnabled(checked)
+                            "music_notification_swap_toggle" -> vm.setSwapMusicNotificationComponents(checked)
+                            "music_controls_toggle" -> vm.setShowMusicControls(checked)
+                            "media_custom_actions_toggle" -> vm.setShowMediaCustomActions(checked)
+                            "show_step_count" -> vm.setShowStepCountEnabled(checked)
+                        }
+                    }
+
+                    // 级联开关：上游不开，下游置灰（行仍然显示，用户看得到依赖关系）。
+                    override fun isEnabled(entry: SettingsEntry): Boolean = when (entry.id) {
+                        "widget_glass_highlight" -> sideScreenEnabled && showWidgetPage
+                        "music_notification_swap_toggle" -> sideScreenEnabled
+                        "music_controls_toggle" ->
+                            sideScreenEnabled && swapMusicNotificationComponents
+                        "media_custom_actions_toggle" ->
+                            sideScreenEnabled && swapMusicNotificationComponents && showMusicControls
+                        else -> true
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.NOTIFICATION_SETTINGS -> SettingsPageScaffold(
@@ -3888,38 +2504,31 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.NOTIFICATION_SETTINGS).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.NOTIFICATION_SETTINGS, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("notification_center_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_show_notifications),
-                        subtitle = if (showNotification) {
-                            stringResource(R.string.settings_show_notifications_on)
-                        } else {
-                            stringResource(R.string.settings_show_notifications_off)
-                        },
-                        checked = showNotification,
-                        enabled = sideScreenEnabled,
-                        onToggle = vm::setShowNotification,
-                        scale = itemFisheye(listState, "notification_center_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("ongoing_notification_toggle") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_show_ongoing),
-                        subtitle = if (showOngoingNotifications) {
-                            stringResource(R.string.settings_show_ongoing_on)
-                        } else {
-                            stringResource(R.string.settings_show_ongoing_off)
-                        },
-                        checked = showOngoingNotifications,
-                        enabled = sideScreenEnabled && showNotification,
-                        onToggle = vm::setShowOngoingNotifications,
-                        scale = itemFisheye(listState, "ongoing_notification_toggle", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("notifications"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "notification_center_toggle" -> showNotification
+                        "ongoing_notification_toggle" -> showOngoingNotifications
+                        else -> false
+                    }
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        when (entry.id) {
+                            "notification_center_toggle" -> vm.setShowNotification(checked)
+                            "ongoing_notification_toggle" -> vm.setShowOngoingNotifications(checked)
+                        }
+                    }
+
+                    // 通知中心依赖副一屏；「常驻通知」再依赖通知中心本身。
+                    override fun isEnabled(entry: SettingsEntry): Boolean = when (entry.id) {
+                        "notification_center_toggle" -> sideScreenEnabled
+                        "ongoing_notification_toggle" -> sideScreenEnabled && showNotification
+                        else -> true
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.GESTURE_SETTINGS -> SettingsPageScaffold(
@@ -3930,49 +2539,53 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.GESTURE_SETTINGS).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.GESTURE_SETTINGS, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("double_tap_lock_screen") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_double_tap_lock),
-                        subtitle = if (doubleTapUsesDeviceAdmin && deviceAdminEnabled) {
-                            stringResource(R.string.settings_double_tap_device_admin_on)
-                        } else if (doubleTapUsesDeviceAdmin) {
-                            stringResource(R.string.settings_double_tap_device_admin_require)
-                        } else if (accessibilityServiceEnabled) {
-                            stringResource(R.string.settings_double_tap_on)
-                        } else {
-                            stringResource(R.string.settings_double_tap_require)
-                        },
-                        checked = doubleTapLockScreenEnabled,
-                        onToggle = { enabled ->
-                            vm.setDoubleTapLockScreenEnabled(enabled)
-                            if (doubleTapUsesDeviceAdmin) {
-                                deviceAdminEnabled = FlueDeviceAdminController.isActive(context)
-                                if (enabled && !deviceAdminEnabled) {
-                                    openDeviceAdminSettings()
-                                }
-                            } else {
-                                accessibilityServiceEnabled = FlueAccessibilityService.isEnabled(context) || accessibilityServiceConnected
-                                if (enabled && !accessibilityServiceEnabled) {
-                                    openAccessibilitySettings()
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("gestures"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "double_tap_lock_screen" -> doubleTapLockScreenEnabled
+                        "face_ignores_back_key" -> faceIgnoresBackKey
+                        else -> false
+                    }
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        when (entry.id) {
+                            // 打开时若授权缺失，顺手把用户带到授权页 —— 手写版的原有行为。
+                            "double_tap_lock_screen" -> {
+                                vm.setDoubleTapLockScreenEnabled(checked)
+                                if (doubleTapUsesDeviceAdmin) {
+                                    deviceAdminEnabled = FlueDeviceAdminController.isActive(context)
+                                    if (checked && !deviceAdminEnabled) {
+                                        openDeviceAdminSettings()
+                                    }
+                                } else {
+                                    accessibilityServiceEnabled =
+                                        FlueAccessibilityService.isEnabled(context) || accessibilityServiceConnected
+                                    if (checked && !accessibilityServiceEnabled) {
+                                        openAccessibilitySettings()
+                                    }
                                 }
                             }
-                        },
-                        scale = itemFisheye(listState, "double_tap_lock_screen", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("face_ignores_back_key") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_face_ignores_back),
-                        subtitle = stringResource(R.string.settings_face_ignores_back_sub),
-                        checked = faceIgnoresBackKey,
-                        onToggle = vm::setFaceIgnoresBackKey,
-                        scale = itemFisheye(listState, "face_ignores_back_key", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+                            "face_ignores_back_key" -> vm.setFaceIgnoresBackKey(checked)
+                        }
+                    }
+
+                    // 副标题四分支：走设备管理员时看管理员是否已激活，否则看无障碍是否可用。
+                    @Composable
+                    override fun subtitle(entry: SettingsEntry): String? {
+                        if (entry.id != "double_tap_lock_screen") return null
+                        return when {
+                            doubleTapUsesDeviceAdmin && deviceAdminEnabled ->
+                                stringResource(R.string.settings_double_tap_device_admin_on)
+                            doubleTapUsesDeviceAdmin ->
+                                stringResource(R.string.settings_double_tap_device_admin_require)
+                            accessibilityServiceEnabled -> stringResource(R.string.settings_double_tap_on)
+                            else -> stringResource(R.string.settings_double_tap_require)
+                        }
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.APP_LIST_BEHAVIOR -> SettingsPageScaffold(
@@ -3983,51 +2596,33 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.APP_LIST_BEHAVIOR).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.APP_LIST_BEHAVIOR, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("app_list_watchface_colors") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_watchface_launch_mask),
-                        subtitle = if (appListWatchFaceColors) {
-                            stringResource(R.string.settings_watchface_launch_mask_on)
-                        } else {
-                            stringResource(R.string.settings_watchface_launch_mask_off)
-                        },
-                        checked = appListWatchFaceColors,
-                        onToggle = vm::setAppListWatchFaceColors,
-                        scale = itemFisheye(listState, "app_list_watchface_colors", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_row_border") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_list_row_bg),
-                        subtitle = if (appListRowBorderEnabled) {
-                            stringResource(R.string.settings_list_row_bg_on)
-                        } else {
-                            stringResource(R.string.settings_list_row_bg_off)
-                        },
-                        checked = appListRowBorderEnabled,
-                        enabled = layoutMode == LayoutMode.List,
-                        onToggle = vm::setAppListRowBorderEnabled,
-                        scale = itemFisheye(listState, "app_list_row_border", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_folders_enabled") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_allow_folders),
-                        subtitle = if (appListFoldersEnabled) {
-                            stringResource(R.string.settings_allow_folders_on)
-                        } else {
-                            stringResource(R.string.settings_allow_folders_off)
-                        },
-                        checked = appListFoldersEnabled,
-                        onToggle = vm::setAppListFoldersEnabled,
-                        scale = itemFisheye(listState, "app_list_folders_enabled", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("app_list_behavior"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "app_list_watchface_colors" -> appListWatchFaceColors
+                        "app_list_row_border" -> appListRowBorderEnabled
+                        "app_list_folders_enabled" -> appListFoldersEnabled
+                        else -> false
+                    }
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        when (entry.id) {
+                            "app_list_watchface_colors" -> vm.setAppListWatchFaceColors(checked)
+                            "app_list_row_border" -> vm.setAppListRowBorderEnabled(checked)
+                            "app_list_folders_enabled" -> vm.setAppListFoldersEnabled(checked)
+                        }
+                    }
+
+                    // 底色遮罩只对列表布局有意义。行仍然显示、只是置灰 ——
+                    // 藏起来的话，用户切到蜂窝模式就再也找不到这个开关了。
+                    override fun isEnabled(entry: SettingsEntry): Boolean = when (entry.id) {
+                        "app_list_row_border" -> layoutMode == LayoutMode.List
+                        else -> true
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.PERFORMANCE -> SettingsPageScaffold(
@@ -4041,35 +2636,17 @@ private fun SettingsRootScreen(
             // 性能页拆成三组：这一层只做目录，具体开关全在子页。
             // 原来 13 项平铺在一页，滑到底要转很久，且「图标怎么画」「动画怎么
             // 走」「系统与网络行为」三类东西混在一起没有边界。
-            flueSettingsGroup {
-                row("perf_group_rendering") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_perf_group_rendering),
-                        subtitle = stringResource(R.string.settings_perf_group_rendering_sub),
-                        onClick = { navigateTo(SettingsDestination.PERFORMANCE_RENDERING) },
-                        scale = itemFisheye(listState, "perf_group_rendering", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("perf_group_motion") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_perf_group_motion),
-                        subtitle = stringResource(R.string.settings_perf_group_motion_sub),
-                        onClick = { navigateTo(SettingsDestination.PERFORMANCE_MOTION) },
-                        scale = itemFisheye(listState, "perf_group_motion", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("perf_group_system") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_perf_group_system),
-                        subtitle = stringResource(R.string.settings_perf_group_system_sub),
-                        onClick = { navigateTo(SettingsDestination.PERFORMANCE_SYSTEM) },
-                        scale = itemFisheye(listState, "perf_group_system", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("performance"),
+                binding = object : SettingsEntryBinding {
+                    override fun onOpen(entry: SettingsEntry) {
+                        val name = (entry as? SettingsEntry.Navigation)?.destination ?: return
+                        val next = SettingsDestination.entries.firstOrNull { it.name == name } ?: return
+                        navigateTo(next)
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.PERFORMANCE_RENDERING -> SettingsPageScaffold(
@@ -4082,38 +2659,26 @@ private fun SettingsRootScreen(
                 updateScroll(SettingsDestination.PERFORMANCE_RENDERING, index, offset)
             }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("low_res") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_low_res_icons),
-                        subtitle = stringResource(R.string.settings_low_res_icons_sub),
-                        checked = lowResIcons,
-                        onToggle = { vm.setLowResIcons(it) },
-                        scale = itemFisheye(listState, "low_res", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("icon_shadow") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_icon_shadow),
-                        subtitle = stringResource(R.string.settings_icon_shadow_sub),
-                        checked = iconShadowEnabled,
-                        onToggle = vm::setIconShadowEnabled,
-                        scale = itemFisheye(listState, "icon_shadow", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("builtin_manager_thumbnails") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_builtin_thumbnails),
-                        subtitle = stringResource(R.string.settings_builtin_thumbnails_sub),
-                        checked = builtInManagerThumbnails,
-                        onToggle = { vm.setBuiltInManagerThumbnails(it) },
-                        scale = itemFisheye(listState, "builtin_manager_thumbnails", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("performance_rendering"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "low_res" -> lowResIcons
+                        "icon_shadow" -> iconShadowEnabled
+                        "builtin_manager_thumbnails" -> builtInManagerThumbnails
+                        else -> false
+                    }
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        when (entry.id) {
+                            "low_res" -> vm.setLowResIcons(checked)
+                            "icon_shadow" -> vm.setIconShadowEnabled(checked)
+                            "builtin_manager_thumbnails" -> vm.setBuiltInManagerThumbnails(checked)
+                        }
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.PERFORMANCE_MOTION -> SettingsPageScaffold(
@@ -4126,118 +2691,67 @@ private fun SettingsRootScreen(
                 updateScroll(SettingsDestination.PERFORMANCE_MOTION, index, offset)
             }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("anim_override") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_launch_animation),
-                        subtitle = stringResource(R.string.settings_launch_animation_sub),
-                        checked = animationOverrideEnabled,
-                        onToggle = { vm.setAnimationOverrideEnabled(it) },
-                        scale = itemFisheye(listState, "anim_override", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_return_shrink") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_app_list_shrink),
-                        subtitle = stringResource(R.string.settings_app_list_shrink_sub),
-                        checked = appListReturnShrinkEnabled,
-                        onToggle = vm::setAppListReturnShrinkEnabled,
-                        scale = itemFisheye(listState, "app_list_return_shrink", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            if (!appListReturnShrinkEnabled) {
-                item("app_list_return_icon_float") {
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_icon_float),
-                        subtitle = stringResource(R.string.settings_icon_float_sub),
-                        checked = appListReturnIconFloatEnabled,
-                        onToggle = vm::setAppListReturnIconFloatEnabled,
-                        scale = itemFisheye(
-                            listState,
-                            "app_list_return_icon_float",
-                            screenCenterY,
-                            screenHeightPx,
-                        )
-                    )
-                }
-            }
-            item("face_return_shrink") {
-                // 与「减弱动态效果」已解绑：那个开关只管去掉越界回弹，不再
-                // 反过来把收缩强制打开、把这一行锁成灰的。
-                SettingsSwitchRow(
-                    title = stringResource(R.string.settings_face_shrink),
-                    subtitle = stringResource(R.string.settings_face_shrink_sub),
-                    checked = faceReturnShrinkEnabled,
-                    onToggle = vm::setFaceReturnShrinkEnabled,
-                    scale = itemFisheye(listState, "face_return_shrink", screenCenterY, screenHeightPx)
-                )
-            }
-            flueSettingsGroup {
-                row("legacy_app_list_transition") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_legacy_transition),
-                        subtitle = stringResource(R.string.settings_legacy_transition_sub),
-                        checked = legacyAppListTransitionEnabled,
-                        onToggle = vm::setLegacyAppListTransitionEnabled,
-                        scale = itemFisheye(
-                            listState,
-                            "legacy_app_list_transition",
-                            screenCenterY,
-                            screenHeightPx,
-                        ),
-                        groupPosition = position,
-                    )
-                }
-                row("app_list_stagger") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_stagger_entry),
-                        subtitle = stringResource(R.string.settings_stagger_entry_sub),
-                        checked = appListStaggerEnabled,
-                        onToggle = vm::setAppListStaggerEnabled,
-                        scale = itemFisheye(listState, "app_list_stagger", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("reduce_dynamic_effects") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_reduce_motion),
-                        subtitle = stringResource(R.string.settings_reduce_motion_sub),
-                        checked = reduceDynamicEffects,
-                        // 不再顺手把表盘收缩打开：两个开关互不干涉。
-                        onToggle = vm::setReduceDynamicEffects,
-                        scale = itemFisheye(listState, "reduce_dynamic_effects", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            item("music_text_animation") {
-                val selectedPreset = MusicTextSwitchAnimations.byId(musicTextSwitchAnimation)
-                SettingsCategoryCard(
-                    title = stringResource(R.string.settings_music_text_animation),
-                    subtitle = stringResource(selectedPreset.labelRes),
-                    onClick = { navigateTo(SettingsDestination.MUSIC_TEXT_ANIMATION) },
-                    scale = itemFisheye(listState, "music_text_animation", screenCenterY, screenHeightPx)
-                )
-            }
-            item("motion_profile") {
-                SettingsCategoryCard(
-                    title = stringResource(R.string.settings_motion_profile),
-                    subtitle = stringResource(
-                        R.string.settings_motion_profile_sub_fmt,
-                        activeMotionProfile.name,
-                        if (activeMotionProfile.bounceEnabled) {
-                            stringResource(R.string.settings_motion_bounce_on)
-                        } else {
-                            stringResource(R.string.settings_motion_bounce_off)
+            // 这一屏的卡片边界是四张卡与两个裸 item 交错，靠 placement 表达；
+            // 两张导航卡的副标题都是运行时状态，交给 subtitle 钩子。
+            settingsEntryScreen(
+                entries = SettingsHierarchy.renderedGroup("performance_motion"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "anim_override" -> animationOverrideEnabled
+                        "app_list_return_shrink" -> appListReturnShrinkEnabled
+                        "app_list_return_icon_float" -> appListReturnIconFloatEnabled
+                        "face_return_shrink" -> faceReturnShrinkEnabled
+                        "legacy_app_list_transition" -> legacyAppListTransitionEnabled
+                        "app_list_stagger" -> appListStaggerEnabled
+                        "reduce_dynamic_effects" -> reduceDynamicEffects
+                        else -> false
+                    }
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        when (entry.id) {
+                            "anim_override" -> vm.setAnimationOverrideEnabled(checked)
+                            "app_list_return_shrink" -> vm.setAppListReturnShrinkEnabled(checked)
+                            "app_list_return_icon_float" ->
+                                vm.setAppListReturnIconFloatEnabled(checked)
+                            "face_return_shrink" -> vm.setFaceReturnShrinkEnabled(checked)
+                            "legacy_app_list_transition" ->
+                                vm.setLegacyAppListTransitionEnabled(checked)
+                            "app_list_stagger" -> vm.setAppListStaggerEnabled(checked)
+                            "reduce_dynamic_effects" -> vm.setReduceDynamicEffects(checked)
                         }
-                    ),
-                    onClick = { navigateTo(SettingsDestination.MOTION_PROFILE) },
-                    scale = itemFisheye(listState, "motion_profile", screenCenterY, screenHeightPx)
-                )
-            }
+                    }
+
+                    override fun isVisible(entry: SettingsEntry): Boolean = when (entry.id) {
+                        // 收缩开着时，图标浮起这条没有意义，手写版也是直接不组合。
+                        "app_list_return_icon_float" -> !appListReturnShrinkEnabled
+                        else -> true
+                    }
+
+                    override fun onOpen(entry: SettingsEntry) {
+                        val name = (entry as? SettingsEntry.Navigation)?.destination ?: return
+                        val next = SettingsDestination.entries.firstOrNull { it.name == name } ?: return
+                        navigateTo(next)
+                    }
+
+                    @Composable
+                    override fun subtitle(entry: SettingsEntry): String? = when (entry.id) {
+                        "music_text_animation" -> stringResource(
+                            MusicTextSwitchAnimations.byId(musicTextSwitchAnimation).labelRes
+                        )
+                        "motion_profile" -> stringResource(
+                            R.string.settings_motion_profile_sub_fmt,
+                            activeMotionProfile.name,
+                            if (activeMotionProfile.bounceEnabled) {
+                                stringResource(R.string.settings_motion_bounce_on)
+                            } else {
+                                stringResource(R.string.settings_motion_bounce_off)
+                            }
+                        )
+                        else -> null
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.PERFORMANCE_SYSTEM -> SettingsPageScaffold(
@@ -4250,302 +2764,37 @@ private fun SettingsRootScreen(
                 updateScroll(SettingsDestination.PERFORMANCE_SYSTEM, index, offset)
             }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("hide_from_recents") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_hide_recents),
-                        subtitle = stringResource(R.string.settings_hide_recents_sub),
-                        checked = hideFromRecents,
-                        onToggle = vm::setHideFromRecents,
-                        scale = itemFisheye(listState, "hide_from_recents", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("performance_system"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean =
+                        entry.id == "hide_from_recents" && hideFromRecents
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        if (entry.id == "hide_from_recents") vm.setHideFromRecents(checked)
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
-            SettingsDestination.MOTION_PROFILE -> SettingsPageScaffold(
-            title = stringResource(R.string.settings_motion_profile_title),
-            onBack = { handleBack() },
-            headerTime = headerTime,
-            initialFirstVisibleItemIndex = scrollFor(SettingsDestination.MOTION_PROFILE).index,
-            initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.MOTION_PROFILE).offset,
-            onScrollChanged = { index, offset -> updateScroll(SettingsDestination.MOTION_PROFILE, index, offset) }
-        ) { listState, screenCenterY, screenHeightPx, _ ->
-            val motionProfileEditable = !FlueMotionProfiles.isBuiltIn(activeMotionProfile.id)
-            item("motion_intro") {
-                MessageCard(
-                    text = stringResource(R.string.settings_motion_profile_hint),
-                    background = WatchColors.SurfaceGlass,
-                    onClick = {}
-                )
-            }
-            items(
-                items = activeMotionProfileOptions(motionProfiles),
-                key = { "motion_profile_${it.id}" },
-                contentType = { "motion_profile" },
-            ) { profile ->
-                SettingsChoiceRow(
-                    title = profile.name,
-                    subtitle = if (FlueMotionProfiles.isBuiltIn(profile.id)) {
-                        stringResource(R.string.settings_motion_profile_preset)
-                    } else {
-                        stringResource(R.string.settings_motion_profile_custom)
-                    },
-                    selected = profile.id == activeMotionProfile.id,
-                    onClick = { vm.setActiveMotionProfile(profile.id) },
-                    scale = itemFisheye(listState, "motion_profile_${profile.id}", screenCenterY, screenHeightPx)
-                )
-            }
-            flueSettingsGroup {
-                row("motion_copy") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_motion_profile_copy),
-                        subtitle = stringResource(R.string.settings_motion_profile_copy_sub),
-                        onClick = { vm.copyMotionProfile() },
-                        scale = itemFisheye(listState, "motion_copy", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("motion_profile_rename") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_profile_rename),
-                        subtitle = if (FlueMotionProfiles.isBuiltIn(activeMotionProfile.id)) {
-                            stringResource(R.string.settings_profile_rename_builtin_sub)
-                        } else {
-                            activeMotionProfile.name
-                        },
-                        onClick = {
-                            if (!FlueMotionProfiles.isBuiltIn(activeMotionProfile.id)) {
-                                renameMotionProfileVisible = true
-                            }
-                        },
-                        scale = itemFisheye(listState, "motion_profile_rename", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("motion_delete") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_motion_profile_delete),
-                        subtitle = stringResource(R.string.settings_motion_profile_delete_sub),
-                        onClick = { vm.deleteMotionProfile(activeMotionProfile.id) },
-                        scale = itemFisheye(listState, "motion_delete", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("motion_bounce") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_motion_bounce),
-                        subtitle = stringResource(R.string.settings_motion_bounce_sub),
-                        checked = activeMotionProfile.bounceEnabled,
-                        enabled = motionProfileEditable,
-                        onToggle = { vm.setMotionBounceEnabled(it) },
-                        scale = itemFisheye(listState, "motion_bounce", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("motion_edge_strength") { position ->
-                    SettingsSliderRow(
-                        title = stringResource(R.string.settings_motion_bounce_strength),
-                        value = activeMotionProfile.edgeStrength.toFloat(),
-                        valueText = "${activeMotionProfile.edgeStrength}/10",
-                        localValueText = { "${it.roundToInt()}/10" },
-                        range = 0f..10f,
-                        steps = 9,
-                        enabled = motionProfileEditable,
-                        onValueChange = { vm.setMotionEdgeStrength(it.roundToInt()) },
-                        scale = itemFisheye(listState, "motion_edge_strength", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-            MotionPhaseKey.entries.forEach { key ->
-                val phase = activeMotionProfile.phase(key)
-                val keyName = key.motionPhaseLabel(context)
-                item("motion_section_$key") {
-                    SectionTitle(
-                        text = "$keyName · ${phase.easing.motionEasingSummary(context)}",
-                        scale = itemFisheye(listState, "motion_section_$key", screenCenterY, screenHeightPx),
-                    )
-                }
-                flueSettingsGroup {
-                    row("motion_duration_$key") { position ->
-                        SettingsSliderRow(
-                            title = stringResource(R.string.settings_motion_phase_duration_fmt, keyName),
-                            value = phase.durationMillis.toFloat(),
-                            valueText = "${phase.durationMillis} ms",
-                            localValueText = { "${it.roundToInt()} ms" },
-                            range = 80f..1200f,
-                            steps = 55,
-                            enabled = motionProfileEditable,
-                            onValueChangeFinished = { vm.setMotionPhaseDuration(key, it.roundToInt()) },
-                            onValueChange = { },
-                            scale = itemFisheye(listState, "motion_duration_$key", screenCenterY, screenHeightPx),
-                            groupPosition = position,
-                        )
-                    }
-                    row("motion_handoff_$key") { position ->
-                        SettingsSliderRow(
-                            title = stringResource(R.string.settings_motion_phase_delay_fmt, keyName),
-                            value = phase.handoffMillis.toFloat(),
-                            valueText = "${phase.handoffMillis} ms",
-                            localValueText = { "${it.roundToInt()} ms" },
-                            range = 0f..500f,
-                            steps = 49,
-                            enabled = motionProfileEditable,
-                            onValueChangeFinished = { vm.setMotionPhaseHandoff(key, it.roundToInt()) },
-                            onValueChange = { },
-                            scale = itemFisheye(listState, "motion_handoff_$key", screenCenterY, screenHeightPx),
-                            groupPosition = position,
-                        )
-                    }
-                }
-                item("motion_easing_cubic_$key") {
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_motion_bezier),
-                        subtitle = stringResource(R.string.settings_motion_bezier_sub),
-                        selected = phase.easing is MotionEasing.CubicBezier,
-                        enabled = motionProfileEditable,
-                        onClick = {
-                            vm.setMotionPhaseEasing(
-                                key,
-                                MotionEasing.CubicBezier(0.22f, 1f, 0.36f, 1f),
-                            )
-                        },
-                        scale = itemFisheye(listState, "motion_easing_cubic_$key", screenCenterY, screenHeightPx)
-                    )
-                }
-                item("motion_easing_spring_$key") {
-                    SettingsChoiceRow(
-                        title = stringResource(R.string.settings_motion_spring),
-                        subtitle = stringResource(R.string.settings_motion_spring_sub),
-                        selected = phase.easing is MotionEasing.Spring,
-                        enabled = motionProfileEditable,
-                        onClick = {
-                            vm.setMotionPhaseEasing(
-                                key,
-                                MotionEasing.Spring(dampingRatio = 0.78f, stiffness = 420f),
-                            )
-                        },
-                        scale = itemFisheye(listState, "motion_easing_spring_$key", screenCenterY, screenHeightPx)
-                    )
-                }
-                when (val easing = phase.easing) {
-                    is MotionEasing.CubicBezier -> {
-                        listOf(
-                            "x1" to easing.x1,
-                            "y1" to easing.y1,
-                            "x2" to easing.x2,
-                            "y2" to easing.y2,
-                        ).forEach { (parameter, parameterValue) ->
-                            val isX = parameter.startsWith("x")
-                            item("motion_${key}_$parameter") {
-                                SettingsSliderRow(
-                                    title = "$keyName $parameter",
-                                    value = parameterValue,
-                                    valueText = "%.2f".format(Locale.US, parameterValue),
-                                    localValueText = { "%.2f".format(Locale.US, it) },
-                                    range = if (isX) 0f..1f else -2f..2f,
-                                    steps = if (isX) 19 else 39,
-                                    enabled = motionProfileEditable,
-                                    onValueChange = { },
-                                    onValueChangeFinished = { nextValue ->
-                                        val next = when (parameter) {
-                                            "x1" -> easing.copy(x1 = nextValue)
-                                            "y1" -> easing.copy(y1 = nextValue)
-                                            "x2" -> easing.copy(x2 = nextValue)
-                                            else -> easing.copy(y2 = nextValue)
-                                        }
-                                        vm.setMotionPhaseEasing(key, next)
-                                    },
-                                    scale = itemFisheye(
-                                        listState,
-                                        "motion_${key}_$parameter",
-                                        screenCenterY,
-                                        screenHeightPx,
-                                    )
-                                )
-                            }
-                        }
-                    }
-
-                    is MotionEasing.Spring -> {
-                        flueSettingsGroup {
-                            row("motion_${key}_damping") { position ->
-                                SettingsSliderRow(
-                                    title = stringResource(R.string.settings_motion_damping_fmt, keyName),
-                                    value = easing.dampingRatio,
-                                    valueText = "%.2f".format(Locale.US, easing.dampingRatio),
-                                    localValueText = { "%.2f".format(Locale.US, it) },
-                                    range = 0.05f..2f,
-                                    steps = 38,
-                                    enabled = motionProfileEditable,
-                                    onValueChange = { },
-                                    onValueChangeFinished = { nextValue ->
-                                        vm.setMotionPhaseEasing(
-                                            key,
-                                            easing.copy(dampingRatio = nextValue),
-                                        )
-                                    },
-                                    scale = itemFisheye(
-                                        listState,
-                                        "motion_${key}_damping",
-                                        screenCenterY,
-                                        screenHeightPx,
-                                    ),
-                                    groupPosition = position,
-                                )
-                            }
-                            row("motion_${key}_stiffness") { position ->
-                                SettingsSliderRow(
-                                    title = stringResource(R.string.settings_motion_stiffness_fmt, keyName),
-                                    value = easing.stiffness,
-                                    valueText = "${easing.stiffness.roundToInt()}",
-                                    localValueText = { "${it.roundToInt()}" },
-                                    range = 10f..3000f,
-                                    steps = 58,
-                                    enabled = motionProfileEditable,
-                                    onValueChange = { },
-                                    onValueChangeFinished = { nextValue ->
-                                        vm.setMotionPhaseEasing(
-                                            key,
-                                            easing.copy(stiffness = nextValue),
-                                        )
-                                    },
-                                    scale = itemFisheye(
-                                        listState,
-                                        "motion_${key}_stiffness",
-                                        screenCenterY,
-                                        screenHeightPx,
-                                    ),
-                                    groupPosition = position,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            flueSettingsGroup {
-                row("motion_export") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_motion_export_curves),
-                        subtitle = stringResource(R.string.settings_motion_export_curves_sub),
-                        onClick = { motionExportPicker.launch("flue-motion-profiles.json") },
-                        scale = itemFisheye(listState, "motion_export", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("motion_import") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_motion_import_curves),
-                        subtitle = stringResource(R.string.settings_motion_import_curves_sub),
-                        onClick = { motionImportPicker.launch(arrayOf("application/json", "text/plain")) },
-                        scale = itemFisheye(listState, "motion_import", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
-        }
+            SettingsDestination.MOTION_PROFILE -> MotionProfilePage(
+                onBack = { handleBack() },
+                headerTime = headerTime,
+                initialScrollIndex = scrollFor(SettingsDestination.MOTION_PROFILE).index,
+                initialScrollOffset = scrollFor(SettingsDestination.MOTION_PROFILE).offset,
+                onScrollChanged = { index, offset ->
+                    updateScroll(SettingsDestination.MOTION_PROFILE, index, offset)
+                },
+                vm = vm,
+                activeMotionProfile = activeMotionProfile,
+                motionProfiles = motionProfiles,
+                onRenameRequest = { renameMotionProfileVisible = true },
+                onExport = { motionExportPicker.launch("flue-motion-profiles.json") },
+                onImport = {
+                    motionImportPicker.launch(arrayOf("application/json", "text/plain"))
+                },
+            )
 
             SettingsDestination.MUSIC_TEXT_ANIMATION -> SettingsPageScaffold(
             title = stringResource(R.string.settings_music_text_animation),
@@ -4578,52 +2827,40 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.TOOLS).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.TOOLS, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("backup_menu") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_backup_menu),
-                        subtitle = stringResource(R.string.settings_backup_menu_sub),
-                        onClick = { navigateTo(SettingsDestination.BACKUP) },
-                        scale = itemFisheye(listState, "backup_menu", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("export_log") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_export_log),
-                        subtitle = stringResource(R.string.settings_export_log_sub),
-                        onClick = { settingsScope.launch { exportLog(context) } },
-                        scale = itemFisheye(listState, "export_log", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                                                                                row("diagnostic_logging") { position ->
-                    SettingsSwitchRow(
-                        title = stringResource(R.string.settings_diagnostic_logging),
-                        subtitle = if (diagnosticLoggingEnabled) {
-                            stringResource(R.string.settings_diagnostic_logging_on)
-                        } else {
-                            stringResource(R.string.settings_diagnostic_logging_off)
-                        },
-                        checked = diagnosticLoggingEnabled,
-                        onToggle = { enabled ->
-                            diagnosticLoggingEnabled = enabled
-                            FlueLog.setDiagnosticLoggingEnabled(context, enabled, DIAGNOSTIC_LOG_DURATION_MS)
-                        },
-                        scale = itemFisheye(listState, "diagnostic_logging", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("reset_defaults") { position ->
-                    ActionCard(
-                        title = stringResource(R.string.settings_reset_defaults),
-                        subtitle = stringResource(R.string.settings_reset_defaults_sub),
-                        onClick = { vm.resetSettings() },
-                        scale = itemFisheye(listState, "reset_defaults", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("tools"),
+                binding = object : SettingsEntryBinding {
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean =
+                        entry.id == "diagnostic_logging" && diagnosticLoggingEnabled
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        if (entry.id != "diagnostic_logging") return
+                        diagnosticLoggingEnabled = checked
+                        // 5 分钟后自动关闭，所以开关只是「打开一段时间的诊断日志」。
+                        FlueLog.setDiagnosticLoggingEnabled(
+                            context,
+                            checked,
+                            DIAGNOSTIC_LOG_DURATION_MS,
+                        )
+                    }
+
+                    override fun onOpen(entry: SettingsEntry) {
+                        when (entry) {
+                            is SettingsEntry.Navigation -> {
+                                val next = SettingsDestination.entries
+                                    .firstOrNull { it.name == entry.destination } ?: return
+                                navigateTo(next)
+                            }
+                            is SettingsEntry.Action -> when (entry.action) {
+                                "export_log" -> settingsScope.launch { exportLog(context) }
+                                "reset_settings" -> vm.resetSettings()
+                            }
+                            else -> Unit
+                        }
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.BACKUP -> SettingsPageScaffold(
@@ -4634,26 +2871,17 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.BACKUP).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.BACKUP, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            flueSettingsGroup {
-                row("backup_export_page") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_backup_export_page),
-                        subtitle = stringResource(R.string.settings_backup_export_page_sub),
-                        onClick = { navigateTo(SettingsDestination.BACKUP_EXPORT) },
-                        scale = itemFisheye(listState, "backup_export_page", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-                row("backup_import_page") { position ->
-                    SettingsCategoryCard(
-                        title = stringResource(R.string.settings_backup_import_page),
-                        subtitle = stringResource(R.string.settings_backup_import_page_sub),
-                        onClick = { navigateTo(SettingsDestination.BACKUP_IMPORT) },
-                        scale = itemFisheye(listState, "backup_import_page", screenCenterY, screenHeightPx),
-                        groupPosition = position,
-                    )
-                }
-            }
+            settingsEntryGroup(
+                entries = SettingsHierarchy.renderedGroup("backup"),
+                binding = object : SettingsEntryBinding {
+                    override fun onOpen(entry: SettingsEntry) {
+                        val name = (entry as? SettingsEntry.Navigation)?.destination ?: return
+                        val next = SettingsDestination.entries.firstOrNull { it.name == name } ?: return
+                        navigateTo(next)
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.BACKUP_EXPORT -> SettingsPageScaffold(
@@ -4664,29 +2892,38 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.BACKUP_EXPORT).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.BACKUP_EXPORT, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            backupOptionRows(
-                listState = listState,
-                screenCenterY = screenCenterY,
-                screenHeightPx = screenHeightPx,
-                options = effectiveBackupExportOptions,
-                availableOptions = FlueBackupOptions(),
-                onOptionsChange = { backupExportOptions = it }
-            )
-            item("export_backup_start") {
-                ActionCard(
-                    title = stringResource(R.string.settings_backup_export_start),
-                    subtitle = stringResource(R.string.settings_backup_export_start_sub),
-                    onClick = {
+            settingsEntryScreen(
+                entries = SettingsHierarchy.renderedGroup("backup_export"),
+                binding = object : SettingsEntryBinding {
+                    // 导出页的分区全部可用：能导出的就是这台设备现在有的东西。
+                    override fun isVisible(entry: SettingsEntry): Boolean =
+                        entry.id !in BackupOptionRows ||
+                            FlueBackupOptions().valueOfRow(entry.id)
+
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean =
+                        effectiveBackupExportOptions.valueOfRow(entry.id)
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        backupExportOptions = effectiveBackupExportOptions.withRow(entry.id, checked)
+                    }
+
+                    override fun onOpen(entry: SettingsEntry) {
+                        val action = (entry as? SettingsEntry.Action)?.action ?: return
+                        if (action != "start_backup_export") return
                         if (!effectiveBackupExportOptions.hasAny) {
-                            Toast.makeText(context, context.getString(R.string.toast_select_at_least_one), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.toast_select_at_least_one),
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         } else if (!backupBusy) {
                             pendingBackupExportOptions = effectiveBackupExportOptions
                             backupCreatePicker.launch(vm.suggestedBackupFileName())
                         }
-                    },
-                    scale = itemFisheye(listState, "export_backup_start", screenCenterY, screenHeightPx)
-                )
-            }
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.BACKUP_IMPORT -> SettingsPageScaffold(
@@ -4697,92 +2934,110 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.BACKUP_IMPORT).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.BACKUP_IMPORT, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            item("import_backup_pick") {
-                ActionCard(
-                    title = stringResource(R.string.settings_backup_import_pick),
-                    subtitle = run {
+            settingsEntryScreen(
+                entries = SettingsHierarchy.renderedGroup("backup_import"),
+                binding = object : SettingsEntryBinding {
+                    // 没选文件之前只有「选择备份文件」一行；选完之后才按压缩包里
+                    // 实际存在的分区显示勾选项，最后才是「开始导入」。
+                    override fun isVisible(entry: SettingsEntry): Boolean {
+                        if (entry.id == "import_backup_pick") return true
+                        val preview = effectiveBackupImportPreview ?: return false
+                        return entry.id !in BackupOptionRows ||
+                            preview.availableOptions.valueOfRow(entry.id)
+                    }
+
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean =
+                        effectiveBackupImportOptions.valueOfRow(entry.id)
+
+                    override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
+                        val preview = effectiveBackupImportPreview ?: return
+                        backupImportOptions =
+                            effectiveBackupImportOptions.withRow(entry.id, checked)
+                                .constrainedBy(preview.availableOptions)
+                    }
+
+                    @Composable
+                    override fun subtitle(entry: SettingsEntry): String? {
+                        if (entry.id != "import_backup_pick") return null
+                        val preview = effectiveBackupImportPreview ?: return null
                         val unknownTime = stringResource(R.string.settings_backup_unknown_time)
-                        effectiveBackupImportPreview?.let { preview ->
-                            stringResource(
-                                R.string.settings_backup_preview_fmt,
-                                preview.appVersion,
-                                preview.createdAt.ifBlank { unknownTime }
-                            )
-                        } ?: stringResource(R.string.settings_backup_import_pick_sub)
-                    },
-                    onClick = {
-                        if (!backupBusy) {
-                            backupOpenPicker.launch(
-                                arrayOf(
-                                    "application/zip",
-                                    "application/x-zip-compressed",
-                                    "application/octet-stream",
-                                    "*/*"
-                                )
-                            )
-                        }
-                    },
-                    scale = itemFisheye(listState, "import_backup_pick", screenCenterY, screenHeightPx)
-                )
-            }
-            effectiveBackupImportPreview?.let { preview ->
-                backupOptionRows(
-                    listState = listState,
-                    screenCenterY = screenCenterY,
-                    screenHeightPx = screenHeightPx,
-                    options = effectiveBackupImportOptions,
-                    availableOptions = preview.availableOptions,
-                    onOptionsChange = { backupImportOptions = it.constrainedBy(preview.availableOptions) }
-                )
-                item("import_backup_start") {
-                    ActionCard(
-                        title = stringResource(R.string.settings_backup_import_start),
-                        subtitle = stringResource(R.string.settings_backup_import_start_sub),
-                        onClick = {
-                            val uri = backupImportUri
-                            if (uri == null) {
-                                Toast.makeText(context, context.getString(R.string.toast_pick_backup_first), Toast.LENGTH_SHORT).show()
-                            } else if (!effectiveBackupImportOptions.hasAny) {
-                                Toast.makeText(context, context.getString(R.string.toast_select_at_least_one), Toast.LENGTH_SHORT).show()
-                            } else if (!backupBusy) {
-                                val options = effectiveBackupImportOptions
-                                settingsScope.launch {
-                                    backupBusy = true
-                                    backupProgress = BlockingProgressState(
-                                        title = context.getString(R.string.progress_import_config),
-                                        detail = context.getString(R.string.progress_import_config_detail)
+                        return stringResource(
+                            R.string.settings_backup_preview_fmt,
+                            preview.appVersion,
+                            preview.createdAt.ifBlank { unknownTime },
+                        )
+                    }
+
+                    override fun onOpen(entry: SettingsEntry) {
+                        val action = (entry as? SettingsEntry.Action)?.action ?: return
+                        when (action) {
+                            "pick_backup_file" -> if (!backupBusy) {
+                                backupOpenPicker.launch(
+                                    arrayOf(
+                                        "application/zip",
+                                        "application/x-zip-compressed",
+                                        "application/octet-stream",
+                                        "*/*"
                                     )
-                                    val result = vm.importBackup(uri, options)
-                                    result
-                                        .onSuccess {
-                                            backupProgress = BlockingProgressState(
-                                                title = context.getString(R.string.progress_import_done),
-                                                detail = options.backupSummaryText(context),
-                                                completed = true,
-                                                completionAction = BlockingProgressCompletionAction.ImportBackup
+                                )
+                            }
+                            "start_backup_import" -> {
+                                val uri = backupImportUri
+                                val options = effectiveBackupImportOptions
+                                if (uri == null) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.toast_pick_backup_first),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                } else if (!options.hasAny) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.toast_select_at_least_one),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                } else if (!backupBusy) {
+                                    settingsScope.launch {
+                                        backupBusy = true
+                                        backupProgress = BlockingProgressState(
+                                            title = context.getString(R.string.progress_import_config),
+                                            detail = context.getString(
+                                                R.string.progress_import_config_detail
                                             )
-                                            backupImportPreview = null
-                                            backupImportUri = null
-                                        }
-                                        .onFailure { error ->
-                                            backupProgress = null
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(
-                                                    R.string.toast_import_failed_fmt,
-                                                    error.message ?: error.javaClass.simpleName
-                                                ),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    backupBusy = false
+                                        )
+                                        vm.importBackup(uri, options)
+                                            .onSuccess {
+                                                backupProgress = BlockingProgressState(
+                                                    title = context.getString(R.string.progress_import_done),
+                                                    detail = options.backupSummaryText(context),
+                                                    completed = true,
+                                                    completionAction =
+                                                        BlockingProgressCompletionAction.ImportBackup
+                                                )
+                                                backupImportPreview = null
+                                                backupImportUri = null
+                                            }
+                                            .onFailure { error ->
+                                                backupProgress = null
+                                                Toast.makeText(
+                                                    context,
+                                                    context.getString(
+                                                        R.string.toast_import_failed_fmt,
+                                                        error.message
+                                                            ?: error.javaClass.simpleName
+                                                    ),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        backupBusy = false
+                                    }
                                 }
                             }
-                        },
-                        scale = itemFisheye(listState, "import_backup_start", screenCenterY, screenHeightPx)
-                    )
-                }
-            }
+                        }
+                    }
+                },
+                scaleOf = { key -> itemFisheye(listState, key, screenCenterY, screenHeightPx) },
+            )
         }
 
             SettingsDestination.LANGUAGE -> SettingsPageScaffold(
@@ -5100,7 +3355,7 @@ private fun SettingsRootScreen(
 }
 
 @Composable
-private fun AppListFlowShapePreview(
+internal fun AppListFlowShapePreview(
     bulgePercent: Int,
     toRight: Boolean,
     curve: com.flue.launcher.util.FlowShapeCurve,
@@ -5156,7 +3411,7 @@ private fun AppListFlowShapePreview(
  * 新 Activity 的 attachBaseContext 会重新读取 SharedPreferences 语言真源，
  * 不依赖可能被系统批处理的 AlarmManager，也不需要杀进程留下黑屏窗口。
  */
-private fun restartFlueProcess(context: android.content.Context) {
+internal fun restartFlueProcess(context: android.content.Context) {
     // 包内同时声明了 LauncherActivity 与 SettingsActivity 两个 LAUNCHER
     // 入口；getLaunchIntentForPackage() 在部分 ROM 上会解析回当前设置页，
     // CLEAR_TASK 后等于又打开旧入口。显式指定桌面 Activity，确保新的
@@ -5177,2680 +3432,6 @@ private fun restartFlueProcess(context: android.content.Context) {
         // OEM task managers can reject a task replacement while the Activity is
         // stopping. Keep the language saved and at least refresh this page.
         (context as? android.app.Activity)?.recreate()
-    }
-}
-
-/**
- * 只登记 key 顺序的影子 [LazyListScope]。
- *
- * 搜索结果要跳到具体某一行需要 key→index，但 LazyListState 只暴露「当前
- * 可见项」的 key，屏幕外的拿不到。把页面的 content 往这个影子 scope 里跑
- * 一遍就能拿到完整顺序——item 的 @Composable 内容一行都不会执行，只登记
- * key，所以没有额外开销也没有副作用（content 本身不是 @Composable）。
- */
-/**
- * 脚手架顶栏（返回按钮 + 大标题）那一项的 key。
- *
- * 原先是匿名 `item {}`，圆屏下 `chordScaleForListItem` 靠
- * `visibleItemsInfo.firstOrNull { it.key == key }` 找行，没有 key 就永远找不到，
- * 顶栏因此不跟随缩放（老师报的「设置顶栏不会适配圆屏」）。
- *
- * [SettingsKeyIndexRecorder] 那边同步登记这个 key：它只关心「登记了几项」来对齐
- * index，用具名 key 替换原来的 null 不影响计数，还顺带让搜索跳转不会误命中。
- */
-private const val SETTINGS_HEADER_ITEM_KEY = "settings_page_header"
-
-/**
- * 顶栏项高度的一半（估值），圆屏首项居中要用。
- *
- * 顶栏 ≈ 42dp 的返回按钮 + 8dp 底距 ≈ 50dp（26sp 单行标题比按钮矮，撑不高这一项）。
- *
- * 这里刻意取**静态估值**而不是实测高度：把实测高度回头喂给 `contentPadding`
- * 就是「布局 → 内边距 → 重新布局」的反馈环，正是圆屏抽搐的根因。标题换成两行
- * 时首项会比正中略高一点点，可接受。
- */
-private val SETTINGS_HEADER_HALF_HEIGHT = 25.dp
-
-/**
- * 普通设置行高度的一半（估值），圆屏底部留白要用。
- *
- * 设置行的 `defaultMinSize(minHeight = 56.dp)` 是这套页面里最常见的行高，取半即
- * 28dp。底部留 `半屏 − 28dp` 之后，末项滑到底时中心大致落在屏幕正中。
- * 同样是静态估值，理由见 [SETTINGS_HEADER_HALF_HEIGHT]。
- */
-private val SETTINGS_ROW_HALF_HEIGHT = 28.dp
-
-private class SettingsKeyIndexRecorder : LazyListScope {
-    private val keys = ArrayList<Any?>()
-
-    fun indexOf(key: String): Int = keys.indexOfFirst { it == key }
-
-    override fun item(
-        key: Any?,
-        contentType: Any?,
-        content: @Composable LazyItemScope.() -> Unit,
-    ) {
-        keys += key
-    }
-
-    override fun items(
-        count: Int,
-        key: ((index: Int) -> Any)?,
-        contentType: (index: Int) -> Any?,
-        itemContent: @Composable LazyItemScope.(index: Int) -> Unit,
-    ) {
-        repeat(count) { index -> keys += key?.invoke(index) }
-    }
-
-    @ExperimentalFoundationApi
-    override fun stickyHeader(
-        key: Any?,
-        contentType: Any?,
-        content: @Composable LazyItemScope.(Int) -> Unit,
-    ) {
-        keys += key
-    }
-}
-
-@Composable
-private fun SettingsPageScaffold(
-    title: String,
-    onBack: () -> Unit,
-    headerTime: String,
-    initialFirstVisibleItemIndex: Int = 0,
-    initialFirstVisibleItemScrollOffset: Int = 0,
-    roundFirstActionIndex: Int = 1,
-    roundFirstActionHalfHeight: Dp = SETTINGS_ROW_HALF_HEIGHT,
-    onScrollChanged: (Int, Int) -> Unit = { _, _ -> },
-    content: LazyListScope.(LazyListState, Float, Float, Set<Any>) -> Unit
-) {
-    val launcherStyle = LauncherTheme.style
-    val context = LocalContext.current
-    val density = LocalDensity.current
-    val settingsRoundScreen = com.flue.launcher.ui.common.isFlueScreenRound()
-    val leftSafeInsetPercent = LocalSettingsLeftSafeInsetPercent.current
-    val rotaryHapticsEnabled = LocalSettingsRotaryHapticsEnabled.current
-    val initialPosition = remember(
-        settingsRoundScreen,
-        initialFirstVisibleItemIndex,
-        initialFirstVisibleItemScrollOffset,
-        roundFirstActionIndex,
-    ) {
-        settingsInitialPosition(
-            isRound = settingsRoundScreen,
-            savedIndex = initialFirstVisibleItemIndex,
-            savedOffset = initialFirstVisibleItemScrollOffset,
-            firstActionIndex = roundFirstActionIndex,
-        )
-    }
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = initialPosition.index,
-        initialFirstVisibleItemScrollOffset = initialPosition.offset
-    )
-    val focusRequester = remember { FocusRequester() }
-    val scope = rememberCoroutineScope()
-    val rotaryHapticGate = remember { RotaryHapticGate() }
-    val latestOnScrollChanged = rememberUpdatedState(onScrollChanged)
-
-    LaunchedEffect(listState) {
-        // Persist only when motion settles. Writing every pixel into caller state was the
-        // dominant settings-scroll recomposition path, especially in the icon-heavy hidden
-        // apps page. onDispose below covers navigation while a gesture is still settling.
-        snapshotFlow { listState.isScrollInProgress }
-            .distinctUntilChanged()
-            .collect { scrolling ->
-                if (!scrolling) {
-                    latestOnScrollChanged.value(
-                        listState.firstVisibleItemIndex,
-                        listState.firstVisibleItemScrollOffset,
-                    )
-                }
-            }
-    }
-
-    DisposableEffect(listState) {
-        onDispose {
-            latestOnScrollChanged.value(
-                listState.firstVisibleItemIndex,
-                listState.firstVisibleItemScrollOffset,
-            )
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocusAfterFirstFrame()
-    }
-
-    val rotaryScrollMultiplier = ROTARY_SCROLL_MULTIPLIER
-
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val screenHeightPx = constraints.maxHeight.toFloat()
-        val screenCenterY = screenHeightPx / 2f
-        // 圆屏弦宽适配要用视口全宽当直径。靠 CompositionLocal 下发而不是加
-        // 参数：itemFisheye 有 200+ 调用点，加参数等于逐个改一遍。
-        val screenWidthPx = constraints.maxWidth.toFloat()
-        val leftSafeInset = maxWidth * (leftSafeInsetPercent.coerceIn(0, 50) / 100f)
-        val safeDrawingPadding = WindowInsets.safeDrawing.asPaddingValues()
-        var chordListTopInRoot by remember { mutableFloatStateOf(0f) }
-        var chordScreenCenterY by remember { mutableFloatStateOf(screenCenterY) }
-        val horizontalContentPadding = if (settingsRoundScreen) 26.dp else 16.dp
-        val verticalContentPadding = if (settingsRoundScreen) 30.dp else 18.dp
-        // 圆屏上下各留半屏（蜂窝列表观感）：首项在进页面时就落在屏幕正中，
-        // 末项也能一直滑到正中。取 `maxHeight / 2 − 半个首项高度`。
-        //
-        // 这是**静态**值：只看屏幕尺寸，不随滚动变化，所以不违反「禁止动态
-        // padding」那条铁律（禁的是「每帧按缩放结果改布局属性」的反馈环）。
-        //
-        // 另外靠 padding 让首项居中，而不是进页面再 scrollToItem 纠一次：
-        // 偏移量为 0 时首项本来就在正中，既省掉一次首帧跳动，也不会跟
-        // initialFirstVisibleItemScrollOffset 的滚动位置恢复打架。
-        val halfScreenPadding = maxHeight / 2f
-        val topContentPadding = if (settingsRoundScreen) {
-            (halfScreenPadding - SETTINGS_HEADER_HALF_HEIGHT).coerceAtLeast(46.dp)
-        } else {
-            verticalContentPadding
-        }
-        val bottomContentPadding = if (settingsRoundScreen) {
-            // 用**本页声明的**行半高，而不是写死的设置行常量。
-            //
-            // 「末项能滑到屏幕正中」要的是 `半屏 − 半个末项高度`。这一项一直用
-            // SETTINGS_ROW_HALF_HEIGHT（28dp，普通设置行），可表盘选择页的条目是
-            // 高得多的表盘卡，它自己已经通过 roundFirstActionHalfHeight 把真实半高
-            // （40dp）报上来了 —— 只是以前只有居中那条 effect 用它，底部留白没用，
-            // 于是这一页的末项落不到正中（老师报的「最后一项到屏幕中间」做不到）。
-            //
-            // 其余页面该参数取默认值，正是 SETTINGS_ROW_HALF_HEIGHT，行为不变。
-            (halfScreenPadding - roundFirstActionHalfHeight).coerceAtLeast(30.dp)
-        } else {
-            verticalContentPadding
-        }
-        // 圆屏行距收窄：外圈的项缩到 0.62，槽位高度不变（graphicsLayer 的固有
-        // 代价），10dp 槽位间距叠上收缩留白就是老师说的「间隔太大」。槽位间距
-        // 压到 6dp 抵消一部分，居中那几行也还不至于挤在一起。
-        val itemSpacing = if (settingsRoundScreen) 6.dp else 10.dp
-
-        // 依赖里必须带上 density。
-        //
-        // 居中偏移是按**当前 density** 把 dp 折成 px 算的，而 density 由
-        // `ProvideGlobalUiScale` 按设置里的全局缩放改写。缩放值来自 DataStore 的 Flow，
-        // 首帧拿到的是默认 100%，真值随后才到 —— 那一刻 initialPosition 和
-        // screenHeightPx 都没变，这个 effect 不会重跑，于是首项一直停在「按 100% 算
-        // 出来的」那个偏移上：页面顶/底拉不到屏幕中间，进一次二级页再回来（scaffold
-        // 重新组合、listState 重建）才正常，重进设置又坏（老师报的）。
-        //
-        // screenCenterY 是 px、与 density 无关，但一并列出来更能说明这条 effect
-        // 依赖的是「屏幕几何 + 折算比例」这一整套。
-        //
-        // roundFirstActionHalfHeight 同理必须在列表里：它被读进 itemHalfHeight，
-        // 各页取值不同（表盘选择页是 40dp，其余走默认）。漏掉它就是 R10 那个
-        // 「读了却没进 key」的同一族错误，只是换了个量。
-        LaunchedEffect(
-            initialPosition,
-            screenHeightPx,
-            screenCenterY,
-            density,
-            roundFirstActionHalfHeight,
-        ) {
-            if (initialPosition.centerOnScreen) {
-                val centerOffset = settingsCenteredItemScrollOffset(
-                    screenCenterY = screenCenterY,
-                    itemHalfHeight = with(density) { roundFirstActionHalfHeight.toPx() },
-                )
-                listState.scrollToItem(initialPosition.index, centerOffset)
-            }
-        }
-
-        // 搜索结果跳转定位。目标 key 不属于本页时 indexOf 返回 -1，本页
-        // 什么都不做（转场期间新旧两页同时在树上，靠这条区分）。
-        val searchTarget = LocalSettingsSearchTarget.current
-        LaunchedEffect(searchTarget?.token, searchTarget?.itemKey) {
-            val target = searchTarget ?: return@LaunchedEffect
-            val recorder = SettingsKeyIndexRecorder()
-            // 标题项也要登记，否则算出来的 index 会整体偏移。
-            recorder.item(SETTINGS_HEADER_ITEM_KEY, null) {}
-            with(recorder) {
-                content(listState, screenCenterY, screenHeightPx, emptySet())
-            }
-            val index = recorder.indexOf(target.itemKey)
-            if (index < 0) return@LaunchedEffect
-            // 目标行滚到靠上位置（留一点上文），而不是贴着顶边。
-            // 圆屏改成滚到屏幕正中：那里弦最宽、缩放为 1，行本身也最清楚；
-            // 靠上 18% 的位置在圆屏上恰好是被弧线切得最狠的一段。
-            val jumpOffset = if (settingsRoundScreen) {
-                -(screenCenterY - with(density) { SETTINGS_ROW_HALF_HEIGHT.toPx() })
-            } else {
-                -(screenHeightPx * 0.18f)
-            }
-            listState.animateScrollToItem(index, scrollOffset = jumpOffset.toInt())
-            target.onConsumed()
-        }
-
-        CompositionLocalProvider(
-            com.flue.launcher.ui.common.LocalChordViewportWidth provides screenWidthPx,
-            com.flue.launcher.ui.common.LocalChordListTopInViewport provides chordListTopInRoot,
-            com.flue.launcher.ui.common.LocalChordScreenCenterY provides chordScreenCenterY,
-            com.flue.launcher.ui.style.LocalFlueSettingsRowSpacing provides itemSpacing,
-        ) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { coordinates ->
-                    chordListTopInRoot = coordinates.positionInRoot().y
-                    chordScreenCenterY = coordinates.findRootCoordinates().size.height / 2f
-                }
-                .flueRotaryScrollable(
-                    focusRequester,
-                    rotaryScrollMultiplier,
-                    onRotaryDelta = { rotaryDelta ->
-                        scope.launch {
-                            val consumed = listState.scrollBy(-rotaryDelta)
-                            if (
-                                rotaryHapticsEnabled &&
-                                abs(consumed) > 0.01f &&
-                                rotaryHapticGate.tryAcquire(SystemClock.elapsedRealtime())
-                            ) {
-                                vibrateHaptic(context)
-                            }
-                        }
-                    },
-                ) { rotaryDelta ->
-                    scope.launch {
-                        listState.scrollBy(-rotaryDelta)
-                    }
-                }
-                .flueOverscroll(listState)
-                // 触底反馈挂在回弹之后（更靠内层）才收得到边缘余量，见 flueScrollEndHaptic。
-                .flueScrollEndHaptic(),
-            // The list owns the whole edge-to-edge viewport. Insets only move its items, so
-            // the static background still paints behind round corners and transparent bars.
-            // Keep a single scrollable top/bottom inset; the old modifier padding + bottom
-            // contentPadding + tail spacer stacked into permanent empty bands.
-            contentPadding = PaddingValues(
-                start = horizontalContentPadding + leftSafeInset,
-                // 圆屏那条分支单独取值、不再叠 safeDrawing：半屏留白本来就远大于
-                // 任何系统 inset，叠上去只会把首项顶得偏离屏幕中心。
-                top = if (settingsRoundScreen) {
-                    topContentPadding
-                } else {
-                    safeDrawingPadding.calculateTopPadding() + topContentPadding
-                },
-                end = horizontalContentPadding,
-                // 行距改由每行自己出（见 FlueSettingsListScope）之后，末行也带着一份，
-                // 所以这里扣掉同样的一份 —— 底部总留白与改动前一致。
-                bottom = (
-                    if (settingsRoundScreen) {
-                        bottomContentPadding
-                    } else {
-                        safeDrawingPadding.calculateBottomPadding() + bottomContentPadding
-                    } - itemSpacing
-                    ).coerceAtLeast(0.dp),
-            ),
-            // 间距归零：交给 FlueSettingsListScope 逐行给。verticalArrangement 是整表统一的，
-            // 给不出「这两行贴住成一张卡、那两行留 12dp」，而那正是 MIUIX 档要的观感。
-            verticalArrangement = Arrangement.Top,
-        ) {
-            val spacedScope = com.flue.launcher.ui.style.FlueSettingsListScope(this, itemSpacing)
-            spacedScope.item(SETTINGS_HEADER_ITEM_KEY) {
-                // 占位 Spacer：保证滚动测量与跳转索引一致，真实标题由顶部浮动层随滚动缩放移动
-                Spacer(modifier = Modifier.fillMaxWidth().height(if (settingsRoundScreen) 56.dp else 48.dp))
-            }
-            with(spacedScope) {
-                content(listState, screenCenterY, screenHeightPx, emptySet())
-            }
-        }
-        }
-
-        // 统一可折叠标题浮动层：同一组元素随滚动变换，紧凑态 18sp，返回键视觉 80%，点击区 48dp
-        val headerPlaceholderHeight = if (settingsRoundScreen) 56.dp else 48.dp
-        val collapseDistancePx = with(density) { headerPlaceholderHeight.toPx() }
-        val collapseProgress by remember(listState) {
-            derivedStateOf {
-                if (listState.firstVisibleItemIndex > 0) 1f
-                else (listState.firstVisibleItemScrollOffset / collapseDistancePx).coerceIn(0f, 1f)
-            }
-        }
-        val topSafeInset = safeDrawingPadding.calculateTopPadding()
-        val gradientHeight = topSafeInset + 64.dp
-        val gradientAlpha = (0.75f + 0.25f * collapseProgress).coerceIn(0f, 1f)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(gradientHeight)
-                .background(
-                    androidx.compose.ui.graphics.Brush.verticalGradient(
-                        colors = listOf(
-                            launcherStyle.screenBackground.copy(alpha = gradientAlpha),
-                            launcherStyle.screenBackground.copy(alpha = gradientAlpha * 0.9f),
-                            launcherStyle.screenBackground.copy(alpha = gradientAlpha * 0.4f),
-                            androidx.compose.ui.graphics.Color.Transparent,
-                        ),
-                    ),
-                ),
-        )
-
-        val compactTop = if (settingsRoundScreen) 6.dp else topSafeInset + 4.dp
-        val expandedTop = if (settingsRoundScreen) 22.dp else topSafeInset + 16.dp
-        val currentTop = androidx.compose.ui.unit.lerp(expandedTop, compactTop, collapseProgress)
-        val largeTitleSp = if (settingsRoundScreen) 24f else 26f
-        val compactTitleSp = 18f
-        val titleScale = 1f + (largeTitleSp / compactTitleSp - 1f) * (1f - collapseProgress)
-        val backVisualScale = 1f - 0.20f * collapseProgress
-        val horizontalSafeInset = if (settingsRoundScreen) 24.dp else 16.dp
-
-        // 圆屏展开态标题必须回到屏幕中心（老师报的「标题跑到左边」）。这里从 Row
-        // 换成 Box：返回键降级为左侧覆盖层，标题独立占满整行、两侧留同样宽度 ——
-        // 只有标题的可用框关于屏幕中线**对称**，TextAlign.Center 才真的落在表盘中心。
-        // 之前用 Row + weight(1f)，标题框被返回键挤到右边，Center 也会整体偏右。
-        //
-        // 收缩要「丝滑收进左上角」：TextAlign 是离散枚举，没法按进度插值，用阈值
-        // 切换会在滚动中点跳一下。所以文字始终保持 Center，靠 translationX 把
-        // 「居中位置 → 左对齐位置」这条位移按 collapseProgress 连续插值。
-        // 位移量 = (可用宽度 - 文字宽度) / 2，两个宽都由 onSizeChanged 实测。
-        var headerInnerWidthPx by remember { mutableFloatStateOf(0f) }
-        var headerTitleWidthPx by remember { mutableFloatStateOf(0f) }
-        val titleDriftPx = if (settingsRoundScreen) {
-            ((headerInnerWidthPx - headerTitleWidthPx) / 2f).coerceAtLeast(0f)
-        } else {
-            0f
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset { androidx.compose.ui.unit.IntOffset(0, with(density) { currentTop.toPx() }.toInt()) }
-                .padding(horizontal = horizontalSafeInset + leftSafeInset),
-        ) {
-            if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-                androidx.compose.material3.IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.align(Alignment.CenterStart).size(48.dp),
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.common_back),
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.graphicsLayer {
-                            scaleX = backVisualScale
-                            scaleY = backVisualScale
-                        },
-                    )
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .size(48.dp)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onBack,
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .graphicsLayer {
-                                scaleX = backVisualScale
-                                scaleY = backVisualScale
-                            }
-                            .clip(CircleShape)
-                            .background(launcherStyle.topBarChipColor),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            OfficialMiuixIcons.OfficialBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = launcherStyle.topBarTextColor,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                }
-
-            }
-
-            // 标题用「外层 Box 居中 + 内层 Text 自身宽度」两段测量：
-            // headerInnerWidthPx 是去掉返回键占位后**可用的整行宽度**，
-            // headerTitleWidthPx 是文字**实际渲染宽度**。两者之差的一半，正好是
-            // 「居中位置」到「左对齐位置」的距离，按 collapseProgress 线性插值后
-            // 写成 translationX，就是老师要的平滑收进左上角。
-            Box(
-                modifier = Modifier
-                    // Box 不再提供 Row 的 CenterVertically，这里显式垂直居中，
-                    // 否则标题会贴到 48dp 返回键的顶边。
-                    .align(if (settingsRoundScreen) Alignment.Center else Alignment.CenterStart)
-                    .fillMaxWidth()
-                    // 左侧 56dp = 返回键 48dp + 原来的 8dp 间距，别让文字压到按钮上。
-                    // 圆屏右侧再留同样宽度，标题框才关于屏幕中线对称。
-                    .padding(
-                        start = 56.dp,
-                        end = if (settingsRoundScreen) 56.dp else 0.dp,
-                    )
-                    .onSizeChanged { headerInnerWidthPx = it.width.toFloat() },
-                contentAlignment = if (settingsRoundScreen) Alignment.Center else Alignment.CenterStart,
-            ) {
-                Text(
-                    text = title,
-                    color = if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else launcherStyle.accentColor,
-                    style = if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-                        MaterialTheme.typography.titleLarge
-                    } else MaterialTheme.typography.titleMedium,
-                    fontSize = 18.sp,
-                    fontWeight = if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) FontWeight.Normal else FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .onSizeChanged { headerTitleWidthPx = it.width.toFloat() }
-                        .graphicsLayer {
-                            translationX = -titleDriftPx * collapseProgress
-                            scaleX = titleScale
-                            scaleY = titleScale
-                            // 展开态从中心缩放（贴合居中观感），收缩态改为从左边缩放
-                            // （贴合左上角紧凑观感）。同样按进度插值。
-                            transformOrigin = androidx.compose.ui.graphics.TransformOrigin(
-                                if (settingsRoundScreen) 0.5f - 0.5f * collapseProgress else 0f,
-                                0.5f,
-                            )
-                        },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HeaderBackButton(onClick: () -> Unit) {
-    val launcherStyle = LauncherTheme.style
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        androidx.compose.material3.IconButton(onClick = onClick) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.common_back),
-                tint = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        return
-    }
-    val pressedState = rememberPressedState()
-    val pressed by pressedState
-    val scale = animateFloatAsState(if (pressed) 0.94f else 1f, label = "header_back_scale")
-    Box(
-        modifier = Modifier
-            .size(42.dp)
-            .graphicsLayer { scaleX = scale.value; scaleY = scale.value }
-            .clip(CircleShape)
-            .background(launcherStyle.topBarChipColor)
-            .instantPressGesture(pressedState, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        // 返回图标统一用 miuix 官方的 Back（细尖角箭头），与表盘市场 / 编辑器 /
-        // 文件浏览器的顶栏一致。Material 那枚自动镜像返回箭头是带横杆的实心造型，
-        // 混在 MIUIX 档里线宽和体量都对不上，所以设置页不再引用它。
-        Icon(
-            OfficialMiuixIcons.OfficialBack,
-            contentDescription = stringResource(R.string.common_back),
-            tint = launcherStyle.topBarTextColor,
-        )
-    }
-}
-
-// Material settings use official components and state layers. Chord scaling is geometry,
-// not a press animation: keep it even though Material rows no longer shrink on touch.
-@Composable
-private fun MaterialSettingsListItem(
-    title: String,
-    subtitle: String?,
-    scale: Float,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier,
-    leading: (@Composable () -> Unit)? = null,
-    trailing: (@Composable () -> Unit)? = null,
-    headlineColor: Color = MaterialTheme.colorScheme.onSurface,
-) {
-    val horizontalPadding = flueRowHorizontalPadding(LauncherTheme.style, rowHeight = 56.dp)
-    androidx.compose.material3.Surface(
-        modifier = Modifier.fillMaxWidth().chordScaled(scale, enabled),
-        shape = LauncherTheme.style.roundAwareCompactShape(RoundElementRole.CAPSULE),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-        androidx.compose.material3.ListItem(
-            headlineContent = { Text(title, style = MaterialTheme.typography.bodyLarge) },
-            supportingContent = subtitle?.takeIf { it.isNotBlank() }?.let { text ->
-                { Text(text, style = MaterialTheme.typography.bodyMedium) }
-            },
-            leadingContent = leading,
-            trailingContent = trailing,
-            colors = androidx.compose.material3.ListItemDefaults.colors(
-                containerColor = Color.Transparent,
-                headlineColor = headlineColor,
-                supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                leadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                trailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-            modifier = modifier.padding(
-                horizontal = (horizontalPadding - 16.dp).coerceAtLeast(0.dp),
-            ),
-        )
-    }
-}
-
-@Composable
-private fun SettingsCategoryCard(
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    scale: Float,
-    groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
-) {
-    val launcherStyle = LauncherTheme.style
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        MaterialSettingsListItem(
-            title = title,
-            subtitle = subtitle,
-            scale = scale,
-            modifier = Modifier.clickable(onClick = onClick),
-            trailing = { Icon(Icons.Filled.ChevronRight, contentDescription = null) },
-        )
-        return
-    }
-    val horizontalPadding = if (com.flue.launcher.ui.common.isFlueScreenRound()) 24.dp else 18.dp
-    if (launcherStyle.uiStyle == UiStyle.MIUIX) {
-        // MIUIX：成组大圆角卡片包一行设置行 + Forward 箭头。
-        MiuixSettingsCard(
-            modifier = Modifier.chordScaled(scale),
-            roundRole = RoundElementRole.CAPSULE,
-            groupPosition = groupPosition,
-        ) {
-            MiuixSettingsRow(
-                title = title,
-                subtitle = subtitle.takeIf { it.isNotBlank() },
-                onClick = onClick,
-                trailing = {
-                    Icon(
-                        imageVector = MiuixIcons.Forward,
-                        contentDescription = null,
-                        tint = launcherStyle.secondaryTextColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            )
-        }
-        return
-    }
-    val pressedState = rememberPressedState()
-    val pressed by pressedState
-    val pressedScale = animateFloatAsState(
-        if (pressed) 0.958f else 1f,
-        animationSpec = launcherStyle.pressScaleSpec,
-        label = "settings_category_scale"
-    )
-    val background = animateColorAsState(
-        if (pressed) launcherStyle.pressedCardColor else launcherStyle.cardColor,
-        label = "settings_category_bg"
-    )
-    // 另两档风格不做行合并（flueGroupingEnabled 只对 MIUIX 为真），所以这里的
-    // groupPosition 必定是 Single，形状与改动前逐位相同。
-    val cardShape = launcherStyle.roundAwareCardShape(RoundElementRole.CAPSULE)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale * pressedScale.value
-                scaleY = scale * pressedScale.value
-                alpha = scale.coerceIn(0.55f, 1f)
-            }
-            .clip(cardShape)
-            .drawBehind { drawRect(background.value) }
-            .border(1.dp, launcherStyle.outlineColor, cardShape)
-            .instantPressGesture(pressedState, onClick = onClick)
-            .padding(horizontal = horizontalPadding, vertical = 18.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.84f)
-                    .padding(end = 12.dp)
-            ) {
-                Text(title, color = launcherStyle.titleColor, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(subtitle, color = launcherStyle.secondaryTextColor, fontSize = 13.sp)
-            }
-            Icon(Icons.Filled.ChevronRight, contentDescription = null, tint = launcherStyle.accentColor)
-        }
-    }
-}
-
-@Composable
-private fun SectionTitle(text: String, scale: Float) {
-    val launcherStyle = LauncherTheme.style
-    // 圆屏：组标题改居中并去掉左内边距。左对齐的标题贴着弧线，实测「系统设置」
-    // 会被切成「⼄设置」。这是静态判断（只看屏幕形状，不随滚动变化），不属于
-    // 「动态 padding」那条禁令。
-    val roundScreen = com.flue.launcher.ui.common.isFlueScreenRound()
-    // 标题与分组名同样吃弦宽缩放；alpha 跟着收一点，让贴近弧线的标题自然淡出。
-    val scaleModifier = Modifier.graphicsLayer {
-        scaleX = scale
-        scaleY = scale
-        alpha = scale.coerceIn(0.55f, 1f)
-    }
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        Text(
-            text = text,
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.titleSmall,
-            textAlign = if (roundScreen) TextAlign.Center else null,
-            modifier = Modifier
-                .then(if (roundScreen) Modifier.fillMaxWidth() else Modifier)
-                .padding(top = 8.dp, start = if (roundScreen) 0.dp else 16.dp, bottom = 4.dp)
-                .then(scaleModifier),
-        )
-        return
-    }
-    if (launcherStyle.uiStyle == UiStyle.MIUIX) {
-        // MIUIX：组标题小灰字，对齐 MiuixSettingsCard 的 title 风格。
-        Text(
-            text = text,
-            color = launcherStyle.secondaryTextColor,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = if (roundScreen) TextAlign.Center else null,
-            modifier = Modifier
-                .then(if (roundScreen) Modifier.fillMaxWidth() else Modifier)
-                .padding(top = 8.dp, start = if (roundScreen) 0.dp else 14.dp)
-                .then(scaleModifier)
-        )
-        return
-    }
-    Text(
-        text = text,
-        color = launcherStyle.secondaryTextColor,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.Bold,
-        textAlign = if (roundScreen) TextAlign.Center else null,
-        modifier = Modifier
-            .then(if (roundScreen) Modifier.fillMaxWidth() else Modifier)
-            .padding(top = 4.dp, start = if (roundScreen) 0.dp else 4.dp, bottom = 2.dp)
-            .then(scaleModifier)
-    )
-}
-
-@Composable
-private fun rememberPressedState(): MutableState<Boolean> {
-    val state = remember { mutableStateOf(false) }
-    DisposableEffect(Unit) {
-        onDispose { state.value = false }
-    }
-    return state
-}
-
-private fun Modifier.instantPressGesture(
-    pressedState: MutableState<Boolean>,
-    enabled: Boolean = true,
-    onLongPress: (() -> Unit)? = null,
-    longPressDurationMs: Long? = null,
-    onClick: () -> Unit
-): Modifier {
-    if (!enabled) return this
-    if (onLongPress != null && longPressDurationMs != null) {
-        return pointerInput(onClick, onLongPress, enabled, longPressDurationMs) {
-            awaitEachGesture {
-                awaitFirstDown(requireUnconsumed = false)
-                pressedState.value = true
-                var completedBeforeTimeout = false
-                val up = withTimeoutOrNull(longPressDurationMs) {
-                    waitForUpOrCancellation().also { completedBeforeTimeout = true }
-                }
-                if (completedBeforeTimeout) {
-                    pressedState.value = false
-                    if (up != null) onClick()
-                } else {
-                    pressedState.value = false
-                    onLongPress()
-                    waitForUpOrCancellation()
-                }
-            }
-        }
-    }
-    return pointerInput(onClick, onLongPress, enabled) {
-        var longPressConsumed = false
-        detectTapGestures(
-            onLongPress = onLongPress?.let { handler ->
-                {
-                    longPressConsumed = true
-                    pressedState.value = false
-                    handler()
-                }
-            },
-            onPress = {
-                longPressConsumed = false
-                pressedState.value = true
-                val released = tryAwaitRelease()
-                pressedState.value = false
-                if (released && !longPressConsumed) onClick()
-            }
-        )
-    }
-}
-
-// 层级深度表与「进入必回顶部」标记搬到 SettingsScrollMemory.kt：它们只服务滚动
-// 位置记忆这一件事，和它的账本、判定函数放在一起才能被单测覆盖。
-
-private fun activeMotionProfileOptions(
-    profiles: List<FlueMotionProfile>,
-): List<FlueMotionProfile> = profiles.sortedWith(
-    compareBy<FlueMotionProfile> { if (FlueMotionProfiles.isBuiltIn(it.id)) 0 else 1 }
-        .thenBy { it.name },
-)
-
-private fun MotionPhaseKey.motionPhaseLabel(context: Context): String = when (this) {
-    MotionPhaseKey.APP_LIST_ENTER -> context.getString(R.string.settings_motion_phase_app_list_enter)
-    MotionPhaseKey.APP_LAUNCH -> context.getString(R.string.settings_motion_phase_app_launch)
-    MotionPhaseKey.APP_RETURN -> context.getString(R.string.settings_motion_phase_app_return)
-    MotionPhaseKey.PULL_TO_FACE -> context.getString(R.string.settings_motion_phase_pull_to_face)
-    MotionPhaseKey.EDGE_BOUNCE -> context.getString(R.string.settings_motion_phase_edge_bounce)
-}
-
-private fun MotionEasing.motionEasingSummary(context: Context): String = when (this) {
-    is MotionEasing.CubicBezier ->
-        "Bezier(%.2f, %.2f, %.2f, %.2f)".format(Locale.US, x1, y1, x2, y2)
-
-    is MotionEasing.Spring ->
-        context.getString(R.string.settings_motion_spring_fmt)
-            .format(Locale.US, dampingRatio, stiffness.roundToInt())
-}
-
-@Composable
-private fun MessageCard(text: String, background: Color, onClick: () -> Unit) {
-    val launcherStyle = LauncherTheme.style
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        androidx.compose.material3.Surface(
-            onClick = onClick,
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        ) {
-            Text(text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(16.dp))
-        }
-        return
-    }
-    val pressedState = rememberPressedState()
-    val pressed by pressedState
-    val pressedScale = animateFloatAsState(
-        if (pressed) 0.964f else 1f,
-        animationSpec = launcherStyle.pressScaleSpec,
-        label = "message_card_scale"
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = pressedScale.value
-                scaleY = pressedScale.value
-            }
-            .clip(launcherStyle.roundAwareCompactShape())
-            .background(background)
-            .instantPressGesture(pressedState, onClick = onClick)
-            .padding(14.dp)
-    ) {
-        Text(text = text, color = launcherStyle.bodyColor, fontSize = 12.sp)
-    }
-}
-
-@Composable
-private fun SettingsChoiceRow(
-    title: String,
-    subtitle: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    scale: Float,
-    enabled: Boolean = true,
-    /**
-     * 在成组卡里的位置。
-     *
-     * 单选组（界面风格 / 界面动画 / 屏幕形状）本来就是「一个类型的几个选项」，MIUIX 档
-     * 要并成一张卡；以前这里收不到位置，于是三行各自一张独立胶囊卡，和旁边已经并好的
-     * 分组摆在一起就很割裂（老师报的「一个类型的应该合并起来」）。
-     */
-    groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
-) {
-    val launcherStyle = LauncherTheme.style
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        MaterialSettingsListItem(
-            title = title,
-            subtitle = subtitle,
-            scale = scale,
-            enabled = enabled,
-            modifier = Modifier.selectable(
-                selected = selected,
-                enabled = enabled,
-                role = androidx.compose.ui.semantics.Role.RadioButton,
-                onClick = onClick,
-            ),
-            trailing = {
-                androidx.compose.material3.RadioButton(
-                    selected = selected,
-                    onClick = null,
-                    enabled = enabled,
-                )
-            },
-        )
-        return
-    }
-    val horizontalPadding = flueRowHorizontalPadding(launcherStyle, rowHeight = 56.dp)
-    if (launcherStyle.uiStyle == UiStyle.MIUIX) {
-        // MIUIX：56dp 设置行，选中态在右侧显示 Check 图标。
-        MiuixSettingsCard(
-            modifier = Modifier.chordScaled(scale, enabled),
-            roundRole = RoundElementRole.CAPSULE,
-            groupPosition = groupPosition,
-        ) {
-            MiuixSettingsRow(
-                title = title,
-                subtitle = subtitle.takeIf { it.isNotBlank() },
-                enabled = enabled,
-                onClick = onClick,
-                trailing = {
-                    if (selected) {
-                        Icon(
-                            imageVector = MiuixIcons.Check,
-                            contentDescription = null,
-                            tint = launcherStyle.accentColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            )
-        }
-        return
-    }
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val pressedScale = animateFloatAsState(
-        if (pressed) 0.964f else 1f,
-        animationSpec = launcherStyle.pressScaleSpec,
-        label = "choice_row_scale"
-    )
-    val rowShape = launcherStyle.roundAwareCompactShape(RoundElementRole.CAPSULE)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale * pressedScale.value
-                scaleY = scale * pressedScale.value
-                alpha = if (enabled) scale.coerceIn(0.55f, 1f) else 0.48f
-            }
-            .clip(rowShape)
-            .background(
-                when {
-                    pressed && selected -> launcherStyle.selectedCardColor.copy(alpha = 0.80f)
-                    pressed -> launcherStyle.pressedCardColor
-                    selected -> launcherStyle.selectedCardColor
-                    else -> launcherStyle.cardColor
-                }
-            )
-            .border(1.dp, launcherStyle.outlineColor, rowShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                onClick = onClick
-            )
-            .padding(horizontal = horizontalPadding, vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.84f)
-                    .padding(end = 12.dp)
-            ) {
-                Text(title, color = launcherStyle.titleColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(3.dp))
-                Text(subtitle, color = launcherStyle.secondaryTextColor, fontSize = 12.sp)
-            }
-            if (selected) {
-                Icon(OfficialMiuixIcons.OfficialOk, contentDescription = null, tint = launcherStyle.accentColor)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SettingsSwitchRow(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    enabled: Boolean = true,
-    onToggle: (Boolean) -> Unit,
-    scale: Float,
-    leadingIcon: ImageBitmap? = null,
-    reserveLeadingIconSpace: Boolean = false,
-    groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
-    indicatorOnly: Boolean = false,
-) {
-    val launcherStyle = LauncherTheme.style
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        val leading: (@Composable () -> Unit)? = if (leadingIcon != null || reserveLeadingIconSpace) {
-            {
-                Box(
-                    modifier = Modifier.size(34.dp).clip(CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (leadingIcon != null) {
-                        Image(leadingIcon, contentDescription = null, modifier = Modifier.fillMaxSize())
-                    }
-                }
-            }
-        } else null
-        MaterialSettingsListItem(
-            title = title,
-            subtitle = subtitle,
-            scale = scale,
-            enabled = enabled,
-            modifier = Modifier.toggleable(
-                value = checked,
-                enabled = enabled,
-                role = androidx.compose.ui.semantics.Role.Switch,
-                onValueChange = onToggle,
-            ),
-            leading = leading,
-            trailing = {
-                // A single toggleable parent owns input and accessibility, including
-                // indicator-only rows; the visual switch must not toggle twice.
-                androidx.compose.material3.Switch(
-                    checked = checked,
-                    onCheckedChange = null,
-                    enabled = enabled,
-                )
-            },
-        )
-        return
-    }
-    val horizontalPadding = flueRowHorizontalPadding(launcherStyle, rowHeight = 56.dp)
-    if (launcherStyle.uiStyle == UiStyle.MIUIX) {
-        // The hidden-app page can compose a new row on nearly every fling frame.
-        // Keep this common MIUIX switch row to one clickable node and one small
-        // animated layer instead of nesting Card -> Row -> independently clickable
-        // Switch (four animation states and two pointer-input chains per app).
-        val interactionSource = remember { MutableInteractionSource() }
-        val pressed by interactionSource.collectIsPressedAsState()
-        val rowShape = launcherStyle.flueGroupShape(groupPosition, RoundElementRole.CAPSULE)
-        val rowBackground = if (pressed) launcherStyle.pressedCardColor else launcherStyle.cardColor
-        if (groupPosition.needsDivider) {
-            // 组内非末行：分隔线要画在**卡内**，所以背景上移到外层 Column，行本身只留
-            // 点击与内边距。多这一层只发生在成组的设置页上；上面那条 fling 路径
-            // （隐藏应用页，永远是 Single）走的还是原来的单节点结构。
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .chordScaled(scale, enabled)
-                    .clip(rowShape)
-                    .background(rowBackground),
-            ) {
-                MiuixSwitchRowBody(
-                    modifier = Modifier,
-                    title = title,
-                    subtitle = subtitle,
-                    enabled = enabled,
-                    checked = checked,
-                    onToggle = onToggle,
-                    leadingIcon = leadingIcon,
-                    reserveLeadingIconSpace = reserveLeadingIconSpace,
-                    horizontalPadding = horizontalPadding,
-                    interactionSource = interactionSource,
-                    pressed = pressed,
-                    indicatorOnly = indicatorOnly,
-                )
-                FlueGroupDivider(groupPosition)
-            }
-        } else {
-            MiuixSwitchRowBody(
-                modifier = Modifier
-                    .chordScaled(scale, enabled)
-                    .background(color = rowBackground, shape = rowShape),
-                title = title,
-                subtitle = subtitle,
-                enabled = enabled,
-                checked = checked,
-                onToggle = onToggle,
-                leadingIcon = leadingIcon,
-                reserveLeadingIconSpace = reserveLeadingIconSpace,
-                horizontalPadding = horizontalPadding,
-                interactionSource = interactionSource,
-                pressed = pressed,
-                indicatorOnly = indicatorOnly,
-            )
-        }
-        return
-    }
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val pressedScale = animateFloatAsState(
-        if (pressed) 0.958f else 1f,
-        animationSpec = launcherStyle.pressScaleSpec,
-        label = "switch_row_scale"
-    )
-    val switchRowShape = launcherStyle.roundAwareCompactShape(RoundElementRole.CAPSULE)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale * pressedScale.value
-                scaleY = scale * pressedScale.value
-                alpha = if (enabled) scale.coerceIn(0.55f, 1f) else 0.5f
-            }
-            .clip(switchRowShape)
-            .background(if (pressed) launcherStyle.pressedCardColor else launcherStyle.cardColor)
-            .border(1.dp, launcherStyle.outlineColor, switchRowShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                onClick = { onToggle(!checked) }
-            )
-            .padding(horizontal = horizontalPadding, vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                // **weight 而不是 fillMaxWidth(0.82f)**：定分数把开关挤到只剩 18% 行宽，
-                // 而 AW 档的轨道是 64dp —— 窄屏上 18% 装不下，`Modifier.width(64.dp)`
-                // 被上游约束夹小，轨道画短了、滑块反而溢出来。那就是老师看到的
-                // 「开关右边显示不完全」。weight 让文字吃掉**剩下**的空间，
-                // 尾部控件永远拿自己的自然宽度。
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (leadingIcon != null || reserveLeadingIconSpace) {
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(
-                                launcherStyle.titleColor.copy(
-                                    alpha = if (leadingIcon != null) 0f else 0.05f,
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (leadingIcon != null) {
-                            Image(
-                                bitmap = leadingIcon,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                }
-                Column {
-                    Text(title, color = launcherStyle.titleColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Text(subtitle, color = launcherStyle.secondaryTextColor, fontSize = 12.sp)
-                }
-            }
-            if (indicatorOnly) {
-                FlueSwitchIndicator(checked = checked, enabled = enabled, pressed = pressed)
-            } else {
-                FlueSwitch(checked = checked, onCheckedChange = onToggle, enabled = enabled)
-            }
-        }
-    }
-}
-
-/**
- * MIUIX 开关行的行体。
- *
- * 抽出来是为了让「成组（外层 Column 出背景 + 卡内分隔线）」与「独立卡（行自己出背景）」
- * 复用同一份内容，而不是把 60 行复制两遍 —— 抽的是 composable 函数，不引入布局节点，
- * 所以隐藏应用页那条 fling 路径的节点数与改动前一致。
- */
-@Composable
-private fun MiuixSwitchRowBody(
-    modifier: Modifier,
-    title: String,
-    subtitle: String,
-    enabled: Boolean,
-    checked: Boolean,
-    onToggle: (Boolean) -> Unit,
-    leadingIcon: ImageBitmap?,
-    reserveLeadingIconSpace: Boolean,
-    horizontalPadding: Dp,
-    interactionSource: MutableInteractionSource,
-    pressed: Boolean,
-    indicatorOnly: Boolean,
-) {
-    val launcherStyle = LauncherTheme.style
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .defaultMinSize(minHeight = 56.dp)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                onClick = { onToggle(!checked) },
-            )
-            .padding(horizontal = horizontalPadding, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (leadingIcon != null || reserveLeadingIconSpace) {
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(
-                        if (leadingIcon != null) Color.Transparent
-                        else launcherStyle.pressedCardColor.copy(alpha = 0.6f),
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (leadingIcon != null) {
-                    Image(
-                        bitmap = leadingIcon,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
-            Spacer(Modifier.width(12.dp))
-        }
-        Column(
-            modifier = Modifier.weight(1f).padding(end = 12.dp),
-        ) {
-            Text(
-                title,
-                color = if (enabled) launcherStyle.titleColor else launcherStyle.secondaryTextColor,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            if (subtitle.isNotBlank()) {
-                Spacer(Modifier.height(2.dp))
-                Text(subtitle, color = launcherStyle.secondaryTextColor, fontSize = 12.sp)
-            }
-        }
-        if (indicatorOnly) {
-            FlueSwitchIndicator(checked = checked, enabled = enabled, pressed = pressed)
-        } else {
-            FlueSwitch(checked = checked, onCheckedChange = onToggle, enabled = enabled)
-        }
-    }
-}
-
-/**
- * 滑块行的**名义纵向几何**。内边距在组合期就要交给 `Modifier.padding`，那时行还没测量，
- * 所以带区只能按声明值推 —— 而三档风格的 `capsuleMaxRadius` 都有上限（APPLE 32dp /
- * MD3 28dp / MIUIX 22dp），弧深不会随行高继续增长，名义值足够准。
- *
- * MIUIX 档：`MiuixSettingsRow`（最小 56dp）+ 24dp 轨道 + 14dp 底部留白。
- */
-private val MIUIX_SLIDER_ROW_HEIGHT = 94.dp
-private val MIUIX_SLIDER_TEXT_BAND_BOTTOM = 56.dp
-private val MIUIX_SLIDER_TRACK_BOTTOM_GAP = 14.dp
-
-/**
- * 通用档（APPLE / MD3）：14dp 上下留白 + 标题 18dp + 4dp + 数值 15dp + 8dp + M3 滑块 48dp。
- */
-private val GENERIC_SLIDER_ROW_HEIGHT = 121.dp
-private val GENERIC_SLIDER_VERTICAL_PADDING = 14.dp
-private val GENERIC_SLIDER_TEXT_BAND_BOTTOM = 51.dp
-private val GENERIC_SLIDER_TRACK_BAND_TOP = 59.dp
-
-@Composable
-private fun SettingsSliderRow(
-    title: String,
-    value: Float,
-    valueText: String,
-    localValueText: ((Float) -> String)? = null,
-    range: ClosedFloatingPointRange<Float>,
-    steps: Int,
-    onValueChange: (Float) -> Unit,
-    onValueChangeFinished: ((Float) -> Unit)? = null,
-    scale: Float,
-    enabled: Boolean = true,
-    supportingText: String? = null,
-    groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
-    /**
-     * 滑杆下方、**同一张卡内**的附加内容（按钮等）。
-     *
-     * 存在的理由：像「整体缩放」这种改完要重启才生效的项，动作必须挨着那根滑杆 ——
-     * 单独摆一行会读成「与上面无关的功能」。所以它属于这一行，不是下一行。
-     */
-    footer: (@Composable () -> Unit)? = null,
-) {
-    val launcherStyle = LauncherTheme.style
-    // 滑块行有**两块内容，纵向位置完全不同**，所以要算两个内边距：
-    //
-    // - 「标题 + 数值」那块文字在行的上部；
-    // - 轨道在行的**下部**（MIUIX 档 24dp 高、底沿距行底 14dp）。
-    //
-    // 以前两块共用一个按「44dp 内容居中于 100dp 行」算出来的值 —— 居中假设对轨道不成立，
-    // 算出 0 弧深，而轨道真实位置正好压在下圆角的弧上。这就是老师报的「滑轨顶到胶囊边缘」。
-    // 现在轨道走带区式弧深（见 FlueCapsuleGeometry.contentArcInsetForBandPx）。
-    //
-    // MIUIX 档的上部文字不用在这里算：`MiuixSettingsRow` 自己按 56dp 行查表。
-    val trackPadding = flueRowHorizontalPadding(
-        launcherStyle,
-        rowHeight = MIUIX_SLIDER_ROW_HEIGHT,
-        contentBand = MIUIX_SLIDER_TEXT_BAND_BOTTOM to
-            (MIUIX_SLIDER_ROW_HEIGHT - MIUIX_SLIDER_TRACK_BOTTOM_GAP),
-    )
-    var localValue by remember(title) { mutableFloatStateOf(value) }
-    LaunchedEffect(value) { localValue = value }
-    if (launcherStyle.uiStyle == UiStyle.MIUIX) {
-        // MIUIX：设置行显示标题与当前值，下面接胶囊滑块（FlueSlider 分发到 miuix 真组件）。
-        MiuixSettingsCard(
-            modifier = Modifier.chordScaled(scale, enabled),
-            roundRole = RoundElementRole.CAPSULE,
-            groupPosition = groupPosition,
-        ) {
-            MiuixSettingsRow(
-                title = title,
-                subtitle = localValueText?.invoke(localValue) ?: valueText,
-                enabled = enabled
-            )
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = trackPadding)
-                    .padding(bottom = MIUIX_SLIDER_TRACK_BOTTOM_GAP)
-            ) {
-                FlueSlider(
-                    value = localValue,
-                    onValueChange = {
-                        localValue = it
-                        onValueChange(it)
-                    },
-                    valueRange = range,
-                    steps = steps,
-                    enabled = enabled,
-                    onValueChangeFinished = {
-                        onValueChangeFinished?.invoke(localValue)
-                    }
-                )
-            }
-            if (!supportingText.isNullOrBlank()) {
-                Text(
-                    text = supportingText,
-                    color = launcherStyle.secondaryTextColor,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(
-                        start = trackPadding,
-                        end = trackPadding,
-                        bottom = 12.dp,
-                    ),
-                )
-            }
-            footer?.let { content ->
-                Box(
-                    modifier = Modifier.padding(
-                        start = trackPadding,
-                        end = trackPadding,
-                        bottom = 12.dp,
-                    ),
-                ) {
-                    content()
-                }
-            }
-        }
-        return
-    }
-    val sliderShape = launcherStyle.roundAwareCompactShape(RoundElementRole.CAPSULE)
-    // 通用档（APPLE / MD3）：整块自己画卡片，所以外层内边距按上部文字带给，
-    // 轨道再单独补上它那条带比文字带多吃的那一截。
-    val genericTextPadding = flueRowHorizontalPadding(
-        launcherStyle,
-        rowHeight = GENERIC_SLIDER_ROW_HEIGHT,
-        contentBand = GENERIC_SLIDER_VERTICAL_PADDING to GENERIC_SLIDER_TEXT_BAND_BOTTOM,
-    )
-    val genericTrackPadding = flueRowHorizontalPadding(
-        launcherStyle,
-        rowHeight = GENERIC_SLIDER_ROW_HEIGHT,
-        contentBand = GENERIC_SLIDER_TRACK_BAND_TOP to
-            (GENERIC_SLIDER_ROW_HEIGHT - GENERIC_SLIDER_VERTICAL_PADDING),
-    )
-    val genericTrackExtraPadding = (genericTrackPadding - genericTextPadding)
-        .coerceAtLeast(0.dp)
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        androidx.compose.material3.Surface(
-            modifier = Modifier.fillMaxWidth().chordScaled(scale, enabled),
-            shape = sliderShape,
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ) {
-            Column(
-                modifier = Modifier.padding(
-                    horizontal = genericTextPadding,
-                    vertical = GENERIC_SLIDER_VERTICAL_PADDING,
-                ),
-            ) {
-                Text(title, style = MaterialTheme.typography.bodyLarge)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    localValueText?.invoke(localValue) ?: valueText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(8.dp))
-                Slider(
-                    value = localValue,
-                    onValueChange = {
-                        localValue = it
-                        onValueChange(it)
-                    },
-                    onValueChangeFinished = { onValueChangeFinished?.invoke(localValue) },
-                    valueRange = range,
-                    steps = steps,
-                    enabled = enabled,
-                    modifier = Modifier.padding(horizontal = genericTrackExtraPadding),
-                )
-                if (!supportingText.isNullOrBlank()) {
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = supportingText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = genericTrackExtraPadding),
-                    )
-                }
-                footer?.let { content ->
-                    Spacer(Modifier.height(8.dp))
-                    Box(Modifier.padding(horizontal = genericTrackExtraPadding)) { content() }
-                }
-            }
-        }
-        return
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                alpha = if (enabled) scale.coerceIn(0.55f, 1f) else 0.5f
-            }
-            .clip(sliderShape)
-            .background(launcherStyle.cardColor)
-            .border(1.dp, launcherStyle.outlineColor, sliderShape)
-            .padding(
-                horizontal = genericTextPadding,
-                vertical = GENERIC_SLIDER_VERTICAL_PADDING,
-            )
-    ) {
-        Column {
-            Text(title, color = launcherStyle.titleColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(localValueText?.invoke(localValue) ?: valueText, color = launcherStyle.secondaryTextColor, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            FlueSlider(
-                value = localValue,
-                onValueChange = {
-                    localValue = it
-                    onValueChange(it)
-                },
-                onValueChangeFinished = {
-                    onValueChangeFinished?.invoke(localValue)
-                },
-                valueRange = range,
-                steps = steps,
-                enabled = enabled,
-                modifier = Modifier.padding(horizontal = genericTrackExtraPadding),
-            )
-            if (!supportingText.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = supportingText,
-                    color = launcherStyle.secondaryTextColor,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(horizontal = genericTrackExtraPadding),
-                )
-            }
-            footer?.let { content ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Box(modifier = Modifier.padding(horizontal = genericTrackExtraPadding)) {
-                    content()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActionCard(
-    title: String,
-    subtitle: String? = null,
-    icon: (@Composable () -> Unit)? = null,
-    onClick: () -> Unit,
-    onLongPress: (() -> Unit)? = null,
-    longPressDurationMs: Long? = null,
-    scale: Float,
-    groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
-) {
-    val launcherStyle = LauncherTheme.style
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        val materialPressedState = rememberPressedState()
-        val materialPressed by materialPressedState
-        // Keep the custom long-press timeout (including the import easter egg).
-        // Standard clicks use Material ripple/semantics; timed long presses retain
-        // their original gesture arbitration and use a tonal state layer instead.
-        val actionModifier = if (onLongPress == null) {
-            Modifier.clickable(onClick = onClick)
-        } else {
-            Modifier
-                .background(
-                    if (materialPressed) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                    else Color.Transparent,
-                )
-                .semantics {
-                    onClick { onClick(); true }
-                    onLongClick { onLongPress(); true }
-                }
-                .instantPressGesture(
-                    materialPressedState,
-                    onLongPress = onLongPress,
-                    longPressDurationMs = longPressDurationMs,
-                    onClick = onClick,
-                )
-        }
-        MaterialSettingsListItem(
-            title = title,
-            subtitle = subtitle,
-            scale = scale,
-            headlineColor = MaterialTheme.colorScheme.primary,
-            modifier = actionModifier,
-            trailing = icon,
-        )
-        return
-    }
-    val horizontalPadding = flueRowHorizontalPadding(launcherStyle, rowHeight = 56.dp)
-    val pressedState = rememberPressedState()
-    val pressed by pressedState
-    if (launcherStyle.uiStyle == UiStyle.MIUIX) {
-        // MIUIX：动作行走强调色标题；保留长按支持（导入表盘彩蛋）。
-        MiuixSettingsCard(
-            modifier = Modifier.chordScaled(scale),
-            roundRole = RoundElementRole.CAPSULE,
-            groupPosition = groupPosition,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .defaultMinSize(minHeight = 56.dp)
-                    .background(if (pressed) launcherStyle.pressedCardColor else Color.Transparent)
-                    .instantPressGesture(
-                        pressedState,
-                        onLongPress = onLongPress,
-                        longPressDurationMs = longPressDurationMs,
-                        onClick = onClick
-                    )
-                    .padding(horizontal = horizontalPadding, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 12.dp)
-                ) {
-                    Text(title, color = launcherStyle.accentColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                    if (!subtitle.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(subtitle, color = launcherStyle.secondaryTextColor, fontSize = 12.sp)
-                    }
-                }
-                icon?.invoke()
-            }
-        }
-        return
-    }
-    val pressedScale = animateFloatAsState(
-        if (pressed) 0.96f else 1f,
-        animationSpec = launcherStyle.pressScaleSpec,
-        label = "action_card_scale"
-    )
-    val actionShape = launcherStyle.roundAwareCompactShape(RoundElementRole.CAPSULE)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale * pressedScale.value
-                scaleY = scale * pressedScale.value
-                alpha = scale.coerceIn(0.55f, 1f)
-            }
-            .clip(actionShape)
-            .background(if (pressed) launcherStyle.pressedCardColor else launcherStyle.cardColor)
-            .border(1.dp, launcherStyle.outlineColor, actionShape)
-            .instantPressGesture(
-                pressedState,
-                onLongPress = onLongPress,
-                longPressDurationMs = longPressDurationMs,
-                onClick = onClick
-            )
-            .padding(horizontal = horizontalPadding, vertical = 14.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.82f)
-                    .padding(end = 12.dp)
-            ) {
-                Text(title, color = launcherStyle.accentColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                if (!subtitle.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Text(subtitle, color = launcherStyle.secondaryTextColor, fontSize = 12.sp)
-                }
-            }
-            icon?.invoke()
-        }
-    }
-}
-
-@Composable
-private fun AboutCard(
-    scale: Float,
-    onDonateClick: () -> Unit,
-    onVersionClick: () -> Unit
-) {
-    val launcherStyle = LauncherTheme.style
-    val context = LocalContext.current
-    // 两个交流群的选择弹窗。做成弹窗而不是并排两张卡：关于页在 230dp 圆屏上已经很挤，
-    // 多一张卡就要多滚一屏，而「进哪个群」是个二选一的一次性决定，弹窗更合适。
-    var groupPickerVisible by remember { mutableStateOf(false) }
-    // QQ 的邀请链接带一次性 authKey，发到群里或用久了就会失效，所以只留群号：
-    // 点一下复制，用户自己在 QQ 里搜索。和作者 QQ 用的是同一套交互。
-    fun copyGroupNumber(number: String) {
-        groupPickerVisible = false
-        val clipboard = context.getSystemService(ClipboardManager::class.java)
-        clipboard?.setPrimaryClip(ClipData.newPlainText("QQ", number))
-        Toast.makeText(
-            context,
-            context.getString(R.string.about_group_copy_fmt, number),
-            Toast.LENGTH_SHORT,
-        ).show()
-    }
-    if (groupPickerVisible) {
-        FlueAlertDialog(
-            onDismissRequest = { groupPickerVisible = false },
-            title = { Text(stringResource(R.string.about_pick_group_title)) },
-            confirmButton = {
-                TextButton(onClick = { copyGroupNumber(COMMUNITY_GROUP_NUMBER) }) {
-                    Text(stringResource(R.string.about_pick_group_1_fmt, COMMUNITY_GROUP_NUMBER))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { copyGroupNumber(COMMUNITY_GROUP_2_NUMBER) }) {
-                    Text(stringResource(R.string.about_pick_group_2_fmt, COMMUNITY_GROUP_2_NUMBER))
-                }
-            },
-        )
-    }
-    fun openAuthorProfile() {
-        context.startActivity(
-            Intent(
-                Intent.ACTION_VIEW,
-                android.net.Uri.parse(AUTHOR_BILIBILI_URL)
-            )
-        )
-    }
-    fun copyAuthorQq() {
-        val clipboard = context.getSystemService(ClipboardManager::class.java)
-        clipboard?.setPrimaryClip(ClipData.newPlainText("QQ", AUTHOR_QQ_NUMBER))
-        Toast.makeText(context, context.getString(R.string.about_qq_copy_fmt, AUTHOR_QQ_NUMBER), Toast.LENGTH_SHORT).show()
-    }
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale
-                scaleY = scale
-                alpha = scale.coerceIn(0.55f, 1f)
-            }
-            // 关于页这张卡是整块竖内容（图标 + 版本 + 三个操作），宽高比远小于
-            // RowCapsuleShape 的阈值，圆屏下会自动退回 cardShape 的大圆角。挂着是为了
-            // 「圆屏形状取值统一走这个入口」，不是指望它变胶囊。
-            .clip(launcherStyle.roundAwareCardShape())
-            .background(launcherStyle.cardColor)
-            .then(
-                if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) Modifier
-                else Modifier.border(1.dp, launcherStyle.outlineColor, launcherStyle.roundAwareCardShape()),
-            )
-            .padding(horizontal = 20.dp, vertical = 24.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // painterResource 不支持 AdaptiveIconDrawable：启动图标是自适应
-            // 图标时（mipmap-anydpi-v26），进入关于页会直接抛
-            // IllegalArgumentException 闪退。走 PackageManager 拿 Drawable
-            // 再栅格化，任何图标类型都安全。
-            val appIconBitmap = remember {
-                runCatching {
-                    context.packageManager.getApplicationIcon(context.packageName)
-                        .toBitmap(width = 192, height = 192)
-                        .asImageBitmap()
-                }.getOrNull()
-            }
-            Box(
-                modifier = Modifier
-                    .size(98.dp)
-                    .clip(launcherStyle.cardShape)
-                    .background(launcherStyle.titleColor.copy(alpha = 0.06f)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (appIconBitmap != null) {
-                    Image(
-                        bitmap = appIconBitmap,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(76.dp),
-                        // PackageManager 已按当前系统遮罩渲染 AdaptiveIconDrawable，
-                        // 这里不再二次裁圆角，避免前景被重复缩小或截边。
-                        contentScale = ContentScale.Fit
-                    )
-                } else {
-                    Text(stringResource(R.string.app_name), color = launcherStyle.titleColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-            Spacer(modifier = Modifier.height(14.dp))
-            Text(stringResource(R.string.app_name), color = launcherStyle.titleColor, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                ABOUT_VERSION,
-                color = launcherStyle.secondaryTextColor,
-                fontSize = 12.sp,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onVersionClick
-                    )
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            )
-            Spacer(modifier = Modifier.height(22.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.author_avatar),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = ::openAuthorProfile)
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Column {
-                    Text(
-                        stringResource(R.string.about_author_name),
-                        color = launcherStyle.titleColor,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable(onClick = ::openAuthorProfile)
-                            .padding(horizontal = 2.dp, vertical = 1.dp)
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        "QQ：$AUTHOR_QQ_NUMBER",
-                        color = launcherStyle.secondaryTextColor,
-                        fontSize = 11.sp,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable(onClick = ::copyAuthorQq)
-                            .padding(horizontal = 2.dp, vertical = 1.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(18.dp))
-            ActionCard(
-                title = stringResource(R.string.about_join_group),
-                subtitle = stringResource(
-                    R.string.about_community_groups_fmt,
-                    COMMUNITY_GROUP_NUMBER,
-                    COMMUNITY_GROUP_2_NUMBER,
-                ),
-                // 不再直接跳 1 群：两个群都要能进，点击先问一句（见 groupPickerVisible）。
-                onClick = { groupPickerVisible = true },
-                scale = 1f
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            ActionCard(
-                title = stringResource(R.string.about_donate),
-                subtitle = stringResource(R.string.about_donate_methods),
-                onClick = onDonateClick,
-                scale = 1f
-            )
-            Spacer(modifier = Modifier.height(18.dp))
-            Text(
-                text = stringResource(R.string.about_open_source),
-                color = launcherStyle.titleColor,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OPEN_SOURCE_PROJECTS.forEachIndexed { index, project ->
-                ActionCard(
-                    title = project.name,
-                    subtitle = project.url,
-                    onClick = {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, android.net.Uri.parse(project.url))
-                        )
-                    },
-                    scale = 1f,
-                )
-                if (index != OPEN_SOURCE_PROJECTS.lastIndex) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DebugPage(
-    vm: LauncherViewModel,
-    weatherRepository: WatchWeatherRepository,
-    onBack: () -> Unit,
-    onCrash: () -> Unit,
-) {
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    var cacheStatus by remember { mutableStateOf(context.getString(R.string.diagnostics_cache_idle)) }
-    SettingsPageScaffold(
-        title = stringResource(R.string.diagnostics_title),
-        onBack = onBack,
-        headerTime = "",
-        initialFirstVisibleItemIndex = 0,
-        initialFirstVisibleItemScrollOffset = 0,
-        onScrollChanged = { _, _ -> },
-    ) { listState, screenCenterY, screenHeightPx, _ ->
-        flueSettingsGroup {
-            row("debug_crash") { position ->
-                ActionCard(
-                    title = stringResource(R.string.diagnostics_crash),
-                    subtitle = stringResource(R.string.diagnostics_crash_description),
-                    onClick = onCrash,
-                    scale = itemFisheye(listState, "debug_crash", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-            row("debug_missing_watchface") { position ->
-                ActionCard(
-                    title = stringResource(R.string.diagnostics_missing_face),
-                    subtitle = stringResource(R.string.diagnostics_missing_face_description),
-                    onClick = vm::selectMissingWatchFaceForDebug,
-                    scale = itemFisheye(listState, "debug_missing_watchface", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-            row("debug_restore_watchface") { position ->
-                ActionCard(
-                    title = stringResource(R.string.diagnostics_restore_face),
-                    subtitle = stringResource(R.string.diagnostics_restore_face_description),
-                    onClick = { vm.fallbackToBuiltIn("debug restore") },
-                    scale = itemFisheye(listState, "debug_restore_watchface", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-            row("debug_refresh_cache") { position ->
-                ActionCard(
-                    title = stringResource(R.string.diagnostics_refresh_cache),
-                    subtitle = cacheStatus,
-                    onClick = {
-                        scope.launch {
-                            cacheStatus = runCatching {
-                                vm.refreshWatchFaces(force = true)
-                                weatherRepository.requestRefresh()
-                                context.getString(R.string.diagnostics_cache_refreshed, 0)
-                            }.getOrElse { context.getString(R.string.diagnostics_cache_failed) }
-                        }
-                    },
-                    scale = itemFisheye(listState, "debug_refresh_cache", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        item("debug_performance") { DiagnosticsSettingsSection(vm) }
-        item("debug_information") { DiagnosticsInformationSection(vm) }
-    }
-}
-
-@Composable
-private fun DonateMethodCard(
-    title: String,
-    subtitle: String,
-    resId: Int,
-    scale: Float,
-    onPreviewClick: () -> Unit
-) {
-    val pressedState = rememberPressedState()
-    val pressed by pressedState
-    val launcherStyle = LauncherTheme.style
-    if (launcherStyle.uiStyle == UiStyle.MATERIAL_3) {
-        androidx.compose.material3.Surface(
-            onClick = onPreviewClick,
-            modifier = Modifier.fillMaxWidth().chordScaled(scale),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Column(
-                modifier = Modifier.padding(18.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(16.dp))
-                Image(
-                    painter = painterResource(id = resId),
-                    contentDescription = title,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
-                )
-            }
-        }
-        return
-    }
-    val pressedScale = animateFloatAsState(
-        if (pressed) 0.962f else 1f,
-        animationSpec = spring(stiffness = 820f, dampingRatio = 0.74f),
-        label = "donate_card_scale"
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                scaleX = scale * pressedScale.value
-                scaleY = scale * pressedScale.value
-                alpha = scale.coerceIn(0.55f, 1f)
-            }
-            .clip(launcherStyle.cardShape)
-            .background(launcherStyle.cardColor)
-            .border(1.dp, launcherStyle.outlineColor, launcherStyle.cardShape)
-            .instantPressGesture(pressedState, onClick = onPreviewClick)
-            .padding(horizontal = 18.dp, vertical = 18.dp)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, color = launcherStyle.titleColor, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(subtitle, color = launcherStyle.secondaryTextColor, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(16.dp))
-            Image(
-                painter = painterResource(id = resId),
-                contentDescription = title,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    // 卡内嵌套的表面比卡本身小一档，用 compactShape 而不是又编一个数字。
-                    .clip(launcherStyle.compactShape)
-                    .background(launcherStyle.pressedCardColor)
-            )
-        }
-    }
-}
-
-/**
- * 档案重命名弹窗（布局档案与动效档案共用）。
- *
- * 后端早就有 `renameActiveLayoutProfile` / `renameActiveMotionProfile`，缺的只是入口 ——
- * 所以这里只做一件事：收一个名字交给它们。空名不提交（改成空白等于把档案变成无名）。
- */
-@Composable
-private fun ProfileRenameDialog(
-    currentName: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit,
-) {
-    val style = LauncherTheme.style
-    var text by remember(currentName) { mutableStateOf(currentName) }
-    val trimmed = text.trim()
-    FlueAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_profile_rename), color = style.titleColor) },
-        text = {
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it.take(FLUE_LAYOUT_PROFILE_NAME_MAX_LENGTH) },
-                singleLine = true,
-                shape = style.rowShape,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { if (trimmed.isNotEmpty()) onConfirm(trimmed) },
-                enabled = trimmed.isNotEmpty(),
-            ) {
-                Text(stringResource(android.R.string.ok), color = style.accentColor)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel), color = style.secondaryTextColor)
-            }
-        },
-    )
-}
-
-
-@Composable
-private fun OverlayMaskCornerRadiusDialog(
-    currentRadiusDp: Int,
-    onDismiss: () -> Unit,
-    onSave: (Int) -> Unit,
-) {
-    val launcherStyle = LauncherTheme.style
-    val dialogSurface = MaterialTheme.colorScheme.surface
-    val dialogOnSurface = MaterialTheme.colorScheme.onSurface
-    val dialogOnSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-    var localRadiusDp by remember(currentRadiusDp) {
-        mutableFloatStateOf(currentRadiusDp.toFloat())
-    }
-    val previewRadiusDp = localRadiusDp
-        .coerceIn(0f, MAX_OVERLAY_MASK_CORNER_RADIUS_DP.toFloat())
-        .dp
-    val interactionSource = remember { MutableInteractionSource() }
-
-    // Non-scrolling sheet: scrollableContent = false ensures the horizontal slider works.
-    FlueFullScreenOverlay(
-        onDismissRequest = onDismiss,
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            // 实时展示调整的圆角大小：全屏幕边缘的蓝色高亮边框指示线
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .border(
-                        width = 3.dp,
-                        color = Color(0xFF2196F3),
-                        shape = RoundedCornerShape(previewRadiusDp),
-                    ),
-            )
-
-            // 中央圆角设置调整卡片
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .clip(launcherStyle.cardShape)
-                    .background(dialogSurface)
-                    .padding(horizontal = 16.dp, vertical = 18.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = stringResource(R.string.dialog_overlay_mask_corner_title),
-                    color = dialogOnSurface,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = stringResource(R.string.dialog_overlay_mask_corner_subtitle),
-                    color = dialogOnSurfaceVariant,
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(launcherStyle.compactShape)
-                        .background(dialogOnSurface.copy(alpha = 0.055f))
-                        .padding(horizontal = 8.dp, vertical = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null,
-                            ) {
-                                localRadiusDp = (localRadiusDp - 1f).coerceAtLeast(0f)
-                            },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("−", color = dialogOnSurfaceVariant, fontSize = 30.sp)
-                    }
-                    FlueSlider(
-                        value = localRadiusDp,
-                        onValueChange = {
-                            localRadiusDp = it.coerceIn(
-                                0f,
-                                MAX_OVERLAY_MASK_CORNER_RADIUS_DP.toFloat(),
-                            )
-                        },
-                        valueRange = 0f..MAX_OVERLAY_MASK_CORNER_RADIUS_DP.toFloat(),
-                        modifier = Modifier.weight(1f),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null,
-                            ) {
-                                localRadiusDp = (localRadiusDp + 1f)
-                                    .coerceAtMost(MAX_OVERLAY_MASK_CORNER_RADIUS_DP.toFloat())
-                            },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("+", color = dialogOnSurfaceVariant, fontSize = 30.sp)
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = stringResource(
-                        R.string.dialog_overlay_mask_corner_value_fmt,
-                        localRadiusDp.roundToInt(),
-                    ),
-                    color = dialogOnSurface,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = stringResource(R.string.dialog_overlay_mask_corner_hint),
-                    color = dialogOnSurfaceVariant,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(16.dp))
-                FlueDialogButtons(
-                    confirmText = stringResource(R.string.action_done),
-                    onConfirm = {
-                        onSave(normalizeOverlayMaskCornerRadiusDp(localRadiusDp.roundToInt()))
-                    },
-                    dismissText = stringResource(R.string.action_cancel),
-                    onDismiss = onDismiss,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DonatePreviewDialog(resId: Int, onDismiss: () -> Unit) {
-    var scale by remember { mutableStateOf(1f) }
-    var offset by remember { mutableStateOf(Offset.Zero) }
-    val transformState = rememberTransformableState { _, zoomChange, panChange, _ ->
-        val newScale = (scale * zoomChange).coerceIn(1f, 4f)
-        scale = newScale
-        offset = if (newScale <= 1.02f) {
-            Offset.Zero
-        } else {
-            offset + panChange
-        }
-    }
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false,
-            // 全屏看图要真的顶到屏幕边，否则顶部一条不被 98% 黑覆盖。
-            decorFitsSystemWindows = false,
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.98f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = resId),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        translationX = offset.x
-                        translationY = offset.y
-                    }
-                    .transformable(transformState)
-                    .pointerInput(scale) {
-                        detectTapGestures(
-                            onDoubleTap = {
-                                if (scale > 1.05f) {
-                                    scale = 1f
-                                    offset = Offset.Zero
-                                } else {
-                                    scale = 2.2f
-                                    offset = Offset.Zero
-                                }
-                            }
-                        )
-                    }
-                    .pointerInput(scale) {
-                        detectDragGesturesAfterLongPress(
-                            onDrag = { change, dragAmount ->
-                                if (scale > 1.02f) {
-                                    change.consume()
-                                    offset += Offset(dragAmount.x, dragAmount.y)
-                                }
-                            }
-                        )
-                    }
-            )
-        }
-    }
-}
-
-/**
- * 设置页逐条缩放通道。名字沿用历史（曾经是底部鱼眼），现在承载的是**圆屏
- * 弦宽适配**：
- *
- * - 方屏：恒返回 1f，全部平铺，与改动前逐像素一致。
- * - 圆屏：按元素所在高度的弦宽等比缩放，避免左对齐文字被弧线切掉。
- *
- * 200+ 个调用点已经把返回值接进了 `graphicsLayer { scaleX/scaleY }`，正好是
- * 弦宽适配要求的形状（布局值测量 + 只改合成属性），所以调用点一处都不用改。
- * 算法与三条铁律见 [com.flue.launcher.ui.common.chordScaleForPosition]。
- *
- * @param screenHeight 保留参数：视口高度对弦宽计算不是必需的（圆心 y 由
- *   `screenCenterY` 给出），但签名要和 200+ 调用点保持一致。
- */
-@Composable
-private fun itemFisheye(
-    listState: LazyListState,
-    key: String,
-    screenCenterY: Float,
-    screenHeight: Float
-): Float {
-    if (!com.flue.launcher.ui.common.isFlueScreenRound()) return 1f
-    val rootCenterY = com.flue.launcher.ui.common.LocalChordScreenCenterY.current
-    return com.flue.launcher.ui.common.chordScale(
-        listState = listState,
-        key = key,
-        screenCenterY = rootCenterY.takeIf(Float::isFinite) ?: screenCenterY,
-        viewportWidth = com.flue.launcher.ui.common.LocalChordViewportWidth.current,
-        listTopInViewport = com.flue.launcher.ui.common.LocalChordListTopInViewport.current,
-    )
-}
-
-/**
- * 把弦宽缩放施加到某个组件上的统一入口。
- *
- * 几个设置行组件在 MIUIX 分支里提前 `return`，各自的 `scale` 参数一次都没用到，
- * 圆屏下那条分支就会整页平铺（老师报的「miuix 还是平铺」）。通用路径里那段
- * `graphicsLayer { scaleX/scaleY/alpha }` 抄五遍不现实，抽成这个 modifier。
- *
- * 只改合成属性，不碰任何布局属性 —— 弦宽适配的第三条铁律。
- */
-private fun Modifier.chordScaled(scale: Float, enabled: Boolean = true): Modifier =
-    graphicsLayer {
-        scaleX = scale
-        scaleY = scale
-        alpha = if (enabled) scale.coerceIn(0.55f, 1f) else 0.48f
-    }
-
-@Composable
-private fun BackupOptionsDialog(
-    title: String,
-    subtitle: String,
-    options: FlueBackupOptions,
-    availableOptions: FlueBackupOptions,
-    confirmText: String,
-    onOptionsChange: (FlueBackupOptions) -> Unit,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    val listState = rememberLazyListState()
-    FlueAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                Text(subtitle, color = LauncherTheme.style.secondaryTextColor, fontSize = 12.sp)
-                Spacer(modifier = Modifier.height(10.dp))
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .height(320.dp)
-                        .flueOverscroll(listState),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (availableOptions.settings) {
-                        item("backup_settings") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_settings),
-                                subtitle = stringResource(R.string.backup_item_settings_sub),
-                                checked = options.settings,
-                                onToggle = { onOptionsChange(options.copy(settings = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.appOrder) {
-                        item("backup_app_order") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_app_order),
-                                subtitle = stringResource(R.string.backup_item_app_order_sub),
-                                checked = options.appOrder,
-                                onToggle = { onOptionsChange(options.copy(appOrder = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.widgetOrder) {
-                        item("backup_widget_order") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_widget_order),
-                                subtitle = stringResource(R.string.backup_item_widget_order_sub),
-                                checked = options.widgetOrder,
-                                onToggle = { onOptionsChange(options.copy(widgetOrder = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.sideScreenOrder) {
-                        item("backup_side_screen_order") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_side_screen_order),
-                                subtitle = stringResource(R.string.backup_item_side_screen_order_sub),
-                                checked = options.sideScreenOrder,
-                                onToggle = { onOptionsChange(options.copy(sideScreenOrder = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.photoWatchFace) {
-                        item("backup_photo_watchface") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_photo_watchface),
-                                subtitle = stringResource(R.string.backup_item_photo_watchface_sub),
-                                checked = options.photoWatchFace,
-                                onToggle = { onOptionsChange(options.copy(photoWatchFace = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.videoWatchFace) {
-                        item("backup_video_watchface") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_video_watchface),
-                                subtitle = stringResource(R.string.backup_item_video_watchface_sub),
-                                checked = options.videoWatchFace,
-                                onToggle = { onOptionsChange(options.copy(videoWatchFace = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.watchFiles) {
-                        item("backup_watch_files") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_watch_files),
-                                subtitle = stringResource(R.string.backup_item_watch_files_sub),
-                                checked = options.watchFiles,
-                                onToggle = { onOptionsChange(options.copy(watchFiles = it)) }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(confirmText)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun BackupOptionSwitch(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onToggle: (Boolean) -> Unit,
-    scale: Float = 1f,
-    groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
-) {
-    SettingsSwitchRow(
-        title = title,
-        subtitle = subtitle,
-        checked = checked,
-        onToggle = onToggle,
-        scale = scale,
-        groupPosition = groupPosition,
-    )
-}
-
-private fun LazyListScope.backupOptionRows(
-    listState: LazyListState,
-    screenCenterY: Float,
-    screenHeightPx: Float,
-    options: FlueBackupOptions,
-    availableOptions: FlueBackupOptions,
-    onOptionsChange: (FlueBackupOptions) -> Unit
-) {
-    // 老师报「导出配置这一页的选项还没合并」：七个开关原来各自一张卡。
-    flueSettingsGroup {
-        if (availableOptions.settings) {
-            row("backup_settings") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_settings),
-                    subtitle = stringResource(R.string.backup_item_settings_sub),
-                    checked = options.settings,
-                    onToggle = { onOptionsChange(options.copy(settings = it)) },
-                    scale = itemFisheye(listState, "backup_settings", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.appOrder) {
-            row("backup_app_order") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_app_order),
-                    subtitle = stringResource(R.string.backup_item_app_order_sub),
-                    checked = options.appOrder,
-                    onToggle = { onOptionsChange(options.copy(appOrder = it)) },
-                    scale = itemFisheye(listState, "backup_app_order", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.widgetOrder) {
-            row("backup_widget_order") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_widget_order),
-                    subtitle = stringResource(R.string.backup_item_widget_order_sub),
-                    checked = options.widgetOrder,
-                    onToggle = { onOptionsChange(options.copy(widgetOrder = it)) },
-                    scale = itemFisheye(listState, "backup_widget_order", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.sideScreenOrder) {
-            row("backup_side_screen_order") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_side_screen_order),
-                    subtitle = stringResource(R.string.backup_item_side_screen_order_sub),
-                    checked = options.sideScreenOrder,
-                    onToggle = { onOptionsChange(options.copy(sideScreenOrder = it)) },
-                    scale = itemFisheye(listState, "backup_side_screen_order", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.photoWatchFace) {
-            row("backup_photo_watchface") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_photo_watchface),
-                    subtitle = stringResource(R.string.backup_item_photo_watchface_sub),
-                    checked = options.photoWatchFace,
-                    onToggle = { onOptionsChange(options.copy(photoWatchFace = it)) },
-                    scale = itemFisheye(listState, "backup_photo_watchface", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.videoWatchFace) {
-            row("backup_video_watchface") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_video_watchface),
-                    subtitle = stringResource(R.string.backup_item_video_watchface_sub),
-                    checked = options.videoWatchFace,
-                    onToggle = { onOptionsChange(options.copy(videoWatchFace = it)) },
-                    scale = itemFisheye(listState, "backup_video_watchface", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.watchFiles) {
-            row("backup_watch_files") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_watch_files),
-                    subtitle = stringResource(R.string.backup_item_watch_files_sub),
-                    checked = options.watchFiles,
-                    onToggle = { onOptionsChange(options.copy(watchFiles = it)) },
-                    scale = itemFisheye(listState, "backup_watch_files", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-    }
-
-}
-
-private fun FlueBackupOptions.backupSummaryText(context: Context): String {
-    val labels = selectedSectionKeys().map { key -> context.getString(backupSectionLabelRes(key)) }
-    return labels.takeIf { it.isNotEmpty() }?.joinToString(" · ")
-        ?: context.getString(R.string.backup_summary_none)
-}
-
-/**
- * 分区 key → 展示名。顺序由 [FlueBackupOptions.selectedSectionKeys] 定义，
- * 名称只在这里映射一次，导出摘要与勾选列表共用。
- */
-@StringRes
-private fun backupSectionLabelRes(key: String): Int = when (key) {
-    FlueBackupOptions.SECTION_SETTINGS -> R.string.backup_item_settings
-    FlueBackupOptions.SECTION_APP_ORDER -> R.string.backup_item_app_order
-    FlueBackupOptions.SECTION_WIDGET_ORDER -> R.string.backup_item_widget_order
-    FlueBackupOptions.SECTION_SIDE_SCREEN_ORDER -> R.string.backup_item_side_screen_order
-    FlueBackupOptions.SECTION_PHOTO_WATCH_FACE -> R.string.backup_item_photo_watchface
-    FlueBackupOptions.SECTION_VIDEO_WATCH_FACE -> R.string.backup_item_video_watchface
-    FlueBackupOptions.SECTION_WATCH_FILES -> R.string.backup_item_watch_files
-    else -> R.string.backup_summary_none
-}
-
-/** 「导出完成」页 ✅ 下面那三行灰字：内容 / 大小 / 时间。 */
-private fun FlueBackupExportSummary.exportDoneDetailText(context: Context): String = listOf(
-    context.getString(R.string.backup_export_detail_sections_fmt, sections.backupSummaryText(context)),
-    context.getString(
-        R.string.backup_export_detail_size_fmt,
-        android.text.format.Formatter.formatShortFileSize(context, bytes),
-    ),
-    context.getString(R.string.backup_export_detail_time_fmt, createdAt),
-).joinToString("\n")
-
-@Composable
-private fun BlockingProgressDialog(
-    state: BlockingProgressState,
-    onDismiss: () -> Unit,
-    onShare: () -> Unit
-) {
-    val launcherStyle = LauncherTheme.style
-    val flueScreenRound = isFlueScreenRound()
-    Dialog(
-        onDismissRequest = { if (state.completed) onDismiss() },
-        properties = DialogProperties(
-            dismissOnBackPress = state.completed,
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false,
-            // 全屏 Dialog 必须自己接管 insets：默认 true 时 Dialog 的 Window 会去避让
-            // 状态栏，窗口顶边被系统下移，让出的那一条露出 Dialog 默认遮罩（看起来像
-            // 顶部空了一条半透明黑）。下面 Column 已经用 safeDrawing 自己让位了。
-            decorFitsSystemWindows = false,
-        )
-    ) {
-        BackHandler(enabled = state.completed) { onDismiss() }
-        ProvideDialogUiScale {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(launcherStyle.screenBackground),
-        ) {
-            // 二级页面结构：顶部标题栏，内容居中，底部胶囊按钮。
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(WindowInsets.safeDrawing.asPaddingValues())
-                    .padding(horizontal = if (flueScreenRound) 26.dp else 16.dp),
-            ) {
-                Spacer(modifier = Modifier.height(if (flueScreenRound) 30.dp else 18.dp))
-                // 标题栏：完成态左对齐「返回」按钮，进行中无按钮。
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                ) {
-                    if (state.completed) {
-                        val pressedState = rememberPressedState()
-                        val pressed by pressedState
-                        val scale = animateFloatAsState(
-                            if (pressed) 0.94f else 1f,
-                            label = "progress_back_scale"
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(42.dp)
-                                .graphicsLayer { scaleX = scale.value; scaleY = scale.value }
-                                .clip(CircleShape)
-                                .background(launcherStyle.topBarChipColor)
-                                .instantPressGesture(pressedState, onClick = onDismiss),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            // 和 HeaderBackButton 用同一个 miuix 官方 Back：这颗胶囊
-                            // 就是设置页顶栏返回键的复刻，两处必须是同一枚箭头。
-                            Icon(
-                                OfficialMiuixIcons.OfficialBack,
-                                contentDescription = null,
-                                tint = launcherStyle.topBarTextColor
-                            )
-                        }
-                    }
-                    Text(
-                        text = state.title,
-                        color = launcherStyle.accentColor,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = if (flueScreenRound) TextAlign.Center else TextAlign.Start,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = if (flueScreenRound) {
-                            Modifier
-                                .align(Alignment.Center)
-                                .fillMaxWidth()
-                                .padding(horizontal = 50.dp)
-                        } else {
-                            Modifier
-                                .align(Alignment.CenterStart)
-                                .fillMaxWidth()
-                                .padding(start = 54.dp, end = 16.dp)
-                        },
-                    )
-                }
-
-                // 内容区：居中转圈 / 完成图标 + 副标题。
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        if (state.completed) {
-                            Icon(
-                                imageVector = OfficialMiuixIcons.OfficialOk,
-                                contentDescription = null,
-                                tint = launcherStyle.accentColor,
-                                modifier = Modifier.size(64.dp)
-                            )
-                        } else {
-                            // 与表盘加载页同一个抽象入口，三档各转各自的圈。
-                            FlueLoadingIndicator(
-                                size = 32.dp,
-                            )
-                        }
-                        if (!state.detail.isNullOrBlank()) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = state.detail,
-                                color = launcherStyle.secondaryTextColor,
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
-                }
-
-                // 底部按钮区：完成态显示「分享」+「完成」胶囊按钮。
-                if (state.completed) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        if (state.shareUri != null) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(54.dp)
-                                    .clip(RoundedCornerShape(999.dp))
-                                    .background(launcherStyle.cardColor)
-                                    .clickable(onClick = onShare),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.action_share),
-                                    color = launcherStyle.accentColor,
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        }
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(54.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(launcherStyle.accentColor)
-                                .clickable(onClick = onDismiss),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = stringResource(R.string.action_done),
-                                color = Color.White,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(if (flueScreenRound) 30.dp else 18.dp))
-            }
-        }
-        } // ProvideDialogUiScale
     }
 }
 
@@ -7932,183 +3513,4 @@ private fun openHeartRatePermissionSettings(context: Context) {
             )
         )
     }
-}
-
-/**
- * 设置搜索索引：标题 / 描述 / 关键词（含拼音首字母与英文别名）。
- * destinationName 用字符串与枚举解耦；命中跳转到对应页面。
- */
-/**
- * 设置搜索索引。
- *
- * itemKey 必须和目标页 LazyColumn 里 `item("...")` 的 key 逐字一致——搜索
- * 结果就是靠它跳到具体那一行的（见 SettingsPageScaffold 的 searchTarget
- * 定位逻辑）。以前这里有几个 key 是凭印象写的（advanced_material /
- * edge_blur / ui_style / screen_shape / watchface_date_locale），页面里
- * 并不存在，点进去只能落在页顶。
- *
- * 覆盖原则：每一个开关 / 滑块都要有自己的条目，不能只索引到分组页。
- */
-internal fun buildSettingsSearchIndex(context: Context): List<SettingsSearchEntry> {
-    fun s(id: Int): String = context.getString(id)
-    return listOf(
-    SettingsSearchEntry("APPEARANCE", null, s(R.string.settings_appearance), s(R.string.search_d_appearance), listOf("xsywg", "appearance", "theme", "zhuti", "fengge")),
-    SettingsSearchEntry("APPEARANCE", "layout_honeycomb", s(R.string.settings_layout_honeycomb), s(R.string.search_d_layout_honeycomb), listOf("fwbj", "honeycomb", "fengwo")),
-    SettingsSearchEntry("APPEARANCE", "layout_list", s(R.string.settings_layout_list), s(R.string.search_d_layout_list), listOf("lbbj", "list", "liebiao")),
-    SettingsSearchEntry("APPEARANCE", "layout_grid", s(R.string.settings_layout_grid), s(R.string.settings_layout_grid_sub), listOf("wgbj", "grid", "wangge", "miji")),
-    SettingsSearchEntry("APPEARANCE", "layout_flow", s(R.string.settings_layout_flow), s(R.string.settings_layout_flow_sub), listOf("xlbj", "flow", "xinliu", "yueya", "crescent")),
-    SettingsSearchEntry("APPEARANCE", "layout_ring", s(R.string.settings_layout_ring), s(R.string.settings_layout_ring_sub), listOf("xhbj", "ring", "xinghuan", "huanxing", "shoulong", "dome")),
-    SettingsSearchEntry("APPEARANCE", "transition_motion_scale", s(R.string.settings_transition_motion_scale), s(R.string.search_d_transition_motion), listOf("sfdh", "zoom", "suofang", "donghua", "animation")),
-    SettingsSearchEntry("APPEARANCE", "transition_motion_slide", s(R.string.settings_transition_motion_slide), s(R.string.search_d_transition_motion), listOf("pydh", "slide", "pingyi", "donghua", "animation")),
-    SettingsSearchEntry("APPEARANCE", "screen_shape_auto", s(R.string.settings_screen_shape_auto), s(R.string.settings_screen_shape_auto_sub), listOf("zdsb", "auto", "zidong")),
-    SettingsSearchEntry("APPEARANCE", "screen_shape_round", s(R.string.settings_screen_shape_round), s(R.string.settings_screen_shape_override_sub), listOf("yp", "round", "yuanping")),
-    SettingsSearchEntry("APPEARANCE", "screen_shape_square", s(R.string.settings_screen_shape_square), s(R.string.settings_screen_shape_override_sub), listOf("fp", "square", "fangping")),
-    SettingsSearchEntry("APPEARANCE", "theme_mode_system", s(R.string.search_t_theme_system), s(R.string.search_d_theme_mode), listOf("gssx", "system theme", "shenqian")),
-    SettingsSearchEntry("APPEARANCE", "theme_mode_dark", s(R.string.settings_theme_dark), s(R.string.search_d_theme_mode), listOf("ssms", "dark", "shense")),
-    SettingsSearchEntry("APPEARANCE", "theme_mode_light", s(R.string.settings_theme_light), s(R.string.search_d_theme_mode), listOf("qsms", "light", "qianse")),
-    SettingsSearchEntry("APPEARANCE", "screen_shape_header", s(R.string.settings_screen_shape_header), s(R.string.search_d_screen_shape), listOf("pmxz", "round", "yuanping", "fangping")),
-    SettingsSearchEntry("APPEARANCE", "overlay_mask_corner_radius", s(R.string.settings_overlay_mask_corner_radius), s(R.string.search_d_overlay_mask_corner_radius), listOf("zzj", "zhezhao yuanjiao", "mask corner", "corner radius", "yuanjiao")),
-    SettingsSearchEntry("APPEARANCE", "blur_toggle", s(R.string.settings_blur), s(R.string.search_d_blur), listOf("gjcz", "blur", "mohu", "boli")),
-    SettingsSearchEntry("APPEARANCE", "edge_blur_toggle", s(R.string.search_t_edge_blur), s(R.string.search_d_edge_blur), listOf("bymh", "edge blur")),
-    SettingsSearchEntry("APPEARANCE", "edge_blur_radius", s(R.string.settings_edge_blur_radius), s(R.string.search_d_edge_blur_radius), listOf("bymhbj", "blur radius", "banjing")),
-    SettingsSearchEntry("APPEARANCE", "top_fade", s(R.string.settings_top_fade), s(R.string.search_d_top_fade), listOf("dbjy", "top fade", "jianyin")),
-    SettingsSearchEntry("APPEARANCE", "bottom_fade", s(R.string.settings_bottom_fade), s(R.string.search_d_bottom_fade), listOf("dbjy", "bottom fade")),
-    SettingsSearchEntry("APPEARANCE", "splash_toggle", s(R.string.settings_splash), s(R.string.settings_splash_sub), listOf("qdzz", "splash", "zhezhao")),
-    SettingsSearchEntry("APPEARANCE", "direct_launch_app_list", s(R.string.settings_direct_launch_app_list), s(R.string.search_d_direct_launch), listOf("zjjr", "direct launch")),
-    SettingsSearchEntry("APPEARANCE", "splash_delay", s(R.string.search_t_splash_delay), s(R.string.search_d_splash_delay), listOf("qdyc", "splash delay", "yanchi")),
-    SettingsSearchEntry("DISPLAY_SIZE", null, s(R.string.settings_display_fit), s(R.string.search_d_display_size), listOf("xssp", "size", "daxiao", "fisheye", "yuyan")),
-    SettingsSearchEntry("AOD", null, s(R.string.aod_title), s(R.string.aod_description), listOf("aod", "xiping", "ambient", "息屏")),
-    SettingsSearchEntry("AOD", "aod_enabled", s(R.string.aod_title), s(R.string.aod_description), listOf("aod", "brightness", "timeout", "息屏", "亮度")),
-    SettingsSearchEntry("DISPLAY_SIZE", "global_ui_scale", s(R.string.settings_global_ui_size), s(R.string.search_d_global_ui_scale), listOf("qjdx", "scale", "suofang")),
-    SettingsSearchEntry("DISPLAY_SIZE", "honeycomb_cols", s(R.string.settings_honeycomb_cols), s(R.string.search_d_honeycomb_cols), listOf("fwls", "columns", "lieshu")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_scale", s(R.string.settings_app_list_size), s(R.string.search_d_app_list_scale), listOf("lbdx", "app list size")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_scroll_indicator", s(R.string.settings_scroll_indicator), s(R.string.settings_scroll_indicator_on), listOf("hdjdzsq", "scroll indicator", "gundong", "jindutiao", "scrollbar")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_edge_align", s(R.string.settings_app_list_edge_align), s(R.string.search_d_app_list_edge_align), listOf("tbdq", "edge align", "kaobian", "shouhang", "tieding", "juzhong")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_fisheye", s(R.string.settings_fisheye), s(R.string.search_d_fisheye), listOf("yyxg", "fisheye", "yuyan")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_fisheye_range_rows", s(R.string.settings_fisheye_range), s(R.string.search_d_fisheye_range), listOf("yysx", "fisheye range")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_fisheye_strength", s(R.string.settings_fisheye_strength), s(R.string.search_d_fisheye_strength), listOf("yyqd", "fisheye strength")),
-    SettingsSearchEntry("DISPLAY_SIZE", "material_honeycomb_top_fisheye", s(R.string.settings_fisheye_top_row), s(R.string.settings_fisheye_top_row_sub), listOf("dyphy", "top row fisheye", "shouhang")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_grid_icon_plate", s(R.string.settings_grid_icon_plate), s(R.string.settings_grid_icon_plate_on), listOf("dbtbzz", "icon plate", "icon backplate", "zhezhao", "dise", "wangge")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_flow_crescent_direction", s(R.string.settings_flow_crescent_direction), s(R.string.settings_flow_crescent_direction_right), listOf("yyfx", "crescent", "yueya", "flow direction")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_flow_crescent_bulge", s(R.string.settings_flow_crescent_bulge), s(R.string.settings_flow_crescent_bulge_sub), listOf("yyhd", "crescent bulge", "yueya", "gubao")),
-    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_header", s(R.string.settings_layout_profile_header), s(R.string.settings_layout_profile_preset), listOf("bjda", "layout profile", "dangan", "buju")),
-    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_copy", s(R.string.settings_layout_profile_copy), s(R.string.settings_layout_profile_copy_sub), listOf("fzda", "copy profile", "fuzhi")),
-    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_reset", s(R.string.settings_layout_profile_reset), s(R.string.settings_layout_profile_reset_sub), listOf("czda", "reset profile", "chongzhi")),
-    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_delete", s(R.string.settings_layout_profile_delete), s(R.string.settings_layout_profile_delete_sub), listOf("scda", "delete profile", "shanchu")),
-    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_export", s(R.string.settings_layout_profile_export), s(R.string.settings_layout_profile_export_sub), listOf("dcda", "export profile", "daochu")),
-    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_import", s(R.string.settings_layout_profile_import), s(R.string.settings_layout_profile_import_sub), listOf("drda", "import profile", "daoru")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_edge_spacing_compression", s(R.string.settings_edge_spacing), s(R.string.search_d_edge_spacing), listOf("byjj", "edge spacing")),
-    SettingsSearchEntry("DISPLAY_SIZE", "app_list_left_safe_inset", s(R.string.settings_left_safe_area), s(R.string.search_d_left_safe_area), listOf("zcaqq", "safe area", "anquanqu")),
-    SettingsSearchEntry("DISPLAY_SIZE", "rotary_haptics", s(R.string.settings_rotary_haptics), s(R.string.search_d_rotary_haptics), listOf("bgzd", "rotary haptics", "zhendong")),
-    SettingsSearchEntry("WATCH_FACES", null, s(R.string.settings_watchfaces), s(R.string.search_d_watchfaces), listOf("bp", "watchface", "biaopan")),
-    SettingsSearchEntry("WATCH_FACES", "watchface_store", s(R.string.search_t_watchface_store), s(R.string.search_d_watchface_store), listOf("bpsd", "store", "shangdian")),
-    SettingsSearchEntry("WATCH_FACES", "watchface_editor_new", s(R.string.search_t_watchface_editor_new), s(R.string.search_d_watchface_editor_new), listOf("xjbp", "editor", "bianjiqi")),
-    SettingsSearchEntry("WATCH_FACES", "watchface_import_archive", s(R.string.search_t_watchface_import), s(R.string.search_d_watchface_import), listOf("drbp", "import", "daoru", "watch")),
-    SettingsSearchEntry("WATCH_FACES", "watchface_editor_current", s(R.string.settings_watchface_editor_current), s(R.string.search_t_watchface_editor_new), listOf("bjbp", "edit face", "bianji", "editor")),
-    SettingsSearchEntry("WATCH_FACES", "watchface_refresh", s(R.string.settings_watchface_refresh), s(R.string.settings_watchface_refresh_sub), listOf("smbp", "rescan", "shuaxin", "refresh")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_tap_haptics", s(R.string.settings_watchface_tap_haptics), s(R.string.settings_watchface_tap_haptics_sub), listOf("djzd", "zhendong", "tap haptics", "vibration", "振动", "震动")),
-    SettingsSearchEntry("WATCH_FACE_MORE", null, s(R.string.search_t_watchface_more), s(R.string.search_d_watchface_more), listOf("bpgd", "xinlv", "riqi", "date")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_long_press_mode", s(R.string.settings_watchface_long_press_mode), s(R.string.settings_watchface_long_press_mode_cards_sub), listOf("chang an", "long press", "cards", "list", "kapian", "liebiao")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_header", s(R.string.settings_watch_weather), s(R.string.settings_watch_weather_sub), listOf("tq", "weather", "tianqi")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_manual_city", s(R.string.settings_watch_weather_city), s(R.string.settings_watch_weather_city_unset), listOf("cs", "city", "chengshi", "location")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_system_location", s(R.string.settings_watch_weather_use_system), s(R.string.settings_watch_weather_use_system_sub), listOf("xtdw", "system location", "dingwei", "gps")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_refresh", s(R.string.settings_watch_weather_refresh), s(R.string.settings_watch_weather_refresh_sub), listOf("sxtq", "refresh weather", "shuaxin")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_unit_header", s(R.string.settings_watch_weather_unit), s(R.string.settings_watch_weather_celsius_sub), listOf("wd", "temperature", "celsius", "fahrenheit", "sheshi", "huashi")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_date_locale_header", s(R.string.settings_watchface_date_language), s(R.string.search_d_watchface_date_locale), listOf("rqyy", "date locale", "yuyan")),
-    // 「强制铺满」这一项已经搬进 CanvasAdjustActivity（设置页里那个 item key 早就没了，
-    // 旧索引指着它只能落在页顶）。改指向通往那一页的入口行 —— 搜得到、点进去也真能改到。
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_canvas_entry", s(R.string.settings_watchmaker_force_fill), s(R.string.search_d_force_fill), listOf("qzpm", "force fill", "puman")),
-    // 画布调节：整块搬进 CanvasAdjustActivity 之后，设置页只剩这一个入口行。
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_canvas_entry", s(R.string.settings_watchface_canvas_section), s(R.string.settings_watchface_canvas_entry_sub), listOf("hbtj", "canvas", "huabu", "zoom", "offset")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_gravity_parallax", s(R.string.settings_watchface_gravity_parallax), s(R.string.settings_watchface_gravity_parallax_on), listOf("景深", "gravity", "gyro", "parallax", "jing shen")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_gravity_backdrop_blur", s(R.string.settings_watchface_gravity_backdrop_blur), s(R.string.settings_watchface_gravity_backdrop_blur_on), listOf("模糊", "背景", "blur", "backdrop", "mo hu", "bei jing")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchmaker_body_sensors", s(R.string.settings_watchface_heart_rate), s(R.string.search_d_heart_rate), listOf("bpxl", "heart rate", "xinlv")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchmaker_calendar", s(R.string.settings_watchface_calendar), s(R.string.search_d_watchface_calendar), listOf("calendar", "event", "richeng", "rili")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_font", s(R.string.settings_watchface_font), s(R.string.search_d_watchface_font), listOf("bpzt", "font", "ziti")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_font_clear", s(R.string.settings_watchface_font_clear), s(R.string.settings_watchface_font_clear_sub), listOf("qcbpzt", "reset font", "qingchu", "ziti")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_bottom_fade", s(R.string.settings_watchface_bottom_fade), s(R.string.search_d_watchface_bottom_fade), listOf("bpdb", "bottom fade")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_text_entry_animation", s(R.string.settings_watchface_text_entry_animation), s(R.string.settings_watchface_text_entry_animation_sub), listOf("bpwz", "text animation", "fly in")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_text_exit_animation", s(R.string.settings_watchface_text_exit_animation), s(R.string.settings_watchface_text_exit_animation_sub), listOf("bpwz", "text exit animation", "fly out")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_status_indicators", s(R.string.settings_watchface_status), s(R.string.search_d_watchface_status), listOf("ztts", "indicator")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_dnd_indicator", s(R.string.settings_watchface_dnd_indicator), s(R.string.search_d_watchface_dnd_indicator), listOf("勿扰", "moon", "dnd", "do not disturb", "wurao")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_charging_power_text", s(R.string.settings_watchface_charging_power), s(R.string.search_d_charging_power), listOf("cdgl", "charging", "wattage")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "app_list_background_entry", s(R.string.settings_app_list_background), s(R.string.search_d_app_list_background), listOf("yylbbj", "app list background", "beijing", "bizhi", "wallpaper")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", null, s(R.string.settings_app_list_background), s(R.string.search_d_app_list_background), listOf("yylbbj", "app list background", "beijing", "bizhi", "wallpaper")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_solid_system", s(R.string.settings_app_list_background_solid_system), s(R.string.settings_app_list_background_solid_system_sub), listOf("cs", "solid", "chunse", "heibai")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_solid_custom", s(R.string.settings_app_list_background_solid_custom), s(R.string.settings_app_list_background_solid_custom_sub), listOf("zdyys", "custom colour", "yanse", "quse")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_pick_color", s(R.string.settings_app_list_background_color), s(R.string.settings_app_list_background_solid_custom_sub), listOf("bjys", "background colour", "yanse", "quse")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_watch_face", s(R.string.settings_app_list_background_watch_face), s(R.string.settings_app_list_background_watch_face_sub), listOf("gsbp", "follow watch face", "genshui", "biaopan")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_custom_image", s(R.string.settings_app_list_background_custom_image), s(R.string.settings_app_list_background_custom_image_sub), listOf("zdytp", "custom image", "tupian", "bizhi")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_pick_image", s(R.string.settings_app_list_background_pick_image), s(R.string.settings_app_list_background_pick_image_sub), listOf("xztp", "pick image", "xuanze", "tupian", "caijian", "crop")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_blur", s(R.string.settings_app_list_background_blur), s(R.string.settings_app_list_background_blur_sub), listOf("mhcd", "blur", "mohu")),
-    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_scrim", s(R.string.settings_app_list_background_scrim), s(R.string.settings_app_list_background_scrim_sub), listOf("zzqd", "scrim", "zhezhao", "yadang")),
-    SettingsSearchEntry("ICON_PACKS", null, s(R.string.settings_icon_packs), s(R.string.search_d_icon_packs), listOf("tbb", "icon pack")),
-    SettingsSearchEntry("ICON_PACKS", "icon_pack_default", s(R.string.settings_icon_pack_default), s(R.string.settings_icon_pack_default_sub), listOf("mrtb", "default icons", "moren")),
-    SettingsSearchEntry("ICON_PACKS", "icon_pack_refresh", s(R.string.settings_icon_pack_refresh), s(R.string.settings_icon_pack_refresh_sub), listOf("sxtbb", "rescan icon packs", "shuaxin")),
-    SettingsSearchEntry("HIDDEN_APPS", null, s(R.string.settings_hidden_apps), s(R.string.search_d_hidden_apps), listOf("ycyy", "hidden", "yincang")),
-    SettingsSearchEntry("FEATURE_TOGGLES", null, s(R.string.settings_feature_toggles), s(R.string.search_d_feature_toggles), listOf("gnkg", "toggles")),
-    SettingsSearchEntry("FEATURE_TOGGLES", "glass_highlight_toggle", s(R.string.settings_glass_highlight), s(R.string.settings_glass_highlight_on), listOf("gaoguang", "glass", "highlight", "bianyuan")),
-    SettingsSearchEntry("SIDE_SCREEN", null, s(R.string.settings_side_screen_title), s(R.string.search_d_side_screen), listOf("fyp", "side screen", "fuyiping", "xiaozujian")),
-    SettingsSearchEntry("SIDE_SCREEN", "side_screen_toggle", s(R.string.settings_side_screen), s(R.string.search_d_side_screen_toggle), listOf("fyp", "side screen")),
-    SettingsSearchEntry("SIDE_SCREEN", "widget_center_toggle", s(R.string.search_t_widget_page), s(R.string.search_d_widget_page), listOf("xzjy", "widget")),
-    SettingsSearchEntry("SIDE_SCREEN", "widget_glass_highlight", s(R.string.settings_widget_glass_highlight), s(R.string.search_d_widget_glass_highlight), listOf("xzjy", "widget", "glass", "highlight", "gaoguang")),
-    SettingsSearchEntry("SIDE_SCREEN", "show_step_count", s(R.string.settings_show_steps), s(R.string.search_d_show_steps), listOf("xsbs", "steps", "bushu")),
-    SettingsSearchEntry("SIDE_SCREEN", "music_notification_swap_toggle", s(R.string.settings_swap_music_notifications), s(R.string.search_d_swap), listOf("hhzj", "swap")),
-    SettingsSearchEntry("SIDE_SCREEN", "music_controls_toggle", s(R.string.settings_show_music), s(R.string.search_d_show_music), listOf("yykz", "music", "yinyue")),
-    SettingsSearchEntry("SIDE_SCREEN", "media_custom_actions_toggle", s(R.string.settings_media_actions), s(R.string.search_d_media_actions), listOf("zdyaj", "media actions")),
-    SettingsSearchEntry("NOTIFICATION_SETTINGS", null, s(R.string.settings_notifications_title), s(R.string.search_d_notifications), listOf("tzzx", "notification", "tongzhi")),
-    SettingsSearchEntry("NOTIFICATION_SETTINGS", "notification_center_toggle", s(R.string.settings_show_notifications), s(R.string.search_d_show_notifications), listOf("xstz", "notifications")),
-    SettingsSearchEntry("NOTIFICATION_SETTINGS", "ongoing_notification_toggle", s(R.string.settings_show_ongoing), s(R.string.search_d_show_ongoing), listOf("czts", "ongoing")),
-    SettingsSearchEntry("GESTURE_SETTINGS", null, s(R.string.settings_gestures_title), s(R.string.search_d_gestures), listOf("ssaj", "gesture", "shoushi")),
-    SettingsSearchEntry("GESTURE_SETTINGS", "double_tap_lock_screen", s(R.string.settings_double_tap_lock), s(R.string.search_d_double_tap), listOf("sjxp", "double tap", "xiping")),
-    SettingsSearchEntry("GESTURE_SETTINGS", "face_ignores_back_key", s(R.string.settings_face_ignores_back), s(R.string.settings_face_ignores_back_sub), listOf("bpbxyfhj", "back key", "mitu", "mitou", "fanhui")),
-    SettingsSearchEntry("APP_LIST_BEHAVIOR", null, s(R.string.settings_app_list_behavior_title), s(R.string.search_d_app_list_behavior), listOf("yylb", "app list")),
-    SettingsSearchEntry("APP_LIST_BEHAVIOR", "app_list_folders_enabled", s(R.string.settings_allow_folders), s(R.string.search_d_folders), listOf("wjj", "folder", "wenjianjia")),
-    SettingsSearchEntry("APP_LIST_BEHAVIOR", "app_list_watchface_colors", s(R.string.settings_watchface_launch_mask), s(R.string.search_d_launch_mask), listOf("zzqs", "mask color")),
-    SettingsSearchEntry("APP_LIST_BEHAVIOR", "app_list_row_border", s(R.string.settings_list_row_bg), s(R.string.search_d_row_bg), listOf("dsmz", "row background")),
-    SettingsSearchEntry("PERFORMANCE", null, s(R.string.settings_performance), s(R.string.search_d_performance), listOf("xnydh", "performance", "donghua")),
-    // 性能页拆成三个二级子页后，锚点的 destinationName 必须跟着搬家。
-    // SettingsDestination.valueOf 外面裹着 runCatching，写错名字不会报错，
-    // 只会静默跳不过去——所以这里的名字与上面的 enum 必须逐条对齐。
-    SettingsSearchEntry("PERFORMANCE_RENDERING", null, s(R.string.settings_perf_group_rendering), s(R.string.settings_perf_group_rendering_sub), listOf("xrzl", "rendering", "zhiliang")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", null, s(R.string.settings_perf_group_motion), s(R.string.settings_perf_group_motion_sub), listOf("dhzc", "motion", "transition", "zhuanchang")),
-    SettingsSearchEntry("PERFORMANCE_SYSTEM", null, s(R.string.settings_perf_group_system), s(R.string.settings_perf_group_system_sub), listOf("xtwl", "system", "network", "wangluo")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "app_list_stagger", s(R.string.settings_stagger_entry), s(R.string.search_d_stagger), listOf("swrc", "stagger")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "legacy_app_list_transition", s(R.string.settings_legacy_transition), s(R.string.search_d_legacy), listOf("lzcd", "legacy")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "app_list_return_shrink", s(R.string.settings_app_list_shrink), s(R.string.search_d_app_list_shrink), listOf("sswd", "shrink")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "app_list_return_icon_float", s(R.string.settings_icon_float), s(R.string.search_d_icon_float), listOf("tbsf", "icon float")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "face_return_shrink", s(R.string.settings_face_shrink), s(R.string.search_d_face_shrink), listOf("bpss", "face shrink", "shousuo", "biaopan")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "reduce_dynamic_effects", s(R.string.settings_reduce_motion), s(R.string.search_d_reduce_motion), listOf("jrdt", "reduce motion", "jianruo", "huitan")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "anim_override", s(R.string.settings_launch_animation), s(R.string.search_d_launch_animation), listOf("qdfh", "launch animation")),
-    SettingsSearchEntry("PERFORMANCE_RENDERING", "icon_shadow", s(R.string.settings_icon_shadow), s(R.string.search_d_icon_shadow), listOf("tbyy", "shadow", "yinying")),
-    SettingsSearchEntry("PERFORMANCE_RENDERING", "low_res", s(R.string.settings_low_res_icons), s(R.string.search_d_low_res), listOf("dfbl", "low res", "fenbianlv")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "music_text_animation", s(R.string.settings_music_text_animation), s(R.string.search_d_music_text), listOf("yywz", "music text")),
-    SettingsSearchEntry("PERFORMANCE_SYSTEM", "hide_from_recents", s(R.string.settings_hide_recents), s(R.string.search_d_hide_recents), listOf("ychtkp", "recents", "houtai")),
-    SettingsSearchEntry("PERFORMANCE_SYSTEM", "watch_store_segmented_download", s(R.string.settings_watch_store_segmented_download), s(R.string.search_d_segmented_download), listOf("dxcfdxz", "segmented", "download", "xiazai", "duoxiancheng")),
-    SettingsSearchEntry("PERFORMANCE_RENDERING", "builtin_manager_thumbnails", s(R.string.settings_builtin_thumbnails), s(R.string.search_d_thumbnails), listOf("sltu", "thumbnails", "suoluetu")),
-    SettingsSearchEntry("PERFORMANCE_MOTION", "motion_profile", s(R.string.search_t_motion_profile_entry), s(R.string.search_d_motion_profile_entry), listOf("dhqx", "motion profile")),
-    SettingsSearchEntry("MOTION_PROFILE", null, s(R.string.settings_motion_profile_title), s(R.string.search_d_motion_profile), listOf("dhqx", "motion", "quxian", "spring")),
-    SettingsSearchEntry("MOTION_PROFILE", "motion_bounce", s(R.string.settings_motion_bounce), s(R.string.search_d_motion_bounce), listOf("cbht", "bounce", "huitan")),
-    SettingsSearchEntry("MOTION_PROFILE", "motion_edge_strength", s(R.string.settings_motion_bounce_strength), s(R.string.search_d_edge_strength), listOf("bjqd", "edge strength")),
-    SettingsSearchEntry("MOTION_PROFILE", "motion_copy", s(R.string.settings_motion_profile_copy), s(R.string.settings_motion_profile_copy_sub), listOf("fzqx", "copy curve", "fuzhi")),
-    SettingsSearchEntry("MOTION_PROFILE", "motion_delete", s(R.string.settings_motion_profile_delete), s(R.string.settings_motion_profile_delete_sub), listOf("scqx", "delete curve", "shanchu")),
-    SettingsSearchEntry("MOTION_PROFILE", "motion_export", s(R.string.settings_motion_export_curves), s(R.string.settings_motion_export_curves_sub), listOf("dcqx", "export curves", "daochu")),
-    SettingsSearchEntry("MOTION_PROFILE", "motion_import", s(R.string.settings_motion_import_curves), s(R.string.settings_motion_import_curves_sub), listOf("drqx", "import curves", "daoru")),
-    SettingsSearchEntry("MUSIC_TEXT_ANIMATION", null, s(R.string.search_t_music_text_anim), s(R.string.search_d_music_text), listOf("yywz", "music text")),
-    SettingsSearchEntry("TOOLS", null, s(R.string.settings_tools), s(R.string.search_d_tools), listOf("gj", "tools", "beifen")),
-    SettingsSearchEntry("TOOLS", "export_log", s(R.string.settings_export_log), s(R.string.search_d_export_log), listOf("dcrz", "export log", "rizhi")),
-    SettingsSearchEntry("TOOLS", "watch_store_preview_cache", s(R.string.settings_clear_watch_store_cache), s(R.string.settings_clear_watch_store_cache_sub), listOf("qlhc", "cache", "fengmian", "biaopan shichang")),
-    SettingsSearchEntry("TOOLS", "watch_store_market_url", s(R.string.settings_watch_store_market_url), s(R.string.search_d_watchface_store), listOf("zdysc", "market url", "wangzhi", "shichang")),
-    SettingsSearchEntry("WATCH_FACE_MORE", "tap_actions", s(R.string.settings_tap_actions), s(R.string.settings_tap_actions_sub), listOf("bpdj", "tap action", "dianji dongzuo", "yinle", "music")),
-    SettingsSearchEntry("TOOLS", "web_zoom", s(R.string.settings_web_zoom), s(R.string.settings_web_zoom_sub), listOf("wysf", "web zoom", "suofang", "wangyeban")),
-    SettingsSearchEntry("TOOLS", "clear_web_data", s(R.string.settings_clear_web_data), s(R.string.settings_clear_web_data_sub), listOf("qlwy", "clear web", "cookie", "denglu")),
-    SettingsSearchEntry("TOOLS", "diagnostic_logging", s(R.string.settings_diagnostic_logging), s(R.string.search_d_diagnostic), listOf("zdrz", "diagnostic")),
-    SettingsSearchEntry("TOOLS", "reset_defaults", s(R.string.settings_reset_defaults), s(R.string.search_d_reset), listOf("hfmr", "reset", "moren")),
-    SettingsSearchEntry("BACKUP", null, s(R.string.search_t_backup), s(R.string.search_d_backup), listOf("bfyf", "backup")),
-    SettingsSearchEntry("BACKUP_EXPORT", null, s(R.string.settings_backup_export_page), s(R.string.settings_backup_export_page_sub), listOf("dcpz", "export config", "daochu", "beifen")),
-    SettingsSearchEntry("BACKUP_IMPORT", null, s(R.string.settings_backup_import_page), s(R.string.settings_backup_import_page_sub), listOf("drpz", "import config", "daoru", "huifu", "restore")),
-    SettingsSearchEntry("LANGUAGE", null, s(R.string.settings_language), s(R.string.search_d_language), listOf("yy", "language", "yuyan", "zhongwen", "english")),
-    SettingsSearchEntry("ABOUT", null, s(R.string.settings_about), s(R.string.search_d_about), listOf("gy", "about", "banben")),
-    SettingsSearchEntry("DONATE", null, s(R.string.search_t_donate), s(R.string.search_d_donate), listOf("jz", "donate", "juanzeng")),
-    )
 }

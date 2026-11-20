@@ -1,7 +1,6 @@
 package com.flue.launcher.ui.settings
 
 import com.flue.launcher.SettingsDestination
-import com.flue.launcher.buildSettingsSearchIndex
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

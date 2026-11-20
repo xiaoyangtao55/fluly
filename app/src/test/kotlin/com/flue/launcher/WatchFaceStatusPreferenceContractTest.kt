@@ -19,7 +19,10 @@ class WatchFaceStatusPreferenceContractTest {
     @Test
     fun `settings exposes the independent dnd moon switch`() {
         val settings = source("com/example/wlauncher/SettingsActivity.kt")
-        assertTrue(settings.contains("settings_watchface_dnd_indicator"))
+        // 条目标题在数据层，值绑定仍在 SettingsActivity 的 binding。
+        val hierarchy = source("com/example/wlauncher/ui/settings/SettingsHierarchy.kt")
+
+        assertTrue(hierarchy.contains("R.string.settings_watchface_dnd_indicator"))
         assertTrue(settings.contains("watchFaceDndIndicator"))
         assertTrue(settings.contains("setWatchFaceDndIndicatorEnabled"))
     }

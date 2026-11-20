@@ -1,4 +1,4 @@
-package com.flue.launcher
+package com.flue.launcher.ui.settings
 
 internal data class SettingsInitialPosition(
     val index: Int,

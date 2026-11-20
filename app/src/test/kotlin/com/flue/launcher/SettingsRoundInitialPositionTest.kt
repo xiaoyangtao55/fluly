@@ -1,5 +1,8 @@
 package com.flue.launcher
 
+import com.flue.launcher.ui.settings.SettingsInitialPosition
+import com.flue.launcher.ui.settings.settingsCenteredItemScrollOffset
+import com.flue.launcher.ui.settings.settingsInitialPosition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

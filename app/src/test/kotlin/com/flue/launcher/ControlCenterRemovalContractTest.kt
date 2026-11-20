@@ -20,6 +20,9 @@ class ControlCenterRemovalContractTest {
         assertFalse(source("ui/navigation/GestureHost.kt").contains("OverlayGestureTarget.ControlCenter"))
         assertFalse(source("LauncherActivity.kt").contains("ControlCenterLayer"))
         assertFalse(source("SettingsActivity.kt").contains("CONTROL_CENTER_SETTINGS"))
+        // 设置条目与搜索索引都已分居两处，两处都不能再出现这个面板。
+        assertFalse(source("ui/settings/SettingsHierarchy.kt").contains("CONTROL_CENTER_SETTINGS"))
+        assertFalse(source("ui/settings/SettingsSearchIndex.kt").contains("CONTROL_CENTER_SETTINGS"))
         assertFalse(source("viewmodel/LauncherViewModel.kt").contains("setShowControlCenter"))
     }
 
@@ -27,8 +30,8 @@ class ControlCenterRemovalContractTest {
     fun `music card and its settings remain on the side screen`() {
         assertTrue(source("ui/smartstack/SmartStackLayer.kt").contains("SideScreenMusicCard("))
         assertTrue(source("ui/smartstack/SideScreenMusicCard.kt").contains("if (!active) return@LaunchedEffect"))
-        val settings = source("SettingsActivity.kt")
-        assertTrue(settings.contains("SettingsSearchEntry(\"SIDE_SCREEN\", \"music_controls_toggle\""))
-        assertTrue(settings.contains("SettingsSearchEntry(\"SIDE_SCREEN\", \"media_custom_actions_toggle\""))
+        val searchIndex = source("ui/settings/SettingsSearchIndex.kt")
+        assertTrue(searchIndex.contains("SettingsSearchEntry(\"SIDE_SCREEN\", \"music_controls_toggle\""))
+        assertTrue(searchIndex.contains("SettingsSearchEntry(\"SIDE_SCREEN\", \"media_custom_actions_toggle\""))
     }
 }

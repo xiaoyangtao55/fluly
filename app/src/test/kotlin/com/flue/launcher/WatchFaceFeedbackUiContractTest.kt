@@ -8,11 +8,15 @@ class WatchFaceFeedbackUiContractTest {
     @Test
     fun `aod settings are a child page instead of an inline appearance card`() {
         val settings = source("com/example/wlauncher/SettingsActivity.kt")
+        val hierarchy = source("com/example/wlauncher/ui/settings/SettingsHierarchy.kt")
 
-        assertTrue(settings.contains("SettingsDestination.AOD"))
-        assertTrue(settings.contains("navigateTo(SettingsDestination.AOD)"))
+        // 目的页本身仍是独立子页：枚举里有它，分支渲染 SettingsPageScaffold。
         assertTrue(settings.contains("SettingsDestination.AOD -> {"))
         assertTrue(settings.substringAfter("SettingsDestination.AOD -> {").contains("SettingsPageScaffold("))
+
+        // 入口迁到声明式条目后，跳转不再写字面量 navigateTo(SettingsDestination.X)，
+        // 而是由 destination 名字驱动 —— 所以这条断言盯数据，不盯调用点。
+        assertTrue(hierarchy.contains("destination = \"AOD\""))
         assertFalse(settings.contains("item(\"aod_settings\") {\n                AodSettingsSection()"))
     }
 
@@ -39,9 +43,9 @@ class WatchFaceFeedbackUiContractTest {
 
     @Test
     fun `corner mask slider is not nested inside the dialog vertical scroller`() {
-        val settings = source("com/example/wlauncher/SettingsActivity.kt")
-        val dialog = settings.substringAfter("private fun OverlayMaskCornerRadiusDialog(")
-            .substringBefore("private fun", missingDelimiterValue = settings)
+        val about = source("com/example/wlauncher/ui/settings/SettingsAboutAndDonate.kt")
+        val dialog = about.substringAfter("internal fun OverlayMaskCornerRadiusDialog(")
+            .substringBefore("internal fun", missingDelimiterValue = about)
 
         assertTrue(dialog.contains("scrollableContent = false"))
         assertTrue(dialog.contains("FlueSlider("))

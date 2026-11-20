@@ -27,14 +27,17 @@ class AppListEdgeAlignPreferenceContractTest {
 
     @Test
     fun `settings exposes the edge align switch with a search entry`() {
-        val settings = source("com/example/wlauncher/SettingsActivity.kt")
+        // 显示大小屏已整页搬到独立文件，开关本体在那里；
+        // 搜索索引也从 SettingsActivity 拆到了 SettingsSearchIndex.kt。
+        val displaySize = source("com/example/wlauncher/ui/settings/DisplaySizeScreen.kt")
+        val searchIndex = source("com/example/wlauncher/ui/settings/SettingsSearchIndex.kt")
 
-        assertTrue(settings.contains("settings_app_list_edge_align"))
-        assertTrue(settings.contains("appListEdgeAlignEnabled"))
-        assertTrue(settings.contains("setAppListEdgeAlignEnabled"))
+        assertTrue(displaySize.contains("settings_app_list_edge_align"))
+        assertTrue(displaySize.contains("appListEdgeAlignEnabled"))
+        assertTrue(displaySize.contains("setAppListEdgeAlignEnabled"))
+        assertTrue(displaySize.contains("row(\"app_list_edge_align\")"))
         // 搜索索引的 itemKey 必须与设置页里 row("…") 的 key 逐字一致，否则跳转静默失效。
-        assertTrue(settings.contains("SettingsSearchEntry(\"DISPLAY_SIZE\", \"app_list_edge_align\""))
-        assertTrue(settings.contains("row(\"app_list_edge_align\")"))
+        assertTrue(searchIndex.contains("SettingsSearchEntry(\"DISPLAY_SIZE\", \"app_list_edge_align\""))
     }
 
     /** 开关必须一路从 Compose 传到原生配置，中间断一环就是「设置里能点、列表没反应」。 */
