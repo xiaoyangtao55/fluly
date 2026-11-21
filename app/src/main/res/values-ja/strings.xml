@@ -901,6 +901,9 @@
     <string name="shortcut_menu_remove">削除</string>
     <string name="shortcut_menu_remove_from_quick_launch">クイック起動から削除</string>
     <string name="shortcut_menu_uninstall">アンインストール</string>
+    <string name="shortcut_added">ショートカットを追加しました</string>
+    <string name="shortcut_add_failed">ショートカットを追加できませんでした</string>
+    <string name="shortcut_add_failed_invalid">ショートカットの情報が無効か、有効期限が切れています</string>
     <string name="shortcut_menu_exclude_app">リストから非表示</string>
     <string name="watch_editor_no_layers">レイヤーはありません</string>
     <string name="watch_editor_select_layer_first">先にレイヤーを選択してください</string>

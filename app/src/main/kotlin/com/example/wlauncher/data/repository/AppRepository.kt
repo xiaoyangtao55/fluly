@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.ContextCompat
 import com.flue.launcher.R
+import com.flue.launcher.data.model.APP_LIST_SHORTCUT_KEY_PREFIX
 import com.flue.launcher.data.model.AppInfo
 import com.flue.launcher.data.model.AppListItemType
 import com.flue.launcher.data.model.BUILTIN_SETTINGS_ENTRY_COMPONENT
@@ -162,8 +163,10 @@ class AppRepository(private val context: Context) {
             packageNames.forEach(::invalidateShortcuts)
         override fun onPackagesUnavailable(packageNames: Array<out String>, user: UserHandle, replacing: Boolean) =
             packageNames.forEach(::invalidateShortcuts)
-        override fun onShortcutsChanged(packageName: String, shortcuts: List<ShortcutInfo>, user: UserHandle) =
+        override fun onShortcutsChanged(packageName: String, shortcuts: List<ShortcutInfo>, user: UserHandle) {
             invalidateShortcuts(packageName)
+            pruneMissingPinnedShortcuts(packageName, shortcuts)
+        }
     }
 
     private val packageReceiver = object : BroadcastReceiver() {
@@ -515,6 +518,12 @@ class AppRepository(private val context: Context) {
             val intent = runCatching {
                 Intent.parseUri(appInfo.shortcutIntentUri.orEmpty(), Intent.URI_INTENT_SCHEME)
             }.getOrNull() ?: return false
+            // 这条 URI 来自外部应用，parseUri 会把作恶的 flag 一并还原。
+            // 其中 FLAG_GRANT_* 等于把我们自己持有的 URI 权限转授给目标应用，快捷方式用不到，
+            // 一律清掉。其余 flag（NEW_TASK / CLEAR_TOP 之类）留给构造方。
+            intent.removeFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             return try {
                 context.startActivity(intent)
@@ -608,8 +617,18 @@ class AppRepository(private val context: Context) {
 
     fun addLegacyShortcut(label: String?, intent: Intent?, icon: Bitmap?): Boolean {
         val shortcutIntent = intent ?: return false
-        val safeLabel = label?.takeIf { it.isNotBlank() } ?: shortcutIntent.component?.packageName ?: "快捷方式"
-        val packageName = shortcutIntent.component?.packageName ?: shortcutIntent.`package`.orEmpty()
+        // 包名是这条记录唯一的锚点：图标兜底、去重、卸载后清理都靠它。
+        // 解析不出来就拒绝 —— 硬塞进去只会得到一个没图标、没归属的空条目，
+        // 下次重建目录时被 createShortcutEntry 静默丢掉，反而更难查。
+        val packageName = (shortcutIntent.component?.packageName ?: shortcutIntent.`package`)
+            ?.takeIf { it.isNotBlank() }
+            ?: return false
+        val safeLabel = label?.takeIf { it.isNotBlank() }
+            ?: runCatching {
+                val pm = context.packageManager
+                pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
+            }.getOrNull()?.takeIf { it.isNotBlank() }
+            ?: packageName
         val uri = shortcutIntent.toUri(Intent.URI_INTENT_SCHEME)
         itemStorage.addShortcut(
             label = safeLabel,
@@ -702,6 +721,34 @@ class AppRepository(private val context: Context) {
 
     private fun invalidateShortcuts(packageName: String) {
         shortcutQueryCache.remove(packageName)
+    }
+
+    /**
+     * 应用更新后删掉的快捷方式，系统不再返回，但条目还留在列表里：点一下
+     * `startShortcut` 抛异常 → 触发一次 refresh → 条目依旧在，于是成了点不开
+     * 也删不掉的僵尸图标。
+     *
+     * [live] 是该包当前**完整**的可用清单（manifest + dynamic + pinned），所以
+     * 「清单里没有的 pinned id」就是已经失效的。
+     *
+     * 清单为空时不动手：应用刚更新、shortcut 还没重新发布的那一小段也可能给空列表，
+     * 那会儿删会把用户正常添加的条目一起抹掉。留一个僵尸，好过删掉一个还能用的。
+     */
+    private fun pruneMissingPinnedShortcuts(packageName: String, live: List<ShortcutInfo>) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (live.isEmpty()) return
+        val liveIds = live.asSequence().mapNotNull { runCatching { it.id }.getOrNull() }.toSet()
+        val stale = itemStorage.loadShortcuts().filter { shortcut ->
+            shortcut.packageName == packageName &&
+                !shortcut.pinnedShortcutId.isNullOrBlank() &&
+                shortcut.pinnedShortcutId !in liveIds
+        }
+        if (stale.isEmpty()) return
+        var removed = false
+        stale.forEach { shortcut ->
+            removed = itemStorage.removeShortcut(APP_LIST_SHORTCUT_KEY_PREFIX + shortcut.id) || removed
+        }
+        if (removed) refreshAsync()
     }
 
     private fun shortcutLabel(shortcutInfo: ShortcutInfo): String =

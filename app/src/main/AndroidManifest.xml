@@ -43,6 +43,14 @@
          类名 StatusBarManager 带 @hide 不代表权限受限 —— 见 service/SystemStatusBar.kt。 -->
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 
+    <!-- 接收旧式「添加到主屏幕」广播。同是 normal 级权限，安装即授予，用户无感。
+         这一条不声明，receiver 写得再对也收不到：绝大多数仍在用旧路径的应用是这样投递的 ——
+             sendBroadcast(intent, "com.android.launcher.permission.INSTALL_SHORTCUT")
+         带权限的重载只投递给**持有该权限**的接收方，不声明就直接跳过。
+         Android 8.0 起系统自身不再发这条广播，但应用自己发的不受影响，
+         所以它和 ShortcutReceiverActivity 的 PIN 请求路径是互补关系，不是替代关系。 -->
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+
     <!-- 编辑器 / 商店在 Flue Studio 里，HOME 只负责把用户送过去。Android 11+ 不做
          包可见性声明就查不到它，「打开 Studio」会永远走「未安装」分支。 -->
     <queries>
@@ -124,6 +132,7 @@
             android:exported="true"
             android:excludeFromRecents="true"
             android:noHistory="true"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.WatchLauncher">
             <intent-filter>
                 <action android:name="android.content.pm.action.CONFIRM_PIN_SHORTCUT" />

@@ -903,6 +903,9 @@
     <string name="shortcut_menu_remove">Remove</string>
     <string name="shortcut_menu_remove_from_quick_launch">Remove from quick launch</string>
     <string name="shortcut_menu_uninstall">Uninstall</string>
+    <string name="shortcut_added">Shortcut added</string>
+    <string name="shortcut_add_failed">Couldn\'t add the shortcut</string>
+    <string name="shortcut_add_failed_invalid">The shortcut request is invalid or has expired</string>
     <string name="shortcut_menu_exclude_app">Hide from list</string>
     <string name="watch_editor_no_layers">No layers yet</string>
     <string name="watch_editor_select_layer_first">Select a layer first</string>
