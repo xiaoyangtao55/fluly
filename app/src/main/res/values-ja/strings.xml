@@ -181,6 +181,9 @@
     <string name="settings_glass_highlight">ガラス縁ハイライト</string>
     <string name="settings_glass_highlight_on">通知、サイド画面の縁を強調表示</string>
     <string name="settings_glass_highlight_off">すべての画面でガラス縁ハイライトを非表示</string>
+    <string name="settings_lock_screen_watch_face">ロック画面の文字盤</string>
+    <string name="settings_lock_screen_watch_face_on">画面オフ後、文字盤をシステムのロック画面に重ねて表示</string>
+    <string name="settings_lock_screen_watch_face_off">システムのロック画面をそのまま表示</string>
     <string name="settings_swap_music_notifications">音楽カードを表示</string>
     <string name="settings_swap_music_notifications_on">サイド画面に通知の代わりに音楽カードを表示</string>
     <string name="settings_swap_music_notifications_off">サイド画面に通知プレビューを表示</string>

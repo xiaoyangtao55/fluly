@@ -306,6 +306,15 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         val KEY_APP_LANGUAGE = stringPreferencesKey("app_language")
         val KEY_GLASS_HIGHLIGHT = booleanPreferencesKey("glass_highlight_enabled")
         val KEY_WIDGET_GLASS_HIGHLIGHT = booleanPreferencesKey("widget_glass_highlight_enabled")
+
+        /**
+         * 熄屏时是否把表盘盖到 Keyguard 上。
+         *
+         * 默认开。留这个开关是因为锁屏表盘的成败取决于厂商 SystemUI 的行为，
+         * 而不是本仓库能静态验证的东西 —— 用户的设备上一旦表现不对，
+         * 必须有一个不用重装 APK 就能退回去的入口。
+         */
+        val KEY_LOCK_SCREEN_WATCH_FACE = booleanPreferencesKey("lock_screen_watch_face_enabled")
         val KEY_SIDE_SCREEN_WIDGETS = stringPreferencesKey("side_screen_widgets")
         val KEY_SIDE_SCREEN_SHORTCUT_ROWS = intPreferencesKey("side_screen_shortcut_rows")
         val KEY_SIDE_SCREEN_SHORTCUT_COLS = intPreferencesKey("side_screen_shortcut_cols")
@@ -813,6 +822,9 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     val appLanguage: StateFlow<String> = _appLanguage.asStateFlow()
     private val _glassHighlightEnabled = MutableStateFlow(true)
     val glassHighlightEnabled: StateFlow<Boolean> = _glassHighlightEnabled.asStateFlow()
+
+    private val _lockScreenWatchFaceEnabled = MutableStateFlow(true)
+    val lockScreenWatchFaceEnabled: StateFlow<Boolean> = _lockScreenWatchFaceEnabled.asStateFlow()
     private val _widgetGlassHighlightEnabled = MutableStateFlow(true)
     val widgetGlassHighlightEnabled: StateFlow<Boolean> = _widgetGlassHighlightEnabled.asStateFlow()
 
@@ -1564,6 +1576,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
                 val loadedGlassHighlight = prefs[KEY_GLASS_HIGHLIGHT] ?: true
                 if (_glassHighlightEnabled.value != loadedGlassHighlight) _glassHighlightEnabled.value = loadedGlassHighlight
+
+                val loadedLockScreenWatchFace = prefs[KEY_LOCK_SCREEN_WATCH_FACE] ?: true
+                if (_lockScreenWatchFaceEnabled.value != loadedLockScreenWatchFace) {
+                    _lockScreenWatchFaceEnabled.value = loadedLockScreenWatchFace
+                }
 
                 val loadedWidgetGlassHighlight = prefs[KEY_WIDGET_GLASS_HIGHLIGHT] ?: true
                 if (_widgetGlassHighlightEnabled.value != loadedWidgetGlassHighlight) {
@@ -3635,6 +3652,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         persist { store.edit { it[KEY_GLASS_HIGHLIGHT] = enabled } }
     }
 
+    fun setLockScreenWatchFaceEnabled(enabled: Boolean) {
+        _lockScreenWatchFaceEnabled.value = enabled
+        persist { store.edit { it[KEY_LOCK_SCREEN_WATCH_FACE] = enabled } }
+    }
+
     fun setWidgetGlassHighlightEnabled(enabled: Boolean) {
         _widgetGlassHighlightEnabled.value = enabled
         persist { store.edit { it[KEY_WIDGET_GLASS_HIGHLIGHT] = enabled } }
@@ -3983,6 +4005,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 it[KEY_OVERLAY_MASK_CORNER_RADIUS_DP] = DEFAULT_OVERLAY_MASK_CORNER_RADIUS_DP
                 it[KEY_GLASS_HIGHLIGHT] = true
                 it[KEY_WIDGET_GLASS_HIGHLIGHT] = true
+                it[KEY_LOCK_SCREEN_WATCH_FACE] = true
                 it[KEY_APP_LIST_WATCHFACE_COLORS] = false
                 it[KEY_APP_LIST_ROW_BORDER] = false
                 it[KEY_APP_LIST_GRID_ICON_PLATE] = true

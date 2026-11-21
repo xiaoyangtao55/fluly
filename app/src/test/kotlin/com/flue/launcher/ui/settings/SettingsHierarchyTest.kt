@@ -34,6 +34,7 @@ class SettingsHierarchyTest {
                 "cat_gestures",
                 "cat_app_list_behavior",
                 "glass_highlight_toggle",
+                "lock_screen_watch_face_toggle",
             ),
             keys,
         )
@@ -68,12 +69,16 @@ class SettingsHierarchyTest {
     /** 状态回显类开关（如玻璃高光）必须两个状态的文案都声明，否则会退化成空副标题。 */
     @Test
     fun statefulToggleDeclaresBothSubtitleStates() {
-        val toggle = SettingsHierarchy.renderedGroup("feature_toggles")
+        // 不取 single()：这一屏已经有第二个开关（锁屏表盘），以后还会有更多。
+        // 契约是「每一个都要两个状态」，不是「只能有一个」。
+        val toggles = SettingsHierarchy.renderedGroup("feature_toggles")
             .filterIsInstance<SettingsEntry.Toggle>()
-            .single()
+        assertTrue("feature_toggles 应当至少有一个开关", toggles.isNotEmpty())
 
-        assertNotNull("${toggle.id} 缺少 subtitleOnRes", toggle.subtitleOnRes)
-        assertNotNull("${toggle.id} 缺少 subtitleOffRes", toggle.subtitleOffRes)
+        toggles.forEach { toggle ->
+            assertNotNull("${toggle.id} 缺少 subtitleOnRes", toggle.subtitleOnRes)
+            assertNotNull("${toggle.id} 缺少 subtitleOffRes", toggle.subtitleOffRes)
+        }
     }
 
     /** 未注册的组 id 取用必须立即失败，而不是画出错误的页面。 */

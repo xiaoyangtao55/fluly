@@ -545,6 +545,7 @@ private fun SettingsRootScreen(
     val rotaryHapticsEnabled by vm.rotaryHapticsEnabled.collectAsStateWithLifecycle()
     val showWidgetPage by vm.showWidgetPage.collectAsStateWithLifecycle()
     val glassHighlightEnabled by vm.glassHighlightEnabled.collectAsStateWithLifecycle()
+    val lockScreenWatchFaceEnabled by vm.lockScreenWatchFaceEnabled.collectAsStateWithLifecycle()
     val widgetGlassHighlightEnabled by vm.widgetGlassHighlightEnabled.collectAsStateWithLifecycle()
     val showMusicControls by vm.showMusicControls.collectAsStateWithLifecycle()
     val showMediaCustomActions by vm.showMediaCustomActions.collectAsStateWithLifecycle()
@@ -2288,10 +2289,16 @@ private fun SettingsRootScreen(
             settingsEntryGroup(
                 entries = SettingsHierarchy.renderedGroup("feature_toggles"),
                 binding = object : SettingsEntryBinding {
-                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = glassHighlightEnabled
+                    override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "lock_screen_watch_face_toggle" -> lockScreenWatchFaceEnabled
+                        else -> glassHighlightEnabled
+                    }
 
                     override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
-                        vm.setGlassHighlightEnabled(checked)
+                        when (entry.id) {
+                            "lock_screen_watch_face_toggle" -> vm.setLockScreenWatchFaceEnabled(checked)
+                            else -> vm.setGlassHighlightEnabled(checked)
+                        }
                     }
 
                     // destination 存的就是 SettingsDestination 的枚举名，

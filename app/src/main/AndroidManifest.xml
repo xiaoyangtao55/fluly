@@ -190,6 +190,21 @@
             android:theme="@style/Theme.WatchLauncher"
             android:screenOrientation="portrait" />
 
+        <!--
+          锁屏表盘：由 LauncherActivity 在 ACTION_SCREEN_OFF 时拉起，盖在 Keyguard 之上。
+          singleInstance + taskAffinity="" 让它自成任务、不与 HOME 抢栈；excludeFromRecents
+          保证它不会出现在最近任务里（一个锁屏皮肤出现在多任务里会很怪）。
+        -->
+        <activity
+            android:name=".lockscreen.LockScreenWatchFaceActivity"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.WatchLauncher"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboard|keyboardHidden|navigation" />
+
         <service
             android:name=".service.WLauncherNotificationListener"
             android:exported="true"

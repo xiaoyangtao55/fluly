@@ -182,6 +182,9 @@
     <string name="settings_glass_highlight">Glass edge highlight</string>
     <string name="settings_glass_highlight_on">Show edge highlights on notifications and side screen</string>
     <string name="settings_glass_highlight_off">Hide glass edge highlights on all pages</string>
+    <string name="settings_lock_screen_watch_face">Lock screen watch face</string>
+    <string name="settings_lock_screen_watch_face_on">Show the watch face over the system lock screen</string>
+    <string name="settings_lock_screen_watch_face_off">Keep the system lock screen</string>
     <string name="settings_swap_music_notifications">Show Music Card</string>
     <string name="settings_swap_music_notifications_on">Show the music card on side screen instead of notifications</string>
     <string name="settings_swap_music_notifications_off">Show notification previews on side screen</string>

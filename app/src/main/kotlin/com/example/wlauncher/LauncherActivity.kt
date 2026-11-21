@@ -1,7 +1,10 @@
 package com.flue.launcher
 
 import com.flue.launcher.i18n.FlueComponentActivity
+import com.flue.launcher.lockscreen.registerScreenOffReceiver
+import com.flue.launcher.lockscreen.screenOffReceiverFor
 
+import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -214,6 +217,12 @@ class LauncherActivity : FlueComponentActivity() {
     }
     private var deferredResumeMaintenance: Runnable? = null
 
+    /**
+     * 熄屏广播的接收者。注册到 `onDestroy` 而不是 `onPause`：熄屏时 Activity 先 pause
+     * 再派发 `ACTION_SCREEN_OFF`，放在 onPause 反注册会永远收不到 —— 见 LockScreenTrigger。
+     */
+    private var screenOffReceiver: BroadcastReceiver? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         vm.onLauncherCreated(
@@ -227,6 +236,11 @@ class LauncherActivity : FlueComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
         onBackPressedDispatcher.addCallback(this) { vm.requestBackPress() }
+        runCatching {
+            val receiver = screenOffReceiverFor(this) { vm.lockScreenWatchFaceEnabled.value }
+            registerScreenOffReceiver(this, receiver)
+            screenOffReceiver = receiver
+        }.onFailure { Log.e(WIDGET_HOST_LOG_TAG, "无法注册熄屏广播", it) }
         setContent {
             val themeMode by vm.themeMode.collectAsStateWithLifecycle()
             val uiStyle by vm.uiStyle.collectAsStateWithLifecycle()
@@ -298,6 +312,15 @@ class LauncherActivity : FlueComponentActivity() {
             }
         vm.onLauncherStopped()
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        screenOffReceiver?.let { receiver ->
+            runCatching { unregisterReceiver(receiver) }
+                .onFailure { Log.e(WIDGET_HOST_LOG_TAG, "无法注销熄屏广播", it) }
+        }
+        screenOffReceiver = null
+        super.onDestroy()
     }
 
     private fun scheduleDeferredResumeMaintenance() {

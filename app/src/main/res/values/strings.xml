@@ -182,6 +182,9 @@
     <string name="settings_glass_highlight">玻璃边缘高光</string>
     <string name="settings_glass_highlight_on">通知中心和负一屏显示边缘高光</string>
     <string name="settings_glass_highlight_off">关闭所有页面的玻璃边缘高光</string>
+    <string name="settings_lock_screen_watch_face">锁屏表盘</string>
+    <string name="settings_lock_screen_watch_face_on">熄屏后把表盘盖在系统锁屏上</string>
+    <string name="settings_lock_screen_watch_face_off">熄屏后显示系统锁屏</string>
     <string name="settings_swap_music_notifications">显示音乐卡片</string>
     <string name="settings_swap_music_notifications_on">在副一屏显示音乐卡片（替代通知预览）</string>
     <string name="settings_swap_music_notifications_off">在副一屏显示通知预览</string>

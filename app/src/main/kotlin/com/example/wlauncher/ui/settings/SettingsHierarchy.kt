@@ -1009,6 +1009,14 @@ object SettingsHierarchy {
                 titleRes = R.string.settings_glass_highlight,
                 subtitleOnRes = R.string.settings_glass_highlight_on,
                 subtitleOffRes = R.string.settings_glass_highlight_off
+            ),
+            SettingsEntry.Toggle(
+                id = "lock_screen_watch_face_toggle",
+                title = "锁屏表盘",
+                prefKey = "lock_screen_watch_face_enabled",
+                titleRes = R.string.settings_lock_screen_watch_face,
+                subtitleOnRes = R.string.settings_lock_screen_watch_face_on,
+                subtitleOffRes = R.string.settings_lock_screen_watch_face_off
             )
         )
     )
