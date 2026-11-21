@@ -2,6 +2,8 @@ package com.flue.launcher.ui.drawer
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.LauncherApps
+import android.content.pm.ShortcutInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Process
@@ -53,12 +55,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.flue.launcher.data.model.AppInfo
 import com.flue.launcher.ui.style.FlueAlertDialog
 import com.flue.launcher.ui.style.flueOverscroll
 import com.flue.launcher.ui.theme.LauncherTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun AppShortcutOverlay(
@@ -73,6 +78,7 @@ fun AppShortcutOverlay(
 ) {
     val context = LocalContext.current
     val appDetailsPackage = if (app.isBuiltInSettingsEntry) context.packageName else app.packageName
+    val appShortcuts = rememberAppShortcuts(app)
 
     var showing by remember { mutableStateOf(false) }
     var dismissing by remember { mutableStateOf(false) }
@@ -217,6 +223,19 @@ fun AppShortcutOverlay(
                             }
                         }
                     } else {
+                        // 应用自带快捷方式（Android 7.1 的 Shortcuts），排在管理类动作之前，
+                        // 与系统长按菜单的顺序一致：快捷动作优先。手表上多数 app 没提供，
+                        // 查不到就整块不出现，不留空行也不留分隔线。
+                        appShortcuts.forEach { shortcut ->
+                            ShortcutMenuItem(
+                                text = shortcut.shortLabel?.toString().orEmpty()
+                                    .ifBlank { shortcut.id },
+                            ) {
+                                launchAppShortcut(context, app, shortcut)
+                                onDismiss()
+                            }
+                            ShortcutDivider()
+                        }
                         ShortcutMenuItem(stringResource(R.string.shortcut_menu_app_info)) {
                             context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                                 data = Uri.parse("package:$appDetailsPackage")
@@ -334,6 +353,73 @@ private fun Modifier.consumeOverlayPointers(): Modifier = pointerInput(Unit) {
     }
 }
 
+/** 菜单里最多列几条应用快捷方式。再多就把整块挤成必须滚动的列表。 */
+private const val MAX_APP_SHORTCUTS = 3
+
+/**
+ * 读取应用自带的快捷方式（Android 7.1 的 Shortcuts）。
+ *
+ * 只有**默认启动器**才有权限读（`LauncherApps.hasShortcutHostPermission()`）——
+ * 本项目带 `CATEGORY_HOME`，正常情况下成立；用户临时切到别的启动器时返回 false，
+ * 这里静默返回空列表，菜单少几行而已，不该报错也不该提示。
+ *
+ * 刻意在组件内部查而不是让宿主传进来：这个菜单有 6 个调用点（蜂窝 / 密网格 /
+ * 列表 / 原生列表 / 文件夹 / 侧屏），为一条可选条目在每处穿一遍回调不划算。
+ * 代价是打开菜单时多一次 binder 往返，本地调用，几毫秒。
+ */
+@Composable
+private fun rememberAppShortcuts(app: AppInfo): List<ShortcutInfo> {
+    val context = LocalContext.current
+    // 文件夹、列表快捷方式、内置设置入口都不是真实可启动的应用，没有快捷方式可查。
+    val eligible = !app.isFolder && !app.isAppListShortcut && !app.isBuiltInSettingsEntry
+    var shortcuts by remember(app.componentKey) { mutableStateOf(emptyList<ShortcutInfo>()) }
+
+    LaunchedEffect(app.componentKey, eligible) {
+        if (!eligible) return@LaunchedEffect
+        shortcuts = withContext(Dispatchers.IO) {
+            runCatching {
+                val launcherApps = context.getSystemService(LauncherApps::class.java)
+                    ?: return@runCatching emptyList<ShortcutInfo>()
+                if (!launcherApps.hasShortcutHostPermission()) {
+                    return@runCatching emptyList<ShortcutInfo>()
+                }
+                val query = LauncherApps.ShortcutQuery()
+                    .setPackage(app.packageName)
+                    .setQueryFlags(
+                        LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
+                            LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or
+                            LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED,
+                    )
+                launcherApps.getShortcuts(query, Process.myUserHandle())
+                    .orEmpty()
+                    .filter { it.isEnabled }
+                    .take(MAX_APP_SHORTCUTS)
+            }.getOrDefault(emptyList())
+        }
+    }
+    return shortcuts
+}
+
+private fun launchAppShortcut(context: Context, app: AppInfo, shortcut: ShortcutInfo) {
+    val launcherApps = context.getSystemService(LauncherApps::class.java) ?: return
+    runCatching {
+        launcherApps.startShortcut(
+            app.packageName,
+            shortcut.id,
+            null,
+            null,
+            Process.myUserHandle(),
+        )
+    }.onFailure {
+        Log.w("ShortcutPopup", "启动快捷方式失败: ${app.packageName}/${shortcut.id}", it)
+    }
+}
+
+@Composable
+private fun ShortcutDivider() {
+    Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(Color(0xFF48484A)))
+}
+
 @Composable
 private fun ShortcutMenuItem(text: String, color: Color = Color.White, onClick: () -> Unit) {
     Box(
@@ -342,7 +428,16 @@ private fun ShortcutMenuItem(text: String, color: Color = Color.White, onClick: 
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
-        Text(text, color = color, fontSize = 15.sp, fontWeight = FontWeight.W500)
+        Text(
+            text,
+            color = color,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.W500,
+            // 应用快捷方式的文案由各家 app 自定，可能很长。菜单条目本来就是单行，
+            // 截断比换行撑高整块更好——高度一变，圆屏上的滚动位置也会跟着跳。
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
