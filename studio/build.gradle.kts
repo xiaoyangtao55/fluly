@@ -78,4 +78,5 @@ dependencies {
     implementation(libs.ffmpeg.kit.video)
     implementation(libs.smart.exception.java)
     implementation(libs.luaj.jse)
+    testImplementation(libs.junit)
 }

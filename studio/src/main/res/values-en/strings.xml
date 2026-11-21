@@ -159,7 +159,7 @@
 <string name="agent_workspace_search">Workspace search and attachments</string>
 <string name="agent_workspace_search_enabled">Allow workspace search</string>
 <string name="agent_workspace_search_summary">Attachments retain MIME, size, and SHA-256. Chat remains available without a workspace.</string>
-<string name="agent_workspace_usage">Used %1$s / %2$s</string>
+<string name="agent_workspace_usage">Used %1$s</string>
 <string name="agent_workspaces">Workspace management</string>
 <string name="watch_editor_back">Back</string>
 </resources>

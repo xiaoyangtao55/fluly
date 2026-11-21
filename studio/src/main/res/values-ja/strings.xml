@@ -159,7 +159,7 @@
 <string name="agent_workspace_search">ワークスペース検索と添付</string>
 <string name="agent_workspace_search_enabled">ワークスペース検索を許可</string>
 <string name="agent_workspace_search_summary">添付には MIME、サイズ、SHA-256 を保持します。ワークスペースなしでもチャットできます。</string>
-<string name="agent_workspace_usage">使用中 %1$s / %2$s</string>
+<string name="agent_workspace_usage">使用中 %1$s</string>
 <string name="agent_workspaces">ワークスペース管理</string>
 <string name="watch_editor_back">戻る</string>
 </resources>

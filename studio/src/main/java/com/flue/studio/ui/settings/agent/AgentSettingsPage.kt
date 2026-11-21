@@ -741,7 +741,7 @@ fun AgentSettingsPage(onBack: () -> Unit) {
                                 AgentSettingsEntry(
                                     title = workspace.displayName,
                                     subtitle = buildString {
-                                        append(stringResource(R.string.agent_workspace_usage, formatBytes(workspace.quota.usedBytes), formatBytes(workspace.quota.limitBytes)))
+                                        append(stringResource(R.string.agent_workspace_usage, formatBytes(workspace.quota.usedBytes)))
                                         if (workspace.binding != null) append(" · ${stringResource(R.string.agent_workspace_bound)}")
                                     },
                                     onClick = {
