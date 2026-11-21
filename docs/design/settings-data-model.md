@@ -29,7 +29,8 @@
 | `BACKUP_EXPORT` | 渲染器接管 | `backup_export`（与导入共用勾选项） |
 | `BACKUP_IMPORT` | 渲染器接管 | `backup_import`（与导出共用勾选项） |
 | `ABOUT` / `LANGUAGE` | 手写 | 无数据组（自定义卡片 / 动态语言列表） |
-| `AOD` / `ICON_PACKS` / `HIDDEN_APPS` / `DONATE` | 手写 | 无数据组（有意保留） |
+| `ICON_PACKS` / `HIDDEN_APPS` / `DONATE` | 手写 | 无数据组（有意保留） |
+| `AOD` | 已移除 | 功能整个删除，见第八节 |
 
 注意最后一步（`TOOLS` / `BACKUP*`）**行数反而多了 48 行**：四屏合计只有 8 个条目，
 而每屏的 `binding` 至少要写三个被覆盖的方法，比手写的 `row {}` 还长。这一步的价值
@@ -44,7 +45,7 @@
 
 | 文件 | 行数 | 内容 |
 | --- | --- | --- |
-| `SettingsActivity.kt` | 3516 | Activity、根 `when` 路由、跨屏状态 |
+| `SettingsActivity.kt` | 3375 | Activity、根 `when` 路由、跨屏状态 |
 | `SettingsHierarchy.kt` | 1244 | 声明式条目模型（唯一真相源） |
 | `SettingsPageScaffold.kt` | 952 | 脚手架、key→index 影子登记、圆屏缩放、分组卡 |
 | `SettingsRowControls.kt` | 832 | 单选 / 开关 / 滑块 / 动作卡 |
@@ -56,7 +57,7 @@
 | `SettingsSearchIndex.kt` | 188 | 搜索索引 |
 | 三个整页搬出的屏 | 406 / 526 / 399 | `AppListBackground` / `DisplaySize` / `MotionProfile` |
 
-`SettingsActivity.kt` 从 8114 行降到 **3516 行**（累计 -4598，-57%）。
+`SettingsActivity.kt` 从 8114 行降到 **3375 行**（累计 -4739，-58%）。
 
 切分是纯搬移：函数体一行没动，只把跨文件调用的符号从 `private` 提到 `internal`。
 判断符号该不该提，编译器的报错清单比 grep 可靠——它会精确指出「哪个文件第几行
@@ -147,9 +148,8 @@ WARN 从 61 降到 7，是因为脚本不再把「有意手写的整页」算成
 
 ### 4.3 未建模的整屏
 
-`AOD`（11 行）、`ICON_PACKS`（2 行）、`HIDDEN_APPS`（1 行）、`DONATE`（3 行）
-在数据层完全没有对应组。`appearance` 组里只有一条 `aod_settings` 跳转项，
-不是 AOD 屏本身。
+`ICON_PACKS`（2 行）、`HIDDEN_APPS`（1 行）、`DONATE`（3 行）在数据层完全没有
+对应组。`AOD` 原本也在这里，v12 已连同功能一起移除（见第八节），不再需要建模。
 
 ## 四·五、布局语义：CardPlacement
 
@@ -230,22 +230,25 @@ python3 tools/settings-drift-audit.py --screen WATCH_FACE_MORE
 
 ## 八、到此为止：迁移线的边界
 
-从 8114 行到 3516 行（-57%）。十五屏交给渲染器、三屏整页搬出、五个组件文件独立
-成篇。**这条线到此收口**，剩下两屏有意不动：
+从 8114 行到 3375 行（-58%）。十五屏交给渲染器、三屏整页搬出、五个组件文件独立
+成篇。**这条线到此收口**，只剩一屏有意不动：
 
 | 屏 | 条目 | 分支代码 | 为什么不搬 |
 | --- | --- | --- | --- |
-| `AOD` | 11 | 139 行 | 含实时预览与像素时钟，搬走只是换个文件放 |
 | `WATCH_FACES` | 7 | 175 行 | 条目数随已安装表盘变化，搬走也不进数据层 |
 
 依据是第七节那条：**搬迁的收益是「让主文件变小」，前提是那段代码本身值得独立**。
-这两屏的代码结构正常——一个开关、几个滑块、一段预览，只是恰好住在巨型文件里。
-搬完之后 `SettingsRootScreen` 从 2931 行降到 2600 行出头，仍然是**一个函数、28 个
-`when` 分支挤在同一次组合里**。数字好看了，读起来没变。
+这一屏的代码结构正常——一个动态列表加几条入口，只是恰好住在巨型文件里。搬完之后
+`SettingsRootScreen` 从 2793 行降到 2600 行出头，仍然是**一个函数、28 个 `when`
+分支挤在同一次组合里**。数字好看了，读起来没变。
+
+> `AOD` 原本也在这张表里（11 条目 / 139 行），最后不是搬走而是**整个删掉**：它的
+> 「常亮」实现持着 `FLAG_KEEP_SCREEN_ON`，并且把系统锁屏入口劫持成了「进常亮表盘」，
+> 结果是开着它设备永不进 keyguard。删除范围与理由见 `refactor-backlog.md` 3.7。
 
 这也是一条该记住的判据：**重构的收益要在「下一次需要读它的人」身上结算**，不在
-行数差上结算。前十一版的每一版都在拆真实的耦合（主题视图与屏视图分叉、卡片边界
-无法用值表达、组件挤在同一个文件里），剩下的两屏没有耦合可拆。
+行数差上结算。前十版的每一版都在拆真实的耦合（主题视图与屏视图分叉、卡片边界
+无法用值表达、组件挤在同一个文件里），剩下的一屏没有耦合可拆。
 
 ### 8.1 那两个 WARN 不是待办
 
@@ -259,7 +262,7 @@ python3 tools/settings-drift-audit.py --screen WATCH_FACE_MORE
 | `WARN == 7` | 已知状态，正常 |
 
 这条基线目前**只存在于文档里**。要让 `--check` 真能进 CI，得在
-`tools/settings-drift-audit.py` 的 `UNMODELED_SCREENS` 里加上 `AOD` 与 `WATCH_FACES`，
+`tools/settings-drift-audit.py` 的 `UNMODELED_SCREENS` 里加上 `WATCH_FACES`，
 让这 7 条从 WARN 降到 INFO。只是几行映射，但会改掉「7」这个数字——等真接 CI 时再动，
 现在动等于为了好看而改计量口径。
 

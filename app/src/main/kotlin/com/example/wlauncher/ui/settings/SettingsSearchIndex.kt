@@ -51,8 +51,6 @@ internal fun buildSettingsSearchIndex(context: Context): List<SettingsSearchEntr
     SettingsSearchEntry("APPEARANCE", "direct_launch_app_list", s(R.string.settings_direct_launch_app_list), s(R.string.search_d_direct_launch), listOf("zjjr", "direct launch")),
     SettingsSearchEntry("APPEARANCE", "splash_delay", s(R.string.search_t_splash_delay), s(R.string.search_d_splash_delay), listOf("qdyc", "splash delay", "yanchi")),
     SettingsSearchEntry("DISPLAY_SIZE", null, s(R.string.settings_display_fit), s(R.string.search_d_display_size), listOf("xssp", "size", "daxiao", "fisheye", "yuyan")),
-    SettingsSearchEntry("AOD", null, s(R.string.aod_title), s(R.string.aod_description), listOf("aod", "xiping", "ambient", "息屏")),
-    SettingsSearchEntry("AOD", "aod_enabled", s(R.string.aod_title), s(R.string.aod_description), listOf("aod", "brightness", "timeout", "息屏", "亮度")),
     SettingsSearchEntry("DISPLAY_SIZE", "global_ui_scale", s(R.string.settings_global_ui_size), s(R.string.search_d_global_ui_scale), listOf("qjdx", "scale", "suofang")),
     SettingsSearchEntry("DISPLAY_SIZE", "honeycomb_cols", s(R.string.settings_honeycomb_cols), s(R.string.search_d_honeycomb_cols), listOf("fwls", "columns", "lieshu")),
     SettingsSearchEntry("DISPLAY_SIZE", "app_list_scale", s(R.string.settings_app_list_size), s(R.string.search_d_app_list_scale), listOf("lbdx", "app list size")),

@@ -43,8 +43,8 @@ internal val SettingsDestination.settingsDepth: Int
 /**
  * 这一页不管从哪个入口进都要落回顶部。
  *
- * 只列同深度跳转那几条边：APPEARANCE 里有几行分别进 DISPLAY_SIZE、
- * FEATURE_TOGGLES 和 AOD，目标深度都是 1，`to.settingsDepth > from.settingsDepth`
+ * 只列同深度跳转那几条边：APPEARANCE 里有几行分别进 DISPLAY_SIZE 和
+ * FEATURE_TOGGLES，目标深度都是 1，`to.settingsDepth > from.settingsDepth`
  * 判不出这是「往里进」，只能把这些目标页点名出来。
  *
  * 注意这个标记**只管进入方向**，不代表「这一页不记位置」——两者曾经被混成一个
@@ -53,9 +53,7 @@ internal val SettingsDestination.settingsDepth: Int
 internal val SettingsDestination.alwaysOpensAtTop: Boolean
     get() = when (this) {
         SettingsDestination.DISPLAY_SIZE,
-        SettingsDestination.FEATURE_TOGGLES,
-        // APPEARANCE is a sibling entry to AOD; re-entering AOD starts a fresh visit.
-        SettingsDestination.AOD -> true
+        SettingsDestination.FEATURE_TOGGLES -> true
         else -> settingsDepth >= 3
     }
 

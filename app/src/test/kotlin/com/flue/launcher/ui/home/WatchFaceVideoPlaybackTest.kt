@@ -37,12 +37,9 @@ class WatchFaceVideoPlaybackTest {
     val temporaryFolder = TemporaryFolder()
 
     @Test
-    fun `opening the app list pauses the same video surface and returning resumes it`() = assertVideoPauseResume(false)
+    fun `opening the app list pauses the same video surface and returning resumes it`() = assertVideoPauseResume()
 
-    @Test
-    fun `ambient pauses the attached decoder and bright resumes its previous position`() = assertVideoPauseResume(true)
-
-    private fun assertVideoPauseResume(useAmbientMode: Boolean) {
+    private fun assertVideoPauseResume() {
         val faceVisible = mutableStateOf(true)
         val videoPath = temporaryFolder.newFile("watchface.mp4").absolutePath
         ShadowMediaPlayer.addMediaInfo(
@@ -60,8 +57,7 @@ class WatchFaceVideoPlaybackTest {
                 WatchFaceLayer(
                     watchFaceId = BUILT_IN_VIDEO_WATCHFACE_ID,
                     videoPath = videoPath,
-                    isFaceVisible = if (useAmbientMode) true else faceVisible.value,
-                    ambientMode = useAmbientMode && !faceVisible.value,
+                    isFaceVisible = faceVisible.value,
                     showStatusIndicators = false,
                     showBottomFade = false,
                 )

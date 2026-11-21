@@ -96,8 +96,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.flue.launcher.aod.AodSupplementalNotice
-import com.flue.launcher.aod.rememberAodSettingsState
 import com.flue.launcher.applist.background.AppListBackgroundMode
 import com.flue.launcher.applist.background.cropAndStoreAppListBackground
 import com.flue.launcher.backup.FlueBackupOptions
@@ -253,7 +251,6 @@ enum class SettingsDestination {
     ICON_PACKS,
     APPEARANCE,
     DISPLAY_SIZE,
-    AOD,
     FEATURE_TOGGLES,
     SIDE_SCREEN,
     NOTIFICATION_SETTINGS,
@@ -2279,144 +2276,6 @@ private fun SettingsRootScreen(
             )
 
             // 「功能开关」从 16 项杂烩改为路牌页：五个按领域归类的三级页。
-            SettingsDestination.AOD -> {
-                val aodState = rememberAodSettingsState()
-                val aod = aodState.config
-                SettingsPageScaffold(
-                    title = stringResource(R.string.aod_title),
-                    onBack = { handleBack() },
-                    headerTime = headerTime,
-                    initialFirstVisibleItemIndex = scrollFor(SettingsDestination.AOD).index,
-                    initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.AOD).offset,
-                    onScrollChanged = { index, offset ->
-                        updateScroll(SettingsDestination.AOD, index, offset)
-                    },
-                ) { listState, screenCenterY, screenHeightPx, _ ->
-                    item("aod_description") {
-                        Text(
-                            text = stringResource(R.string.aod_page_description),
-                            color = LauncherTheme.style.secondaryTextColor,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item("aod_enabled") {
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.aod_enabled),
-                            subtitle = stringResource(
-                                if (aod.enabled) R.string.aod_state_on else R.string.aod_state_off,
-                            ),
-                            checked = aod.enabled,
-                            onToggle = aodState::setEnabled,
-                            scale = itemFisheye(listState, "aod_enabled", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_charging") {
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.aod_charging),
-                            subtitle = stringResource(
-                                if (aod.alwaysWhenCharging) R.string.aod_state_on else R.string.aod_state_off,
-                            ),
-                            checked = aod.alwaysWhenCharging,
-                            onToggle = aodState::setAlwaysWhenCharging,
-                            scale = itemFisheye(listState, "aod_charging", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_timeout") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.aod_timeout),
-                            value = aod.timeoutSeconds.toFloat(),
-                            valueText = "${aod.timeoutSeconds} s",
-                            localValueText = { "${it.roundToInt()} s" },
-                            range = 5f..300f,
-                            steps = 58,
-                            onValueChange = {},
-                            onValueChangeFinished = { aodState.setTimeoutSeconds(it.roundToInt()) },
-                            enabled = aodState.controlsEnabled,
-                            scale = itemFisheye(listState, "aod_timeout", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_brightness") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.aod_brightness),
-                            value = aod.brightnessPercent.toFloat(),
-                            valueText = "${aod.brightnessPercent}%",
-                            localValueText = { "${it.roundToInt()}%" },
-                            range = 1f..100f,
-                            steps = 98,
-                            onValueChange = {},
-                            onValueChangeFinished = { aodState.setBrightnessPercent(it.roundToInt()) },
-                            enabled = aodState.controlsEnabled,
-                            scale = itemFisheye(listState, "aod_brightness", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_reawaken") {
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.aod_reawaken),
-                            subtitle = stringResource(
-                                if (aod.reawaken) R.string.aod_state_on else R.string.aod_state_off,
-                            ),
-                            checked = aod.reawaken,
-                            enabled = aodState.controlsEnabled,
-                            onToggle = aodState::setReawaken,
-                            scale = itemFisheye(listState, "aod_reawaken", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_lock") {
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.aod_lock),
-                            subtitle = stringResource(
-                                if (aod.lockGestures) R.string.aod_state_on else R.string.aod_state_off,
-                            ),
-                            checked = aod.lockGestures,
-                            enabled = aodState.controlsEnabled,
-                            onToggle = aodState::setLockGestures,
-                            scale = itemFisheye(listState, "aod_lock", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_lock_delay") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.aod_lock_delay),
-                            value = aod.lockDelaySeconds.toFloat(),
-                            valueText = "${aod.lockDelaySeconds} s",
-                            localValueText = { "${it.roundToInt()} s" },
-                            range = 0f..30f,
-                            steps = 29,
-                            onValueChange = {},
-                            onValueChangeFinished = { aodState.setLockDelaySeconds(it.roundToInt()) },
-                            enabled = aodState.controlsEnabled && aod.lockGestures,
-                            scale = itemFisheye(listState, "aod_lock_delay", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_shallow") {
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.aod_shallow),
-                            subtitle = stringResource(
-                                if (aod.shallowSleep) R.string.aod_state_on else R.string.aod_state_off,
-                            ),
-                            checked = aod.shallowSleep,
-                            enabled = aodState.controlsEnabled && aod.lockGestures,
-                            onToggle = aodState::setShallowSleep,
-                            scale = itemFisheye(listState, "aod_shallow", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_power_exit") {
-                        SettingsSwitchRow(
-                            title = stringResource(R.string.aod_power_exit),
-                            subtitle = stringResource(
-                                if (aod.powerButtonExit) R.string.aod_state_on else R.string.aod_state_off,
-                            ),
-                            checked = aod.powerButtonExit,
-                            enabled = aodState.controlsEnabled && aod.reawaken,
-                            onToggle = aodState::setPowerButtonExit,
-                            scale = itemFisheye(listState, "aod_power_exit", screenCenterY, screenHeightPx),
-                        )
-                    }
-                    item("aod_supplemental_notice") {
-                        AodSupplementalNotice(aodState)
-                    }
-                }
-            }
 
             SettingsDestination.FEATURE_TOGGLES -> SettingsPageScaffold(
             title = stringResource(R.string.settings_feature_toggles),

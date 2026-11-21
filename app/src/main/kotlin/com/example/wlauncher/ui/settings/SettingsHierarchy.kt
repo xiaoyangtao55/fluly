@@ -28,7 +28,7 @@ import com.flue.launcher.R
  * - 同一批条目可以出现在两个组里（`backupOptions` 服务导出/导入两屏），
  *   但**同一个 prefKey 不得对应两个不同 id** —— 那会画出两个互不同步的开关。
  *
- * 尚未建模、仍整屏手写的有：`AOD`、`WATCH_FACES`、`LANGUAGE`、`ABOUT`、
+ * 尚未建模、仍整屏手写的有：`WATCH_FACES`、`LANGUAGE`、`ABOUT`、
  * `ICON_PACKS`、`HIDDEN_APPS`、`DONATE`、`DEBUG`、`TAP_ACTION_*`，以及三个
  * 独立文件里的整页（`DISPLAY_SIZE` / `APP_LIST_BACKGROUND` / `MOTION_PROFILE`）。
  */
@@ -302,13 +302,6 @@ object SettingsHierarchy {
                 titleRes = R.string.settings_display_fit,
                 subtitleRes = R.string.settings_display_fit_sub,
                 destination = "DISPLAY_SIZE"
-            ),
-            SettingsEntry.Navigation(
-                id = "aod_settings",
-                title = "常亮显示",
-                titleRes = R.string.aod_title,
-                subtitleRes = R.string.aod_description,
-                destination = "AOD"
             ),
             // 圆屏没有「遮罩圆角」这回事，这一条只在方屏出现；副标题带当前 dp 值。
             SettingsEntry.Action(

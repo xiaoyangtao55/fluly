@@ -1770,18 +1770,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         resolveHomeIntent()
     }
 
-    fun onLauncherAodForeground() {
-        cancelPendingReturnResolution()
-        launchJob?.cancel()
-        launchJob = null
-        externalLaunchTracker.finishWithoutReturnAnimation()
-        publishExternalLaunchState()
-        _currentApp.value = null
-        _currentLaunchIcon.value = null
-        _revealedNotificationTarget.value = null
-        _screenState.value = ScreenState.Face
-    }
-
     private fun resolveHomeIntent() {
         cancelPendingReturnResolution()
         externalLaunchTracker.onHomeIntent()

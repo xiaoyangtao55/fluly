@@ -36,7 +36,7 @@
     <string name="diagnostics_overlay_memory">PSS %1$s MB</string>
     <string name="diagnostics_overlay_threads">线程 %1$s</string>
     <string name="diagnostics_information_title">系统与 Flue 信息</string>
-    <string name="diagnostics_information_privacy">包含版本、设备、屏幕、权限状态及表盘、布局、动画、模糊、小组件和 AOD 配置。仅采集诊断白名单字段，不包含账号凭据、位置或小组件内容。</string>
+    <string name="diagnostics_information_privacy">包含版本、设备、屏幕、权限状态及表盘、布局、动画、模糊和小组件配置。仅采集诊断白名单字段，不包含账号凭据、位置或小组件内容。</string>
     <string name="diagnostics_information_failed">读取信息失败，请刷新重试</string>
     <string name="diagnostics_show_information">查看完整信息</string>
     <string name="diagnostics_hide_information">收起完整信息</string>

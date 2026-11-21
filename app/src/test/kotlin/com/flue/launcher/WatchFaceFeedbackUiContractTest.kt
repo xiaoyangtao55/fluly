@@ -6,21 +6,6 @@ import org.junit.Test
 
 class WatchFaceFeedbackUiContractTest {
     @Test
-    fun `aod settings are a child page instead of an inline appearance card`() {
-        val settings = source("com/example/wlauncher/SettingsActivity.kt")
-        val hierarchy = source("com/example/wlauncher/ui/settings/SettingsHierarchy.kt")
-
-        // 目的页本身仍是独立子页：枚举里有它，分支渲染 SettingsPageScaffold。
-        assertTrue(settings.contains("SettingsDestination.AOD -> {"))
-        assertTrue(settings.substringAfter("SettingsDestination.AOD -> {").contains("SettingsPageScaffold("))
-
-        // 入口迁到声明式条目后，跳转不再写字面量 navigateTo(SettingsDestination.X)，
-        // 而是由 destination 名字驱动 —— 所以这条断言盯数据，不盯调用点。
-        assertTrue(hierarchy.contains("destination = \"AOD\""))
-        assertFalse(settings.contains("item(\"aod_settings\") {\n                AodSettingsSection()"))
-    }
-
-    @Test
     fun `editor exposes fill preview toolbar order icons and scale slider`() {
         val editor = source("com/example/wlauncher/WatchEditorActivity.kt")
 

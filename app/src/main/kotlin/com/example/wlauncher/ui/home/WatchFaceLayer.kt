@@ -268,7 +268,6 @@ fun WatchFaceStatusIndicatorOverlay(
 
 @Composable
 fun WatchFaceLayer(
-    ambientMode: Boolean = false,
     watchFaceId: String = BUILT_IN_WATCHFACE_ID,
     photoPath: String? = null,
     videoPath: String? = null,
@@ -292,7 +291,7 @@ fun WatchFaceLayer(
         watchFaceId = watchFaceId,
         photoPath = photoPath,
         videoPath = videoPath,
-        isFaceVisible = isFaceVisible && !ambientMode,
+        isFaceVisible = isFaceVisible,
         uiStyle = uiStyle,
         photoOptions = photoOptions,
         videoOptions = videoOptions,

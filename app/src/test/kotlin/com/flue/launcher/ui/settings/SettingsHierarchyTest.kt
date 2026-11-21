@@ -167,7 +167,7 @@ class SettingsHierarchyTest {
                 "layout_honeycomb", "layout_list", "layout_grid", "layout_flow", "layout_ring",
                 // 显示
                 "display_header",
-                "app_list_background_entry", "display_size_menu", "aod_settings",
+                "app_list_background_entry", "display_size_menu",
                 "overlay_mask_corner_radius", "feature_toggles_menu",
                 // 深浅色（没有分节标题，紧跟上一张卡）
                 "theme_mode_system", "theme_mode_dark", "theme_mode_light",

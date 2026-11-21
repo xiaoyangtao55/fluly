@@ -69,7 +69,7 @@ private val DIAGNOSTIC_CONFIG_KEYS = setOf(
     "honeycomb_top_blur", "honeycomb_bottom_blur", "honeycomb_edge_blur_tenths",
     "selected_watchface_id", "show_widget_page", "widget_count", "widget_glass_highlight_enabled",
     "watchface_text_entry_animation", "watchface_text_exit_animation", "watchface_gravity_parallax_enabled",
-    "watchface_gravity_backdrop_blur", "ui_style", "theme_mode", "aod_enabled", "aod_timeout_seconds",
+    "watchface_gravity_backdrop_blur", "ui_style", "theme_mode",
     "app_list_scale_percent", "app_list_fisheye_enabled", "app_list_fisheye_range_rows",
     "app_list_fisheye_strength_percent", "app_list_edge_spacing_compression_enabled",
     "app_list_left_safe_inset_percent", "app_list_flow_crescent_bulge_percent", "app_list_flow_crescent_to_right",

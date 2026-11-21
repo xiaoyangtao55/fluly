@@ -2,8 +2,6 @@ package com.flue.launcher
 
 import com.flue.launcher.i18n.FlueComponentActivity
 
-import com.flue.launcher.aod.AodController
-import android.view.MotionEvent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -215,15 +213,6 @@ class LauncherActivity : FlueComponentActivity() {
         FlueApplication.repositories(this).widgetHostLifecycle
     }
     private var deferredResumeMaintenance: Runnable? = null
-    private lateinit var aodController: AodController
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        if (::aodController.isInitialized && aodController.onTouchEvent(event)) return true
-        return super.dispatchTouchEvent(event)
-    }
-    override fun onDestroy() {
-        if (::aodController.isInitialized) aodController.stop()
-        super.onDestroy()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -231,8 +220,6 @@ class LauncherActivity : FlueComponentActivity() {
             restored = savedInstanceState != null,
             homeIntent = intent.isLauncherHomeIntent(),
         )
-        aodController = AodController(this, onCollapseOverlays = { vm.setState(ScreenState.Face) }, onWillForeground = vm::onLauncherAodForeground)
-        aodController.start()
         RecentsVisibility.apply(this)
         CrashHandler(applicationContext).install()
         window.setFlags(
@@ -247,7 +234,7 @@ class LauncherActivity : FlueComponentActivity() {
             val screenShape by vm.screenShapeOverride.collectAsStateWithLifecycle()
             WatchLauncherTheme(themeMode = themeMode, uiStyle = uiStyle, screenShape = screenShape) {
                 ProvideGlobalUiScale(globalUiScalePercent) {
-                    LauncherScreen(vm, aodController)
+                    LauncherScreen(vm)
                 }
             }
         }
@@ -270,9 +257,7 @@ class LauncherActivity : FlueComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.getBooleanExtra(AodController.EXTRA_AOD_FOREGROUND, false)) {
-            vm.onLauncherAodForeground()
-        } else if (intent.isLauncherHomeIntent()) {
+        if (intent.isLauncherHomeIntent()) {
             vm.onLauncherHomeIntent()
         }
     }
@@ -288,7 +273,6 @@ class LauncherActivity : FlueComponentActivity() {
     override fun onResume() {
         super.onResume()
         RecentsVisibility.apply(this)
-        aodController.onResume()
         vm.setLauncherInteractive(true)
         vm.onLauncherResumed()
         // 从表盘编辑器返回时，磁盘上的 watch.xml / 资产已更新，但 ViewModel
@@ -303,7 +287,6 @@ class LauncherActivity : FlueComponentActivity() {
         super.onPause()
         deferredResumeMaintenance?.let(window.decorView::removeCallbacks)
         deferredResumeMaintenance = null
-        aodController.onPause()
         vm.setLauncherInteractive(false)
         vm.onLauncherPaused()
     }
@@ -335,9 +318,7 @@ private fun Intent.isLauncherHomeIntent(): Boolean {
 }
 
 @Composable
-fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) {
-    val ambientMode = aodController?.ambientMode == true
-    val aodGestureLocked = aodController?.gesturesLocked == true
+fun LauncherScreen(vm: LauncherViewModel) {
     // 转场动画风格：**独立于界面风格**的一项设置（平移 / 缩放）。
     val transitionMotion by vm.transitionMotion.collectAsStateWithLifecycle()
 
@@ -443,7 +424,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
     val watchmakerDataProvider = rememberWatchmakerWatchDataProvider(
         active = selectedWatchFace.isWatchmaker && launcherInteractive &&
             !watchFaceCardsVisible && !promptOverlayActive,
-        ambientMode = ambientMode,
     )
     val builtInPhotoPath by vm.builtInPhotoPath.collectAsStateWithLifecycle()
     val builtInVideoPath by vm.builtInVideoPath.collectAsStateWithLifecycle()
@@ -527,7 +507,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
     // PixelCopy 的缓存身份必须包含所有会改变桌面实际合成帧的设置。只使用
     // descriptor/refreshToken 会让内置表盘选项变化后仍沿用上一张预制模糊。
     val legacyWatchFaceVisualKey = listOf(
-        ambientMode,
         selectedWatchFace.stableKey,
         selectedWatchFaceId,
         watchFaceRefreshToken,
@@ -644,9 +623,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         openDeviceAdminSettings,
     ) {
         {
-            if (aodController?.enterAodNow() == true) {
-                vibrateHaptic(context)
-            } else if (screenLockControlMode(Build.VERSION.SDK_INT) == ScreenLockControlMode.DEVICE_ADMIN) {
+            if (screenLockControlMode(Build.VERSION.SDK_INT) == ScreenLockControlMode.DEVICE_ADMIN) {
                 if (FlueDeviceAdminController.lockScreen(context)) {
                     vibrateHaptic(context)
                 } else {
@@ -1716,11 +1693,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
         val legacyCaptureAllowed =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
                 launcherInteractive &&
-                // 常亮息屏下绝不能捕帧：那时表盘是暗色 AOD 画面，捕来的帧既不该
-                // 当背衬，也没有任何覆层会被打开。原来只有手势 DOWN 一条捕获路径，
-                // 靠 AOD 锁手势侥幸躲过；空闲期轮询绕过了那层保护，必须在这里挡。
-                // 一晚 8 小时按 15s 一轮算就是近两千次全屏 PixelCopy + 位图分配。
-                !ambientMode &&
                 screenState == ScreenState.Face &&
                 watchFaceSelectionReady && faceRenderReady && faceTransformSettled &&
                 openFolder == null &&
@@ -1936,7 +1908,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
             onBackdropCaptureRequested = requestCleanWatchFaceFrame,
             // 加载页顶着的时候上滑 / 侧滑一律不响应：这些识别器挂在加载页外层，
             // 加载页自己的 pointerInput 拦不到，只能从这里整个停掉。
-            gesturesLocked = !watchFaceSelectionReady || aodGestureLocked ||
+            gesturesLocked = !watchFaceSelectionReady ||
                 watchFaceCardsVisible || promptOverlayActive,
             modifier = Modifier.fillMaxSize()
         ) {
@@ -2156,7 +2128,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                         )
                     } else if (selectedWatchFace.isBuiltin) {
                         WatchFaceLayer(
-                            ambientMode = ambientMode,
                             watchFaceId = selectedWatchFace.id,
                             photoPath = builtInPhotoPath,
                             videoPath = builtInVideoPath,
@@ -2200,8 +2171,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                                 },
                                 dataProvider = watchmakerDataProvider,
                                 onRenderReady = markFaceRenderReady,
-                                ambientMode = ambientMode,
-                                tapHapticsEnabled = watchFaceTapHapticsEnabled,
+                                    tapHapticsEnabled = watchFaceTapHapticsEnabled,
                                 canvasSettings = watchfaceCanvasSettings,
                                 gravityParallaxEnabled = watchfaceGravityParallaxEnabled,
                                 gravityBackdropBlurEnabled = watchfaceGravityBackdropBlurEnabled,
@@ -2222,8 +2192,7 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                     } else if (selectedWatchFace.isJbWatch) {
                         Box(modifier = Modifier.fillMaxSize()) {
                             JbWatchFaceHost(
-                                ambientMode = ambientMode,
-                                descriptor = selectedWatchFace,
+                                    descriptor = selectedWatchFace,
                                 isFaceVisible = launcherInteractive && screenState == ScreenState.Face &&
                                 !watchFaceOverlayTransitionActive,
                                 refreshToken = watchFaceRefreshToken,
@@ -2255,7 +2224,6 @@ fun LauncherScreen(vm: LauncherViewModel, aodController: AodController? = null) 
                         // Closed-model defensive fallback; unsupported plugin types no
                         // longer exist and can never reach an external runtime.
                         WatchFaceLayer(
-                            ambientMode = ambientMode,
                             watchFaceId = BUILT_IN_WATCHFACE_ID,
                             isFaceVisible = launcherInteractive && screenState == ScreenState.Face &&
                                 !watchFaceOverlayTransitionActive,

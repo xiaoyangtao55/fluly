@@ -57,7 +57,7 @@ SCREEN_GROUP = {
 
 # 还没有进数据层的屏：整屏没有模型，属「缺组」而非「缺条目」。
 # MOTION_PROFILE 不在代码侧扫描范围内（已整页搬到独立文件，见下方 extra）。
-UNMODELED_SCREENS = {"AOD", "ICON_PACKS", "HIDDEN_APPS", "DONATE", "DEBUG", "TAP_ACTION_CATEGORIES",
+UNMODELED_SCREENS = {"ICON_PACKS", "HIDDEN_APPS", "DONATE", "DEBUG", "TAP_ACTION_CATEGORIES",
                      "TAP_ACTION_CATEGORY", "MUSIC_TEXT_ANIMATION", "ABOUT", "LANGUAGE"}
 
 # 有意保持手写的页面（整页搬出 SettingsActivity，不数据化）。
