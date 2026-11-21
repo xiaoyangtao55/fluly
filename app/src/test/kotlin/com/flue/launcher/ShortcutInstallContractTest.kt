@@ -76,6 +76,58 @@ class ShortcutInstallContractTest {
     }
 
     @Test
+    fun modernPinCannotUseAutomaticLegacyDispatcher() {
+        val dispatch = handler.substringAfter("fun handle(context:").substringBefore("fun readPinRequest")
+        assertTrue("自动 dispatcher 必须保留旧广播", dispatch.contains("ACTION_INSTALL_SHORTCUT ->"))
+        assertTrue("现代 pin 不能自动 accept", !dispatch.contains("ACTION_CONFIRM_PIN_SHORTCUT ->"))
+    }
+
+    @Test
+    fun confirmationAndCancellationAreWiredToDialog() {
+        val activity = handler.substringBefore("internal class ShortcutPinConfirmation")
+        val positive = activity.substringAfter(".setPositiveButton(").substringBefore(".setNegativeButton(")
+        assertTrue("仅明确添加按钮才确认", positive.contains("confirmation.confirm()"))
+        assertTrue("旧回调不能确认新请求", positive.contains("pendingConfirmation === confirmation"))
+        val negative = activity.substringAfter(".setNegativeButton(").substringBefore(".show()")
+        assertTrue("取消按钮必须退出且不安装", negative.contains("cancelConfirmation(confirmation)"))
+        assertTrue("返回键/点外部取消也必须退出", negative.contains(".setOnCancelListener"))
+        assertTrue("取消处理不能触发确认", !negative.contains(".confirm()"))
+    }
+
+    @Test
+    fun pinIsRevalidatedWhenUserConfirms() {
+        val confirm = handler.substringAfter("fun confirmPinnedShortcut(").substringBefore("private fun handleLegacyShortcut")
+        assertTrue(
+            "用户等待期间请求可能过期，确认时必须重新验证",
+            confirm.indexOf("isValidShortcutRequest(request)") in 0 until confirm.indexOf("request.accept()"),
+        )
+    }
+
+    @Test
+    fun activityReplacesPendingRequestAndReleasesItOnDestroy() {
+        val newIntent = handler.substringAfter("override fun onNewIntent(").substringBefore("private fun showRequest")
+        assertTrue(newIntent.contains("clearConfirmation()"))
+        assertTrue(newIntent.indexOf("clearConfirmation()") < newIntent.indexOf("setIntent(intent)"))
+        assertTrue(newIntent.contains("showRequest(intent)"))
+        val destroy = handler.substringAfter("override fun onDestroy()").substringBefore("/** Memory-only")
+        assertTrue(destroy.contains("clearConfirmation()"))
+        val clear = handler.substringAfter("private fun clearConfirmation()").substringBefore("override fun onDestroy()")
+        assertTrue(clear.contains("pendingConfirmation?.cancel()"))
+        assertTrue(clear.contains("confirmationDialog?.dismiss()"))
+        assertTrue("不把外部请求保存进 instance state", !handler.contains("onSaveInstanceState"))
+    }
+
+    @Test
+    fun confirmationActivityHasDisplayableTheme() {
+        val activity = manifest.substringAfter("android:name=\".ShortcutReceiverActivity\"")
+            .substringBefore("</activity>")
+        assertTrue(activity.contains("android:theme=\"@style/Theme.WatchLauncher\""))
+        val themes = File(root.parentFile, "res/values/themes.xml").readText()
+        assertTrue("确认页不能使用 NoDisplay 主题", !themes.contains("NoDisplay"))
+        assertTrue(themes.contains("android:Theme.Material.NoActionBar"))
+    }
+
+    @Test
     fun legacyShortcutRejectsUnresolvablePackage() {
         val body = repository.substringAfter("fun addLegacyShortcut")
             .substringBefore("fun ", missingDelimiterValue = "")

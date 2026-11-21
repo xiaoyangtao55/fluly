@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_pin_confirmation_title">Add shortcut?</string>
+    <string name="shortcut_pin_confirmation_message">An app wants to add a shortcut to your app list. Only Add will add it; Cancel leaves your app list unchanged.</string>
+    <string name="shortcut_pin_confirmation_add">Add</string>
+    <string name="shortcut_pin_confirmation_cancel">Cancel</string>
+</resources>

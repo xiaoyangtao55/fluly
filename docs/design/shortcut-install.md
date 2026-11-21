@@ -11,7 +11,7 @@
 | 到达方 | `ShortcutReceiverActivity`（`CONFIRM_PIN_SHORTCUT`） | `ShortcutInstallReceiver` |
 | 引入版本 | Android 8.0 (API 26) | Android 1.6，8.0 起废弃 |
 | 前置条件 | **本应用必须是默认桌面** | 无（系统不校验） |
-| 用户确认 | 源头应用自己弹 | 没有 |
+| 用户确认 | **启动器弹窗，用户明确点“添加”后才 accept/落库** | 没有（兼容策略保持不变） |
 | 图标来源 | `LauncherApps.getShortcutIconDrawable` | `EXTRA_SHORTCUT_ICON` 或 `EXTRA_SHORTCUT_ICON_RESOURCE` |
 | 启动方式 | `launcherApps.startShortcut(pkg, id, …)` | 存的 Intent URI 还原后 `startActivity` |
 
@@ -48,7 +48,7 @@ ActivityManager 在派发前逐个 `checkComponentPermission`，不持有就跳�
 ## 三、数据怎么落
 
 ```
-Pin 请求  ──accept()────────┐
+Pin 请求 ──校验──用户确认──复核──accept()──┐
                             ├─→ AppRepository.addPinnedShortcut / addLegacyShortcut
 旧广播 ──极简 Intent 解析───┘             │
                                           ├─→ AppListItemStorage.addShortcut
@@ -60,7 +60,22 @@ Pin 请求  ──accept()────────┐
 两条路最终落到同一张表，`AppInfo.itemType = SHORTCUT`，`componentKey = shortcut:<id>`。
 所以长按菜单里的「移除」、拖进文件夹、放进快捷启动，这些对普通应用成立的操作对它一样成立。
 
-### 顺序：先 accept，再落库
+### 现代 pin：明确同意后才 accept，再落库
+
+`onCreate` 只解析和验证现代请求并显示确认弹窗，绝不安装。只有用户点击“添加”才调用
+`confirmPinnedShortcut`；“取消”、返回键及点弹窗外部都退出且不 accept、不落库。
+确认时重新校验 `isValid`、请求类型及 shortcutInfo；等待期间过期的请求会被拒绝。
+旧 `INSTALL_SHORTCUT` 广播继续自动处理，不借本次修改改变历史兼容策略。
+
+Activity 已使用可显示的 `Theme.WatchLauncher`（`android:Theme.Material.NoActionBar`），
+不是 `NoDisplay`，无需改 manifest/主题。现有 `noHistory=true` 保留：离开后不保留确认页。
+`onNewIntent` 先取消旧同意状态、销毁弹窗，再 `setIntent` 展示新请求；旧弹窗回调不能同意新请求。
+`onDestroy` 释放内存中的请求闭包和弹窗。重建只会再次展示确认，不会从保存状态恢复“已同意”。
+
+弹窗只用静态本地化文案，不回显外部 label、Intent、extras 或 token；不写 Bundle、日志、偏好或文件。
+待确认请求仅存于当前 Activity 内存，只有同意后才沿既有仓库存储最小快捷方式数据。
+
+### 顺序保证
 
 Pin 请求那侧刻意把 `request.accept()` 放在 `addPinnedShortcut()` **之前**：
 
@@ -123,3 +138,23 @@ adb logcat | grep -i "permission.*INSTALL_SHORTCUT\|Background activity start"
 （老版工具类）试一次。
 
 Pin 路径最省事的验证方式：Chrome 打开任意网页 → 菜单 → 添加到主屏幕。
+
+### 本轮静态检查与待运行验证
+
+本轮按要求**未启动编译、未运行 Gradle/JVM 测试、未提交**。静态检查覆盖独立中英日
+资源 XML 的键一致性、补丁空白检查，以及确认/取消代码路径。
+
+新增 `ShortcutPinConfirmationTest` 钉住：打开不安装、明确确认只执行一次、取消后迟到确认
+无作用、替换请求不继承同意、安装异常不自动重试。`ShortcutInstallContractTest` 补充：
+自动 dispatcher 不接受现代请求、正负按钮/系统取消接线、确认时再次验证、onNewIntent 和
+销毁清理，以及可显示主题。以上测试已补代码，**尚未执行**。
+
+用户允许后再运行相关测试，并在设备上验证：
+
+1. 发起 pin 后不操作：应用列表和系统 pinned 状态均不应改变。
+2. 点击添加：系统 accept 成功后才新增一条，重复回调不重复安装。
+3. 分别点击取消、返回、点弹窗外部：无新增，也无成功 Toast。
+4. 等请求过期再确认：提示无效或过期，不落库；widget/缺失/畸形请求同样拒绝。
+5. 弹窗期间旋转/销毁重建、离开页面、投递新 Intent：不自动接受，不继承旧同意，不泄漏窗口。
+6. 旧式广播依旧自动添加，现有来源与权限宽松策略不变。
+7. 在手表小屏及中英日语言下检查按钮可点、文案可读。

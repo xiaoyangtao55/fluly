@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_pin_confirmation_title">ショートカットを追加しますか？</string>
+    <string name="shortcut_pin_confirmation_message">アプリがアプリ一覧へのショートカット追加を要求しています。「追加」を押した場合のみ追加されます。「キャンセル」ではアプリ一覧は変更されません。</string>
+    <string name="shortcut_pin_confirmation_add">追加</string>
+    <string name="shortcut_pin_confirmation_cancel">キャンセル</string>
+</resources>

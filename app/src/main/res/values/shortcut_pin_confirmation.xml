@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shortcut_pin_confirmation_title">添加快捷方式？</string>
+    <string name="shortcut_pin_confirmation_message">应用请求向应用列表添加一个快捷方式。只有点击“添加”才会添加；取消不会更改应用列表。</string>
+    <string name="shortcut_pin_confirmation_add">添加</string>
+    <string name="shortcut_pin_confirmation_cancel">取消</string>
+</resources>
