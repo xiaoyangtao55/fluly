@@ -10,7 +10,8 @@
 .externalNativeBuild
 .cxx
 local.properties
-/app/build
+# Android modules (including extracted libraries and Studio)
+**/build/
 莫奈线条/
 .codex-temp-watchface-utils/
 403D16A9454EA268EFC1A6F5F7426009.png
