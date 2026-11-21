@@ -185,6 +185,10 @@
     <string name="settings_lock_screen_watch_face">Lock screen watch face</string>
     <string name="settings_lock_screen_watch_face_on">Show the watch face over the system lock screen</string>
     <string name="settings_lock_screen_watch_face_off">Keep the system lock screen</string>
+    <string name="settings_pull_down_control_center">Pull-down control center</string>
+    <string name="settings_pull_down_control_center_on">Swipe down on the watch face to open the system control center</string>
+    <string name="settings_pull_down_control_center_off">Swiping down does nothing</string>
+    <string name="toast_system_panel_unavailable">Could not open the system control center. Check that the accessibility service is connected.</string>
     <string name="settings_swap_music_notifications">Show Music Card</string>
     <string name="settings_swap_music_notifications_on">Show the music card on side screen instead of notifications</string>
     <string name="settings_swap_music_notifications_off">Show notification previews on side screen</string>

@@ -184,6 +184,10 @@
     <string name="settings_lock_screen_watch_face">ロック画面の文字盤</string>
     <string name="settings_lock_screen_watch_face_on">画面オフ後、文字盤をシステムのロック画面に重ねて表示</string>
     <string name="settings_lock_screen_watch_face_off">システムのロック画面をそのまま表示</string>
+    <string name="settings_pull_down_control_center">下スワイプでコントロールセンター</string>
+    <string name="settings_pull_down_control_center_on">文字盤を下にスワイプしてシステムのコントロールセンターを開く</string>
+    <string name="settings_pull_down_control_center_off">下スワイプでは何も実行しない</string>
+    <string name="toast_system_panel_unavailable">システムのコントロールセンターを開けませんでした。ユーザー補助サービスが接続されているか確認してください</string>
     <string name="settings_swap_music_notifications">音楽カードを表示</string>
     <string name="settings_swap_music_notifications_on">サイド画面に通知の代わりに音楽カードを表示</string>
     <string name="settings_swap_music_notifications_off">サイド画面に通知プレビューを表示</string>

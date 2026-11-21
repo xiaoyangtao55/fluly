@@ -1017,6 +1017,14 @@ object SettingsHierarchy {
                 titleRes = R.string.settings_lock_screen_watch_face,
                 subtitleOnRes = R.string.settings_lock_screen_watch_face_on,
                 subtitleOffRes = R.string.settings_lock_screen_watch_face_off
+            ),
+            SettingsEntry.Toggle(
+                id = "pull_down_control_center_toggle",
+                title = "下拉控制中心",
+                prefKey = "pull_down_control_center_enabled",
+                titleRes = R.string.settings_pull_down_control_center,
+                subtitleOnRes = R.string.settings_pull_down_control_center_on,
+                subtitleOffRes = R.string.settings_pull_down_control_center_off
             )
         )
     )

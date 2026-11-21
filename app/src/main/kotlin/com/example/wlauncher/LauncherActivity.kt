@@ -73,6 +73,7 @@ import com.flue.launcher.launchsession.ReturnKind
 import com.flue.launcher.service.FlueAccessibilityService
 import com.flue.launcher.service.FlueDeviceAdminController
 import com.flue.launcher.service.ScreenLockControlMode
+import com.flue.launcher.service.SystemStatusBar
 import com.flue.launcher.service.screenLockControlMode
 import com.flue.launcher.watchface.standard.WatchLocationPermissionPolicy
 import com.flue.launcher.watchface.standard.WatchWeatherRepository
@@ -622,6 +623,45 @@ fun LauncherScreen(vm: LauncherViewModel) {
         {
             context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             Unit
+        }
+    }
+    /**
+     * 表盘下滑 → 拉出系统控制中心。
+     *
+     * 三条路按代价排序，能走前一条就不走后一条：
+     *
+     * 1. 反射 `StatusBarManager.expandSettingsPanel` —— `EXPAND_STATUS_BAR` 是 normal
+     *    权限，安装即授予，用户什么都不用做，是唯一「零成本」的路径；
+     * 2. 无障碍 `GLOBAL_ACTION_QUICK_SETTINGS` —— 只在 ROM 改写了上面那段的权限校验时
+     *    才会用到，代价是要用户手动开无障碍；
+     * 3. 都没有 → 区分「没授权」和「系统真没有面板」，不要误导。
+     *
+     * 开关在 lambda 内部现读，而不是在调用点决定传不传 null：`GestureHost` 的识别器
+     * 挂在 `pointerInput` 上，key 不含这个回调，传 null 不会让它重建 —— 那样关掉开关后
+     * 下滑仍会走旧闭包。现读就没有这个隐患，改完立刻生效。
+     */
+    val pullDownSystemShade: () -> Unit = remember(context, vm, openAccessibilitySettings) {
+        {
+            if (vm.pullDownControlCenterEnabled.value) {
+                when {
+                    SystemStatusBar.expandControlCenter(context) -> vibrateHaptic(context)
+                    FlueAccessibilityService.openQuickSettings() -> vibrateHaptic(context)
+                    !FlueAccessibilityService.isEnabled(context) -> {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.toast_grant_accessibility),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        openAccessibilitySettings()
+                    }
+                    // 两条路都试过、权限也给了：这套 SystemUI 确实没有可拉的面板。
+                    else -> Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_system_panel_unavailable),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
         }
     }
     val openDeviceAdminSettings: () -> Unit = remember(context) {
@@ -1928,6 +1968,7 @@ fun LauncherScreen(vm: LauncherViewModel) {
             onOverlayOvershoot = updateOverlayOvershoot,
             onAppListDrag = updateAppListGesture,
             onAppListRelease = releaseAppListGesture,
+            onPullDownShade = pullDownSystemShade,
             onBackdropCaptureRequested = requestCleanWatchFaceFrame,
             // 加载页顶着的时候上滑 / 侧滑一律不响应：这些识别器挂在加载页外层，
             // 加载页自己的 pointerInput 拦不到，只能从这里整个停掉。

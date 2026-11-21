@@ -35,6 +35,7 @@ class SettingsHierarchyTest {
                 "cat_app_list_behavior",
                 "glass_highlight_toggle",
                 "lock_screen_watch_face_toggle",
+                "pull_down_control_center_toggle",
             ),
             keys,
         )

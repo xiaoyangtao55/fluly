@@ -71,6 +71,18 @@ fun GestureHost(
     onOverlayOvershoot: ((Float) -> Unit)? = null,
     onAppListDrag: ((Float) -> Unit)? = null,
     onAppListRelease: ((Float, Float, Boolean) -> Unit)? = null,
+    /**
+     * 表盘上竖向**向下**滑时拉下系统控制中心。
+     *
+     * 与侧屏 / 小组件页刻意不同：那两个覆层是我们自己画的，所以能逐帧跟手；
+     * 系统面板不归这个进程绘制，没有任何逐帧接口（`StatusBarManager` 的
+     * expand 系列是签名级权限，见 `FlueAccessibilityService.openQuickSettings`）。
+     * 所以这里只做「越过阈值触发一次」，触发后立刻消费位移，后续拖动不再重复派发。
+     *
+     * 传 null 表示下滑不绑定任何动作（设置里关掉时的形态），此时下滑会像以前一样
+     * 被 80px 兜底分支吞掉但不产生副作用。
+     */
+    onPullDownShade: (() -> Unit)? = null,
     onBackdropCaptureRequested: (() -> Unit)? = null,
     /**
      * 全局锁死。表盘加载页显示期间为 true —— 加载没完成就不允许上滑应用列表
@@ -311,6 +323,11 @@ fun GestureHost(
                                 ScreenState.Face -> {
                                     if (isVertical && totalDy < -80) {
                                         onStateChange(ScreenState.Apps)
+                                        change.consume()
+                                    } else if (isVertical && totalDy > 80 && onPullDownShade != null) {
+                                        // 系统面板没法跟手，只能一次性触发；consumed
+                                        // 已置真，这次拖动不会再走到这里第二次。
+                                        onPullDownShade.invoke()
                                         change.consume()
                                     } else if (isHorizontal && totalDx > 80 && sideScreenEnabled) {
                                         // 无跟手回调时的兜底：维持旧的阈值切换。

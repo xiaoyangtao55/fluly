@@ -185,6 +185,10 @@
     <string name="settings_lock_screen_watch_face">锁屏表盘</string>
     <string name="settings_lock_screen_watch_face_on">熄屏后把表盘盖在系统锁屏上</string>
     <string name="settings_lock_screen_watch_face_off">熄屏后显示系统锁屏</string>
+    <string name="settings_pull_down_control_center">下拉控制中心</string>
+    <string name="settings_pull_down_control_center_on">表盘下滑拉出系统控制中心</string>
+    <string name="settings_pull_down_control_center_off">下滑不触发任何操作</string>
+    <string name="toast_system_panel_unavailable">无法拉出系统控制中心，请确认无障碍服务已连接</string>
     <string name="settings_swap_music_notifications">显示音乐卡片</string>
     <string name="settings_swap_music_notifications_on">在副一屏显示音乐卡片（替代通知预览）</string>
     <string name="settings_swap_music_notifications_off">在副一屏显示通知预览</string>

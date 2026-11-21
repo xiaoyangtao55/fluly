@@ -546,6 +546,7 @@ private fun SettingsRootScreen(
     val showWidgetPage by vm.showWidgetPage.collectAsStateWithLifecycle()
     val glassHighlightEnabled by vm.glassHighlightEnabled.collectAsStateWithLifecycle()
     val lockScreenWatchFaceEnabled by vm.lockScreenWatchFaceEnabled.collectAsStateWithLifecycle()
+    val pullDownControlCenterEnabled by vm.pullDownControlCenterEnabled.collectAsStateWithLifecycle()
     val widgetGlassHighlightEnabled by vm.widgetGlassHighlightEnabled.collectAsStateWithLifecycle()
     val showMusicControls by vm.showMusicControls.collectAsStateWithLifecycle()
     val showMediaCustomActions by vm.showMediaCustomActions.collectAsStateWithLifecycle()
@@ -2290,14 +2291,20 @@ private fun SettingsRootScreen(
                 entries = SettingsHierarchy.renderedGroup("feature_toggles"),
                 binding = object : SettingsEntryBinding {
                     override fun isChecked(entry: SettingsEntry.Toggle): Boolean = when (entry.id) {
+                        "glass_highlight_toggle" -> glassHighlightEnabled
                         "lock_screen_watch_face_toggle" -> lockScreenWatchFaceEnabled
-                        else -> glassHighlightEnabled
+                        "pull_down_control_center_toggle" -> pullDownControlCenterEnabled
+                        // 这一屏的开关已经不止一个，不能再拿某一个当默认值：
+                        // 漏映射时应该显示为关（明显不对，能被发现），而不是显示成别人的状态。
+                        else -> false
                     }
 
                     override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
                         when (entry.id) {
+                            "glass_highlight_toggle" -> vm.setGlassHighlightEnabled(checked)
                             "lock_screen_watch_face_toggle" -> vm.setLockScreenWatchFaceEnabled(checked)
-                            else -> vm.setGlassHighlightEnabled(checked)
+                            "pull_down_control_center_toggle" -> vm.setPullDownControlCenterEnabled(checked)
+                            else -> Unit
                         }
                     }
 

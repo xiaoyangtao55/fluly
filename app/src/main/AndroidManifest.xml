@@ -39,6 +39,10 @@
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- 表盘下滑拉出系统控制中心。这是 normal 级权限（不是签名权限），安装即授予。
+         类名 StatusBarManager 带 @hide 不代表权限受限 —— 见 service/SystemStatusBar.kt。 -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+
     <!-- 编辑器 / 商店在 Flue Studio 里，HOME 只负责把用户送过去。Android 11+ 不做
          包可见性声明就查不到它，「打开 Studio」会永远走「未安装」分支。 -->
     <queries>

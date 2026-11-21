@@ -315,6 +315,15 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
          * 必须有一个不用重装 APK 就能退回去的入口。
          */
         val KEY_LOCK_SCREEN_WATCH_FACE = booleanPreferencesKey("lock_screen_watch_face_enabled")
+
+        /**
+         * 表盘上下滑是否拉下系统控制中心。
+         *
+         * 默认开。留开关的理由和锁屏表盘同源：能不能拉起来取决于厂商 SystemUI
+         * 有没有快捷设置面板，本仓库静态验证不了。更麻烦的是这里占用的是「下滑」
+         * 这个高频手势 —— 设备上不生效时用户会觉得是启动器坏了，必须能关掉。
+         */
+        val KEY_PULL_DOWN_CONTROL_CENTER = booleanPreferencesKey("pull_down_control_center_enabled")
         val KEY_SIDE_SCREEN_WIDGETS = stringPreferencesKey("side_screen_widgets")
         val KEY_SIDE_SCREEN_SHORTCUT_ROWS = intPreferencesKey("side_screen_shortcut_rows")
         val KEY_SIDE_SCREEN_SHORTCUT_COLS = intPreferencesKey("side_screen_shortcut_cols")
@@ -825,6 +834,9 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     private val _lockScreenWatchFaceEnabled = MutableStateFlow(true)
     val lockScreenWatchFaceEnabled: StateFlow<Boolean> = _lockScreenWatchFaceEnabled.asStateFlow()
+
+    private val _pullDownControlCenterEnabled = MutableStateFlow(true)
+    val pullDownControlCenterEnabled: StateFlow<Boolean> = _pullDownControlCenterEnabled.asStateFlow()
     private val _widgetGlassHighlightEnabled = MutableStateFlow(true)
     val widgetGlassHighlightEnabled: StateFlow<Boolean> = _widgetGlassHighlightEnabled.asStateFlow()
 
@@ -1580,6 +1592,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 val loadedLockScreenWatchFace = prefs[KEY_LOCK_SCREEN_WATCH_FACE] ?: true
                 if (_lockScreenWatchFaceEnabled.value != loadedLockScreenWatchFace) {
                     _lockScreenWatchFaceEnabled.value = loadedLockScreenWatchFace
+                }
+
+                val loadedPullDownControlCenter = prefs[KEY_PULL_DOWN_CONTROL_CENTER] ?: true
+                if (_pullDownControlCenterEnabled.value != loadedPullDownControlCenter) {
+                    _pullDownControlCenterEnabled.value = loadedPullDownControlCenter
                 }
 
                 val loadedWidgetGlassHighlight = prefs[KEY_WIDGET_GLASS_HIGHLIGHT] ?: true
@@ -3657,6 +3674,11 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         persist { store.edit { it[KEY_LOCK_SCREEN_WATCH_FACE] = enabled } }
     }
 
+    fun setPullDownControlCenterEnabled(enabled: Boolean) {
+        _pullDownControlCenterEnabled.value = enabled
+        persist { store.edit { it[KEY_PULL_DOWN_CONTROL_CENTER] = enabled } }
+    }
+
     fun setWidgetGlassHighlightEnabled(enabled: Boolean) {
         _widgetGlassHighlightEnabled.value = enabled
         persist { store.edit { it[KEY_WIDGET_GLASS_HIGHLIGHT] = enabled } }
@@ -4006,6 +4028,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 it[KEY_GLASS_HIGHLIGHT] = true
                 it[KEY_WIDGET_GLASS_HIGHLIGHT] = true
                 it[KEY_LOCK_SCREEN_WATCH_FACE] = true
+                it[KEY_PULL_DOWN_CONTROL_CENTER] = true
                 it[KEY_APP_LIST_WATCHFACE_COLORS] = false
                 it[KEY_APP_LIST_ROW_BORDER] = false
                 it[KEY_APP_LIST_GRID_ICON_PLATE] = true
