@@ -186,9 +186,8 @@
             android:screenOrientation="portrait" />
 
         <!--
-          C1 网页版兜底宿主。exported="false"：只有 Flue 自己能启动它 —— 它加载的是带登录
-          cookie 的站点，绝不能让别的 App 用 EXTRA_URL 指使它去打开任意地址（宿主内部还有
-          一道站内白名单，这里是第一道）。
+          WatchMaker 表盘画布调节页：本页渲染真实表盘，叠加参数面板即时预览。
+          exported="false"：仅供 Flue 内部设置入口启动，不是网页宿主。
         -->
         <activity
             android:name=".CanvasAdjustActivity"

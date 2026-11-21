@@ -100,7 +100,7 @@
 
 ## 四、尚未修正的漂移
 
-审计脚本当前输出：**ERROR 0 / WARN 7 / INFO 19**。
+审计脚本当前输出：**ERROR 0 / WARN 7 / INFO 8**。
 
 `app_list` 组已整组删除（13 条）。它是最后一个**按主题**建模的组，横跨的三屏都已
 各有着落（`DISPLAY_SIZE` 与 `APP_LIST_BACKGROUND` 整页搬出、`APP_LIST_BEHAVIOR`
@@ -252,7 +252,7 @@ python3 tools/settings-drift-audit.py --screen WATCH_FACE_MORE
 
 ### 8.1 那两个 WARN 不是待办
 
-审计脚本当前输出 `ERROR 0 / WARN 7 / INFO 19`。7 条 WARN 全落在 `WATCH_FACES` 上，
+审计脚本当前输出 `ERROR 0 / WARN 7 / INFO 8`。7 条 WARN 全落在 `WATCH_FACES` 上，
 就是上表第二行，不是遗漏。要把这行输出当信号用，得按基线读：
 
 | 输出 | 含义 |

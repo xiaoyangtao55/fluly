@@ -19,26 +19,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,252 +43,12 @@ import com.flue.launcher.R
 import com.flue.launcher.backup.FlueBackupExportSummary
 import com.flue.launcher.backup.FlueBackupOptions
 import com.flue.launcher.ui.common.isFlueScreenRound
-import com.flue.launcher.ui.style.FlueAlertDialog
-import com.flue.launcher.ui.style.FlueGroupPosition
 import com.flue.launcher.ui.style.FlueLoadingIndicator
-import com.flue.launcher.ui.style.flueOverscroll
-import com.flue.launcher.ui.style.flueSettingsGroup
 import com.flue.launcher.ui.theme.LauncherTheme
 import com.flue.launcher.ui.theme.ProvideDialogUiScale
 import top.yukonga.miuix.kmp.icon.MiuixIcons as OfficialMiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back as OfficialBack
 import top.yukonga.miuix.kmp.icon.extended.Ok as OfficialOk
-
-/**
- * 备份相关的弹窗：导出/导入的勾选面板、全屏阻塞进度。
- *
- * 行 key 与数据层 `backup_export` / `backup_import` 组共用同一批条目，
- * 改名会同时打断两屏的搜索索引与滚动位置。
- */
-
-@Composable
-internal fun BackupOptionsDialog(
-    title: String,
-    subtitle: String,
-    options: FlueBackupOptions,
-    availableOptions: FlueBackupOptions,
-    confirmText: String,
-    onOptionsChange: (FlueBackupOptions) -> Unit,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    val listState = rememberLazyListState()
-    FlueAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                Text(subtitle, color = LauncherTheme.style.secondaryTextColor, fontSize = 12.sp)
-                Spacer(modifier = Modifier.height(10.dp))
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .height(320.dp)
-                        .flueOverscroll(listState),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (availableOptions.settings) {
-                        item("backup_settings") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_settings),
-                                subtitle = stringResource(R.string.backup_item_settings_sub),
-                                checked = options.settings,
-                                onToggle = { onOptionsChange(options.copy(settings = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.appOrder) {
-                        item("backup_app_order") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_app_order),
-                                subtitle = stringResource(R.string.backup_item_app_order_sub),
-                                checked = options.appOrder,
-                                onToggle = { onOptionsChange(options.copy(appOrder = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.widgetOrder) {
-                        item("backup_widget_order") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_widget_order),
-                                subtitle = stringResource(R.string.backup_item_widget_order_sub),
-                                checked = options.widgetOrder,
-                                onToggle = { onOptionsChange(options.copy(widgetOrder = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.sideScreenOrder) {
-                        item("backup_side_screen_order") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_side_screen_order),
-                                subtitle = stringResource(R.string.backup_item_side_screen_order_sub),
-                                checked = options.sideScreenOrder,
-                                onToggle = { onOptionsChange(options.copy(sideScreenOrder = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.photoWatchFace) {
-                        item("backup_photo_watchface") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_photo_watchface),
-                                subtitle = stringResource(R.string.backup_item_photo_watchface_sub),
-                                checked = options.photoWatchFace,
-                                onToggle = { onOptionsChange(options.copy(photoWatchFace = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.videoWatchFace) {
-                        item("backup_video_watchface") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_video_watchface),
-                                subtitle = stringResource(R.string.backup_item_video_watchface_sub),
-                                checked = options.videoWatchFace,
-                                onToggle = { onOptionsChange(options.copy(videoWatchFace = it)) }
-                            )
-                        }
-                    }
-                    if (availableOptions.watchFiles) {
-                        item("backup_watch_files") {
-                            BackupOptionSwitch(
-                                title = stringResource(R.string.backup_item_watch_files),
-                                subtitle = stringResource(R.string.backup_item_watch_files_sub),
-                                checked = options.watchFiles,
-                                onToggle = { onOptionsChange(options.copy(watchFiles = it)) }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(confirmText)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel))
-            }
-        }
-    )
-}
-
-@Composable
-private fun BackupOptionSwitch(
-    title: String,
-    subtitle: String,
-    checked: Boolean,
-    onToggle: (Boolean) -> Unit,
-    scale: Float = 1f,
-    groupPosition: FlueGroupPosition = FlueGroupPosition.Single,
-) {
-    SettingsSwitchRow(
-        title = title,
-        subtitle = subtitle,
-        checked = checked,
-        onToggle = onToggle,
-        scale = scale,
-        groupPosition = groupPosition,
-    )
-}
-
-private fun LazyListScope.backupOptionRows(
-    listState: LazyListState,
-    screenCenterY: Float,
-    screenHeightPx: Float,
-    options: FlueBackupOptions,
-    availableOptions: FlueBackupOptions,
-    onOptionsChange: (FlueBackupOptions) -> Unit
-) {
-    // 老师报「导出配置这一页的选项还没合并」：七个开关原来各自一张卡。
-    flueSettingsGroup {
-        if (availableOptions.settings) {
-            row("backup_settings") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_settings),
-                    subtitle = stringResource(R.string.backup_item_settings_sub),
-                    checked = options.settings,
-                    onToggle = { onOptionsChange(options.copy(settings = it)) },
-                    scale = itemFisheye(listState, "backup_settings", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.appOrder) {
-            row("backup_app_order") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_app_order),
-                    subtitle = stringResource(R.string.backup_item_app_order_sub),
-                    checked = options.appOrder,
-                    onToggle = { onOptionsChange(options.copy(appOrder = it)) },
-                    scale = itemFisheye(listState, "backup_app_order", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.widgetOrder) {
-            row("backup_widget_order") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_widget_order),
-                    subtitle = stringResource(R.string.backup_item_widget_order_sub),
-                    checked = options.widgetOrder,
-                    onToggle = { onOptionsChange(options.copy(widgetOrder = it)) },
-                    scale = itemFisheye(listState, "backup_widget_order", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.sideScreenOrder) {
-            row("backup_side_screen_order") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_side_screen_order),
-                    subtitle = stringResource(R.string.backup_item_side_screen_order_sub),
-                    checked = options.sideScreenOrder,
-                    onToggle = { onOptionsChange(options.copy(sideScreenOrder = it)) },
-                    scale = itemFisheye(listState, "backup_side_screen_order", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.photoWatchFace) {
-            row("backup_photo_watchface") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_photo_watchface),
-                    subtitle = stringResource(R.string.backup_item_photo_watchface_sub),
-                    checked = options.photoWatchFace,
-                    onToggle = { onOptionsChange(options.copy(photoWatchFace = it)) },
-                    scale = itemFisheye(listState, "backup_photo_watchface", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.videoWatchFace) {
-            row("backup_video_watchface") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_video_watchface),
-                    subtitle = stringResource(R.string.backup_item_video_watchface_sub),
-                    checked = options.videoWatchFace,
-                    onToggle = { onOptionsChange(options.copy(videoWatchFace = it)) },
-                    scale = itemFisheye(listState, "backup_video_watchface", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-        if (availableOptions.watchFiles) {
-            row("backup_watch_files") { position ->
-                BackupOptionSwitch(
-                    title = stringResource(R.string.backup_item_watch_files),
-                    subtitle = stringResource(R.string.backup_item_watch_files_sub),
-                    checked = options.watchFiles,
-                    onToggle = { onOptionsChange(options.copy(watchFiles = it)) },
-                    scale = itemFisheye(listState, "backup_watch_files", screenCenterY, screenHeightPx),
-                    groupPosition = position,
-                )
-            }
-        }
-    }
-
-}
 
 /** 备份内容勾选项的七个行 key。导出/导入两屏共用同一批条目。 */
 internal val BackupOptionRows: Set<String> = setOf(

@@ -261,37 +261,6 @@ fun appListLaunchPlateValues(progress: Float): LayerAnimValues =
         alpha = (1f - 1.8f * progress.coerceIn(0f, 1f)).coerceIn(0f, 1f),
     )
 
-/**
- * 应用视图层状态映射。
- */
-fun appViewLayerValues(state: ScreenState): LayerAnimValues = when (state) {
-    ScreenState.App -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 1f)
-    ScreenState.Apps -> LayerAnimValues(scale = 0f, blur = 0f, alpha = 0f)
-    else -> LayerAnimValues(scale = 0f, blur = 0f, alpha = 0f)
-}
-
-/**
- * 侧屏层状态映射。
- */
-fun stackLayerValues(state: ScreenState): LayerAnimValues = when (state) {
-    ScreenState.Stack -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 1f, translationY = 0f)
-    ScreenState.Apps -> LayerAnimValues(scale = 1.5f, blur = 12f, alpha = 0f, translationY = -0.5f)
-    else -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 0f, translationY = 1f)
-}
-
-fun widgetLayerValues(state: ScreenState): LayerAnimValues = when (state) {
-    ScreenState.Widgets -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 1f, translationY = 0f)
-    else -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 0f, translationY = 1f)
-}
-
-/**
- * 通知层状态映射。
- */
-fun notificationLayerValues(state: ScreenState): LayerAnimValues = when (state) {
-    ScreenState.Notifications -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 1f, translationY = 0f)
-    else -> LayerAnimValues(scale = 1f, blur = 0f, alpha = 0f, translationY = 1f)
-}
-
 // 轻微回弹效果，接近 cubic-bezier(0.32, 1.2, 0.4, 1) 的观感
 val TransitionSpring = spring<Float>(
     dampingRatio = 0.75f,

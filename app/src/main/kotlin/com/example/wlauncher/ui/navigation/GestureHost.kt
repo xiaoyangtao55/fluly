@@ -75,8 +75,9 @@ fun GestureHost(
      * 表盘上竖向**向下**滑时拉下系统控制中心。
      *
      * 与侧屏 / 小组件页刻意不同：那两个覆层是我们自己画的，所以能逐帧跟手；
-     * 系统面板不归这个进程绘制，没有任何逐帧接口（`StatusBarManager` 的
-     * expand 系列是签名级权限，见 `FlueAccessibilityService.openQuickSettings`）。
+     * 系统面板不归这个进程绘制，没有任何逐帧接口。`StatusBarManager` 的
+     * expand 系列使用 normal 级 `EXPAND_STATUS_BAR` 权限，见 `SystemStatusBar`；
+     * ROM 拒绝时再由 `FlueAccessibilityService.openQuickSettings` 兜底。
      * 所以这里只做「越过阈值触发一次」，触发后立刻消费位移，后续拖动不再重复派发。
      *
      * 传 null 表示下滑不绑定任何动作（设置里关掉时的形态），此时下滑会像以前一样
