@@ -1,6 +1,8 @@
 package com.flue.launcher
 
 import com.flue.launcher.i18n.FlueComponentActivity
+import com.flue.launcher.lockscreen.LockScreenForegroundGate
+import android.os.PowerManager
 import com.flue.launcher.lockscreen.registerScreenOffReceiver
 import com.flue.launcher.lockscreen.screenOffReceiverFor
 
@@ -223,6 +225,9 @@ class LauncherActivity : FlueComponentActivity() {
      * 再派发 `ACTION_SCREEN_OFF`，放在 onPause 反注册会永远收不到 —— 见 LockScreenTrigger。
      */
     private var screenOffReceiver: BroadcastReceiver? = null
+    private val lockScreenForegroundGate = LockScreenForegroundGate()
+    private fun isScreenInteractive(): Boolean =
+        getSystemService(PowerManager::class.java)?.isInteractive != false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -238,7 +243,7 @@ class LauncherActivity : FlueComponentActivity() {
         )
         onBackPressedDispatcher.addCallback(this) { vm.requestBackPress() }
         runCatching {
-            val receiver = screenOffReceiverFor(this) { vm.lockScreenWatchFaceEnabled.value }
+            val receiver = screenOffReceiverFor(this, lockScreenForegroundGate) { vm.lockScreenWatchFaceEnabled.value }
             registerScreenOffReceiver(this, receiver)
             screenOffReceiver = receiver
         }.onFailure { Log.e(WIDGET_HOST_LOG_TAG, "无法注册熄屏广播", it) }
@@ -287,6 +292,7 @@ class LauncherActivity : FlueComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        lockScreenForegroundGate.onResume()
         RecentsVisibility.apply(this)
         vm.setLauncherInteractive(true)
         vm.onLauncherResumed()
@@ -299,6 +305,7 @@ class LauncherActivity : FlueComponentActivity() {
     }
 
     override fun onPause() {
+        lockScreenForegroundGate.onPause(isScreenInteractive())
         super.onPause()
         deferredResumeMaintenance?.let(window.decorView::removeCallbacks)
         deferredResumeMaintenance = null
@@ -307,6 +314,7 @@ class LauncherActivity : FlueComponentActivity() {
     }
 
     override fun onStop() {
+        lockScreenForegroundGate.onStop(isScreenInteractive())
         runCatching { widgetHostLifecycle.release(this) }
             .onFailure { error ->
                 Log.e(WIDGET_HOST_LOG_TAG, "Unable to stop AppWidgetHost listening", error)

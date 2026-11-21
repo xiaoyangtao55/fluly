@@ -14,10 +14,12 @@ import com.flue.launcher.watchface.WatchClockPosition
 import com.flue.launcher.watchface.WatchFaceClockStyle
 import com.flue.launcher.watchface.WatchFaceMd3eShape
 import kotlinx.coroutines.flow.first
+import com.flue.launcher.watchface.WatchFaceDescriptor
+import com.flue.launcher.watchface.standard.WatchCanvasSettings
 
 /**
- * 锁屏表盘只需要「当前表盘长什么样」这七项，不需要 [LauncherViewModel] 那 4451 行里的
- * 应用列表、通知监听、传感器状态。所以这里单独从 DataStore 读一份最小快照，
+ * 锁屏表盘只需要当前表盘的渲染配置，不需要 [LauncherViewModel] 的
+ * 应用列表和通知监听。所以这里单独从 DataStore 读一份最小快照，
  * 而不是在锁屏 Activity 里再养一个 ViewModel。
  */
 data class LockScreenFaceConfig(
@@ -29,7 +31,16 @@ data class LockScreenFaceConfig(
     val uiStyle: UiStyle,
     val themeMode: ThemeMode,
     val globalUiScalePercent: Int,
+    val canvasSettings: WatchCanvasSettings = WatchCanvasSettings.GLOBAL_DEFAULT,
+    val gravityParallaxEnabled: Boolean = true,
+    val gravityBackdropBlurEnabled: Boolean = false,
 )
+
+internal fun resolveLockScreenFace(
+    selectedId: String,
+    available: List<WatchFaceDescriptor>,
+): WatchFaceDescriptor? = available.firstOrNull { it.id == selectedId }
+    ?: available.firstOrNull { it.id == BUILT_IN_WATCHFACE_ID }
 
 suspend fun Context.readLockScreenFaceConfig(): LockScreenFaceConfig =
     dataStore.data.first().toLockScreenFaceConfig()
@@ -81,10 +92,23 @@ internal fun Preferences.toLockScreenFaceConfig(): LockScreenFaceConfig {
         md3eSecondHandColorArgb = this[LauncherViewModel.KEY_VIDEO_MD3E_SECOND_COLOR] ?: 0xFF806EA4.toInt(),
     )
 
+    val selectedId = this[LauncherViewModel.KEY_SELECTED_WATCHFACE_ID]
+        ?.takeIf { it.isNotBlank() } ?: BUILT_IN_WATCHFACE_ID
+    val canvasDefault = this[LauncherViewModel.KEY_WATCHFACE_CANVAS_DEFAULT]
+        ?.let(WatchCanvasSettings::decode)
+        ?: this[LauncherViewModel.KEY_WATCHMAKER_FORCE_FILL]?.let(WatchCanvasSettings::fromForceFill)
+        ?: WatchCanvasSettings.GLOBAL_DEFAULT
+    val canvasOverrides = this[LauncherViewModel.KEY_WATCHFACE_CANVAS_OVERRIDES]
+        .orEmpty().lineSequence().mapNotNull { line ->
+            val separator = line.indexOf('=')
+            if (separator <= 0) null
+            else line.substring(0, separator) to WatchCanvasSettings.decode(line.substring(separator + 1))
+        }.toMap()
     return LockScreenFaceConfig(
-        watchFaceId = this[LauncherViewModel.KEY_SELECTED_WATCHFACE_ID]
-            ?.takeIf { it.isNotBlank() }
-            ?: BUILT_IN_WATCHFACE_ID,
+        watchFaceId = selectedId,
+        canvasSettings = canvasOverrides[selectedId] ?: canvasDefault,
+        gravityParallaxEnabled = this[LauncherViewModel.KEY_WATCHFACE_GRAVITY_PARALLAX] ?: true,
+        gravityBackdropBlurEnabled = this[LauncherViewModel.KEY_WATCHFACE_GRAVITY_BACKDROP_BLUR] ?: false,
         photoPath = this[LauncherViewModel.KEY_BUILTIN_PHOTO_PATH],
         videoPath = this[LauncherViewModel.KEY_BUILTIN_VIDEO_PATH],
         photoOptions = photoOptions,

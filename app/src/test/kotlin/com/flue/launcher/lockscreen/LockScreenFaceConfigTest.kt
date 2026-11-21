@@ -6,6 +6,7 @@ import com.flue.launcher.viewmodel.LauncherViewModel
 import com.flue.launcher.watchface.BUILT_IN_WATCHFACE_ID
 import com.flue.launcher.watchface.WatchClockPosition
 import com.flue.launcher.watchface.WatchFaceClockStyle
+import com.flue.launcher.watchface.standard.WatchCanvasSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -53,6 +54,20 @@ class LockScreenFaceConfigTest {
         assertEquals("/sdcard/face.jpg", config.photoPath)
         assertEquals(130, config.globalUiScalePercent)
         assertEquals(ThemeMode.LIGHT, config.themeMode)
+    }
+
+    @Test
+    fun `canvas preferences follow launcher override and legacy precedence`() {
+        val prefs = mutablePreferencesOf().apply {
+            this[LauncherViewModel.KEY_SELECTED_WATCHFACE_ID] = "custom"
+            this[LauncherViewModel.KEY_WATCHMAKER_FORCE_FILL] = false
+        }
+        assertEquals(WatchCanvasSettings.fromForceFill(false), prefs.toLockScreenFaceConfig().canvasSettings)
+        prefs[LauncherViewModel.KEY_WATCHFACE_CANVAS_DEFAULT] = WatchCanvasSettings.GLOBAL_DEFAULT.encode()
+        assertEquals(WatchCanvasSettings.GLOBAL_DEFAULT, prefs.toLockScreenFaceConfig().canvasSettings)
+        val override = WatchCanvasSettings.fromForceFill(false)
+        prefs[LauncherViewModel.KEY_WATCHFACE_CANVAS_OVERRIDES] = "custom=${override.encode()}"
+        assertEquals(override, prefs.toLockScreenFaceConfig().canvasSettings)
     }
 
     @Test

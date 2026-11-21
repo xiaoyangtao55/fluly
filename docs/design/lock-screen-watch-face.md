@@ -32,8 +32,12 @@ AOD 被删的原因是它劫持了锁屏流程：`FLAG_KEEP_SCREEN_ON` 让屏幕
 
 `LauncherActivity` 在 `onCreate` 注册、`onDestroy` 反注册熄屏广播。
 
-时机很关键：`ACTION_SCREEN_OFF` 派发时本进程仍持有可见的前台 Activity，属于**前台
-启动**，不触发 Android 10+ 的后台启动拦截，因此不需要 `SYSTEM_ALERT_WINDOW`。
+receiver 注册存在不等于启动器在前台：动态 receiver 在其他 App 前台时仍可能收到广播。
+`LockScreenForegroundGate` 在 HOME resume 时置入一次资格；亮屏状态下 pause/stop（打开
+其他 App、设置或最近任务）立即撤销；熄屏导致的 pause/stop 保留资格，直到
+`ACTION_SCREEN_OFF` 原子消费。这样不会简单在 onPause 清空而漏掉「先 pause、后广播」。
+同一次前台周期最多触发一次，功能开关在消费后现读。启动仍为 best effort：厂商及
+Android 版本的后台启动限制可能拒绝，不能把广播到达当作系统保证的前台启动豁免。
 
 三个容易踩的点：
 
@@ -41,13 +45,23 @@ AOD 被删的原因是它劫持了锁屏流程：`FLAG_KEEP_SCREEN_ON` 让屏幕
 | --- | --- |
 | 注册点不能放在 `onPause` | 熄屏时 Activity 先 pause 再派发广播，放在 `onPause` 反注册就永远收不到 |
 | 不能改成亮屏后才拉起 | 那时进程已在后台，会撞上后台启动拦截，要多一套悬浮窗权限引导 |
-| 只从启动器熄屏才生效 | 在别的 App 里熄屏，本进程收不到广播（见第四节） |
+| 只从启动器熄屏才生效 | 在别的 App 里也可能收到广播，必须由前台资格门禁拒绝（见第四节） |
 
-### 渲染：复用 `WatchFaceLayer`
+### 渲染：复用主桌面的三个 Host
 
-`WatchFaceLayer` 完全不依赖 `LauncherViewModel`、`FlueApplication` 或
-`SharedPreferences`，纯参数化。所以锁屏 Activity 不需要把那 4451 行的 ViewModel
-再养一份，只要从 DataStore 读一份最小快照：
+内置表盘走 `WatchFaceLayer`；从相同的 JB/WatchMaker 存储扫描得到完整 descriptor，
+分别交给主桌面使用的 `JbWatchFaceHost` / `WatchmakerWatchFaceHost`，不能只把自定义
+ID 塞进内置层。失效 ID 或 Host 加载失败仅在锁屏本地回退默认内置表盘，不改写用户
+选择。WatchMaker 画布遵循每表盘覆盖 → 全局默认 → 旧 force-fill → 出厂默认优先级，
+并复用重力视差/背景模糊偏好。
+
+三个 Host 共用 `resumed && PowerManager.isInteractive` 可见性，pause 或 SCREEN_OFF
+立即停播；resume 或 SCREEN_ON 重新求值。receiver 到 destroy 才注销；不增加唤醒锁、
+屏幕唤醒或 keep-screen-on。锁屏 Activity 消费触摸，仅识别退出手势；自定义表盘的
+点击动作也不下发，避免认证前跳转应用或执行表盘动作。
+
+渲染 Host 纯参数化，锁屏 Activity 不需要再养一个 LauncherViewModel，只要从
+DataStore 读一份最小快照（另包含画布和重力选项）：
 
 ```
 LockScreenFaceConfig(watchFaceId, photoPath, videoPath,
@@ -62,7 +76,11 @@ LockScreenFaceConfig(watchFaceId, photoPath, videoPath,
 锁屏上禁掉两样东西：`hasNotifications`（认证之前不该出现通知角标）、
 `onLongPress`/`onDoubleTap`（这两个动作属于桌面）。
 
-### 退出：`ACTION_USER_PRESENT` 加一次自查
+### 退出：上滑 / 返回露出 Keyguard，`ACTION_USER_PRESENT` 加一次自查
+
+Activity 层识别单指向上滑动（至少 48dp 且纵向位移大于横向），跨 Compose 与原生
+Host 一致处理。只调用 `finish()` 移除自己的覆盖层，不 dismiss/disable Keyguard，
+不申请跳过认证。此时显示系统锁屏，是否继续上滑或 PIN/图案/生物认证完全由系统决定。
 
 解锁完成时系统发这条广播，收到就 `finish()`，把桌面让出来。注册在
 `onCreate`/`onDestroy` 而不是 `onResume`/`onPause`：认证界面弹出时本 Activity 会
@@ -95,9 +113,7 @@ false，就主动退出。只查一次、不轮询，因为正常路径由广播
 ## 四、已知限制
 
 1. **只在从启动器熄屏时生效。** 在微信、浏览器等 App 里熄屏，锁屏表盘不会出现。
-   补齐要引入 `SYSTEM_ALERT_WINDOW`（悬浮窗权限），并引导用户去系统设置手动开。
-   类原 AOSP 上授予后 `ActivityStarter` 的 `mHasOverlay` 豁免有效，8.1~13 都能通；
-   14+ 需实测。
+   当前不申请后台启动或悬浮窗权限；即使前台资格满足，厂商也可能拒绝启动，必须真机验证。
 2. **认证之前不显示通知。** 锁屏上不能暴露通知内容和日程详情，这是安全边界，
    不是遗漏。
 3. **想直接看通知要多一步。** 表盘盖着时，用户需要先上滑（或按返回）才看到 Keyguard。
@@ -110,12 +126,13 @@ false，就主动退出。只查一次、不轮询，因为正常路径由广播
 装到真机后按顺序看：
 
 1. 桌面熄屏 → 立即亮屏：第一眼是表盘，不是系统时钟
-2. 上滑：无安全锁屏直接进桌面；有 PIN 则弹认证
+2. 上滑：先移除表盘，露系统 Keyguard；有 PIN/图案时不能跳过认证，无安全锁时按系统流程进入桌面
 3. 认证通过：表盘消失，露出桌面（而不是表盘继续盖着）
 4. 表盘上按返回键：露出 Keyguard（不是卡死）
 5. 在别的 App 里熄屏：不出现锁屏表盘（预期行为，见限制 1）
 6. 息屏后放 10 分钟再亮屏：表盘仍在，且电量没有明显下滑
-7. 视频表盘：熄屏时视频停止播放，亮屏续播
-8. 设置里关掉「锁屏表盘」→ 熄屏再亮屏：不再出现表盘，系统锁屏照常
+7. 视频表盘、WatchMaker/JB 动画：熄屏及 pause 停止，亮屏 resume 续播；自定义表盘与桌面相同 Host，点击不能启动应用
+8. 验证两种时序：HOME → SCREEN_OFF，以及 HOME → 非交互 pause/stop → SCREEN_OFF；都只触发一次。HOME → 亮屏 pause → 其他 App → SCREEN_OFF 不触发
+9. 设置里关掉「锁屏表盘」→ 熄屏再亮屏：不再出现表盘，系统锁屏照常
 
 任一条不符合，Logcat 过滤 `LockScreenWatchFace` 与 `Background activity start`。
