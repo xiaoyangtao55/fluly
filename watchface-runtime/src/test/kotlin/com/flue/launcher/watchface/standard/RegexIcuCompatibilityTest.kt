@@ -33,17 +33,17 @@ class RegexIcuCompatibilityTest {
 
     @Test
     fun `no regex literal relies on lenient brace handling`() {
-        val root = resolveMainSourceRoot()
+        val repositoryRoot = resolveRepositoryRoot()
         val violations = mutableListOf<String>()
 
-        root.walkTopDown()
+        resolveMainSourceRoots(repositoryRoot).asSequence().flatMap { it.walkTopDown() }
             .filter { it.isFile && it.extension == "kt" }
             .forEach { file ->
                 file.readText().lineSequence().forEachIndexed { index, line ->
                     extractRegexPatterns(line).forEach { pattern ->
                         val problem = firstBraceProblem(pattern)
                         if (problem != null) {
-                            violations += "${file.relativeToRootOrSelf(root)}:${index + 1}  $problem  →  $pattern"
+                            violations += "${file.relativeTo(repositoryRoot).path}:${index + 1}  $problem  →  $pattern"
                         }
                     }
                 }
@@ -80,16 +80,15 @@ class RegexIcuCompatibilityTest {
 
     private companion object {
 
-        fun resolveMainSourceRoot(): File =
-            sequenceOf(
-                File("src/main"),
-                File("app/src/main"),
-                File("../app/src/main"),
-            ).firstOrNull { it.isDirectory }
-                ?: error("找不到 src/main —— 工作目录是 ${File(".").absolutePath}")
+        fun resolveRepositoryRoot(): File =
+            generateSequence(File(".").canonicalFile) { it.parentFile }
+                .firstOrNull { File(it, "settings.gradle.kts").isFile && File(it, "app/src/main").isDirectory }
+                ?: error("找不到仓库根目录 —— 工作目录是 ${File(".").absolutePath}")
 
-        fun File.relativeToRootOrSelf(root: File): String =
-            runCatching { relativeTo(root.parentFile ?: root).path }.getOrDefault(path)
+        fun resolveMainSourceRoots(repositoryRoot: File): List<File> =
+            listOf("app", "studio", "agent", "ui-kit", "watchface-core", "watchface-runtime", "watchface-editor")
+                .map { File(repositoryRoot, "$it/src/main") }
+                .onEach { check(it.isDirectory) { "模块源码目录缺失：$it" } }
 
         /**
          * 抽出传给 `Regex(...)` 的字符串字面量，并把 Kotlin 的转义还原成正则引擎

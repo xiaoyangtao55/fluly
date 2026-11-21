@@ -20,8 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -40,6 +38,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.flue.launcher.ui.style.FlueDialog
+import com.flue.launcher.ui.style.FlueOverlayHost
 import com.flue.launcher.watchface.agent.model.AgentMessage
 import com.flue.launcher.watchface.agent.model.AgentMessageRole
 import com.flue.launcher.watchface.agent.model.AgentMessageStatus
@@ -72,78 +72,86 @@ fun StudioChatScreen(
         }
     }
 
-    Column(modifier = modifier.fillMaxSize().imePadding()) {
-        TopAppBar(
-            title = {
-                Column {
-                    Text("Agent", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        state.generationStatus?.let { "生成中" } ?: "工作区: ${state.watchScope}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            },
-            actions = {
-                Box {
-                    TextButton(onClick = { showHistory = true }) { Text("历史") }
-                    DropdownMenu(expanded = showHistory, onDismissRequest = { showHistory = false }) {
-                        conversations.take(12).forEach { conversation ->
-                            DropdownMenuItem(
-                                text = { Text(conversation.title) },
-                                onClick = {
-                                    showHistory = false
-                                    viewModel.selectConversation(conversation.id)
-                                },
-                            )
-                        }
-                        if (conversations.isEmpty()) {
-                            DropdownMenuItem(text = { Text("还没有会话") }, onClick = { showHistory = false })
-                        }
+    // Studio 当前外壳只有 MaterialTheme；在本页提供同窗口提示宿主，避免独立 Popup。
+    FlueOverlayHost(modifier = modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().imePadding()) {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text("Agent", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            state.generationStatus?.let { "生成中" } ?: "工作区: ${state.watchScope}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
+                actions = {
+                    Box {
+                        TextButton(onClick = { showHistory = true }) { Text("历史") }
+                    }
+                    TextButton(onClick = { viewModel.newConversation() }) { Text("新会话") }
+                    TextButton(onClick = onOpenSettings) { Text("设置") }
+                },
+            )
+
+            if (messages.isEmpty()) {
+                EmptyHint()
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    items(messages, key = { it.id }) { message ->
+                        MessageBubble(message)
                     }
                 }
-                TextButton(onClick = { viewModel.newConversation() }) { Text("新会话") }
-                TextButton(onClick = onOpenSettings) { Text("设置") }
-            },
-        )
+            }
 
-        if (messages.isEmpty()) {
-            EmptyHint()
-        } else {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                items(messages, key = { it.id }) { message ->
-                    MessageBubble(message)
+                OutlinedTextField(
+                    value = state.inputDraft,
+                    onValueChange = viewModel::updateDraft,
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("描述想要的表盘，或直接给 Agent 下指令") },
+                    maxLines = 4,
+                )
+                if (state.isGenerating) {
+                    Button(onClick = viewModel::stop) { Text("停止") }
+                } else {
+                    Button(
+                        onClick = viewModel::send,
+                        enabled = state.inputDraft.isNotBlank(),
+                    ) { Text("发送") }
                 }
             }
         }
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = state.inputDraft,
-                onValueChange = viewModel::updateDraft,
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("描述想要的表盘，或直接给 Agent 下指令") },
-                maxLines = 4,
-            )
-            if (state.isGenerating) {
-                Button(onClick = viewModel::stop) { Text("停止") }
-            } else {
-                Button(
-                    onClick = viewModel::send,
-                    enabled = state.inputDraft.isNotBlank(),
-                ) { Text("发送") }
+        if (showHistory) {
+            FlueDialog(onDismissRequest = { showHistory = false }) {
+                Text("历史", style = MaterialTheme.typography.titleMedium)
+                conversations.take(12).forEach { conversation ->
+                    TextButton(
+                        onClick = {
+                            showHistory = false
+                            viewModel.selectConversation(conversation.id)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(conversation.title)
+                    }
+                }
+                if (conversations.isEmpty()) {
+                    TextButton(onClick = { showHistory = false }) { Text("还没有会话") }
+                }
             }
         }
-    }
+    } // FlueOverlayHost
 }
 
 @Composable

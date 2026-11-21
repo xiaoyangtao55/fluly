@@ -2,7 +2,6 @@ package com.flue.launcher.ui.style
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.io.File
 
 /**
  * 卡片级圆角只许出自 [com.flue.launcher.ui.theme.LauncherStyle] 的形状令牌。
@@ -44,18 +43,14 @@ class FlueCardShapeTokenTest {
 
     @Test
     fun `card sized corner radii come from the style tokens`() {
-        val root = sequenceOf(File("src/main"), File("app/src/main"), File("../app/src/main"))
-            .firstOrNull { it.isDirectory }
-            ?: error("找不到 src/main —— 工作目录是 ${File(".").absolutePath}")
-
         val literal = Regex("""RoundedCornerShape\(\s*(\d+)\s*\.dp""")
         val violations = mutableListOf<String>()
 
-        root.walkTopDown()
-            .filter { it.isFile && it.extension == "kt" }
+        RepositorySourceScan.kotlinSources()
             .forEach { file ->
-                val relative = file.path.replace('\\', '/').substringAfter("src/main/")
-                if (allowed.keys.any { relative.endsWith(it) }) return@forEach
+                val relative = RepositorySourceScan.relative(file)
+                val sourceRelative = RepositorySourceScan.sourceRelative(file)
+                if (allowed.keys.any { sourceRelative.endsWith(it) }) return@forEach
                 file.readText().lineSequence().forEachIndexed { index, line ->
                     literal.findAll(line).forEach { match ->
                         val radius = match.groupValues[1].toInt()

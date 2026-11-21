@@ -8,16 +8,18 @@ class TransientDialogSourcePolicyTest {
     /**
      * 允许用原生 Dialog 的「整屏任务页」。
      *
-     * 这份名单只对当前模块的源码生效（[kotlinSources] 只扫 ui-kit），剩下的
-     * app 侧条目是搬家前的历史记录，等对应页面也搬过来时再删。InternalFileBrowser
-     * 搬进 ui-kit 时路径也跟着变了。
+     * 扫描覆盖全部七模块；使用仓库相对路径，避免同名文件共享豁免。
+     * 设置页拆分后的全屏任务按实际所在文件登记，不豁免瞬时菜单。
      */
     private val allowedFullscreenDialogFiles = setOf(
-        "com/example/wlauncher/SettingsActivity.kt",
-        "com/example/wlauncher/WatchStoreActivity.kt",
-        "com/flue/launcher/ui/common/FlueImageCropOverlay.kt",
-        "com/flue/launcher/ui/common/InternalFileBrowser.kt",
-        "com/flue/launcher/ui/store/WatchStorePageStack.kt",
+        "app/src/main/kotlin/com/example/wlauncher/SettingsActivity.kt",
+        "watchface-editor/src/main/kotlin/com/example/wlauncher/WatchStoreActivity.kt",
+        // 从 SettingsActivity 拆出的捐赠图片全屏预览与备份阻塞进度页。
+        "app/src/main/kotlin/com/example/wlauncher/ui/settings/SettingsAboutAndDonate.kt",
+        "app/src/main/kotlin/com/example/wlauncher/ui/settings/SettingsBackupDialogs.kt",
+        "ui-kit/src/main/kotlin/com/flue/launcher/ui/common/FlueImageCropOverlay.kt",
+        "ui-kit/src/main/kotlin/com/flue/launcher/ui/common/InternalFileBrowser.kt",
+        "watchface-editor/src/main/kotlin/com/flue/launcher/ui/store/WatchStorePageStack.kt",
     )
 
     @Test
@@ -118,19 +120,9 @@ class TransientDialogSourcePolicyTest {
         assertEquals(true, dialog.contains("modifier = Modifier.fluePromptTextReveal()"))
     }
 
-    private fun kotlinSources(): Sequence<File> = sourceRoots().asSequence()
-        .flatMap { it.walkTopDown() }
-        .filter { it.isFile && it.extension == "kt" }
+    private fun kotlinSources(): Sequence<File> = RepositorySourceScan.kotlinSources()
 
-    private fun sourceRoots(): List<File> {
-        val moduleRoot = sequenceOf(File("."), File("app"), File("../app"))
-            .firstOrNull { File(it, "src/main").isDirectory }
-            ?: error("找不到 Android 源码目录")
-        return listOf("kotlin", "java")
-            .map { File(moduleRoot, "src/main/$it") }
-            .filter(File::isDirectory)
-    }
+    private fun sourceRoots(): List<File> = RepositorySourceScan.sourceRoots()
 
-    private fun relative(file: File): String =
-        file.path.replace('\\', '/').substringAfter("src/main/").substringAfter('/')
+    private fun relative(file: File): String = RepositorySourceScan.relative(file)
 }

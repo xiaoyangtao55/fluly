@@ -37,12 +37,17 @@ class WorkspaceRuntimeTest {
     fun `bundled proot executables are extracted so ProcessBuilder can execute them`() {
         // 测试既可能在 agent 模块目录下跑，也可能在仓库根目录下跑。
         val buildScript = sequenceOf(
-            File("../app/build.gradle.kts"),
-            File("app/build.gradle.kts"),
-        ).firstOrNull(File::isFile)?.readText() ?: error("app/build.gradle.kts not found")
+            File("../studio/build.gradle.kts"),
+            File("studio/build.gradle.kts"),
+        ).firstOrNull(File::isFile) ?: error("studio/build.gradle.kts not found")
+        val source = buildScript.readText()
+        val binaries = File(buildScript.parentFile, "src/main/jniLibs/arm64-v8a")
+        listOf("libproot_exec.so", "libproot_loader.so").forEach { name ->
+            assertTrue("Studio proot binary missing: $name", File(binaries, name).isFile)
+        }
 
-        assertTrue(buildScript.contains("jniLibs {"))
-        assertTrue(buildScript.contains("useLegacyPackaging = true"))
+        assertTrue(source.contains("jniLibs {"))
+        assertTrue(source.contains("useLegacyPackaging = true"))
     }
 
     @Test

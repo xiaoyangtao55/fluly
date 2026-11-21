@@ -34,14 +34,25 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Unit tests
-        run: ./gradlew :app:testDebugUnitTest --no-daemon --console=plain
+        run: >
+          ./gradlew
+          :app:testDebugUnitTest
+          :agent:testDebugUnitTest
+          :watchface-core:testDebugUnitTest
+          :watchface-runtime:testDebugUnitTest
+          :ui-kit:testDebugUnitTest
+          :watchface-editor:testDebugUnitTest
+          :studio:testDebugUnitTest
+          --no-daemon --console=plain
 
       - name: Upload test report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: test-report
-          path: app/build/reports/tests/
+          path: |
+            */build/reports/tests/
+            */build/test-results/
           if-no-files-found: ignore
 
   # push / PR 只测试；手动触发时额外构建并上传两款应用的 APK。
