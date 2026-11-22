@@ -24,7 +24,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -234,9 +233,8 @@ internal fun SettingsSwitchRow(
             trailing = {
                 // A single toggleable parent owns input and accessibility, including
                 // indicator-only rows; the visual switch must not toggle twice.
-                androidx.compose.material3.Switch(
+                FlueSwitchIndicator(
                     checked = checked,
-                    onCheckedChange = null,
                     enabled = enabled,
                 )
             },
@@ -614,7 +612,7 @@ internal fun SettingsSliderRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(8.dp))
-                Slider(
+                FlueSlider(
                     value = localValue,
                     onValueChange = {
                         localValue = it
