@@ -2,7 +2,8 @@ package com.flue.launcher.watchface.store
 
 import kotlinx.coroutines.CancellationException
 
-internal suspend fun <T> commitMarketInstallCatalog(
+/** Commits the market catalog after installation, rolling back a new install on failure. */
+suspend fun <T> commitMarketInstallCatalog(
     wasAlreadyInstalled: Boolean,
     commit: suspend () -> T,
     rollback: suspend () -> Result<Unit>,

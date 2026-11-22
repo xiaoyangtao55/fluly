@@ -1,7 +1,7 @@
 package com.flue.launcher.watchface.store
 
 import androidx.compose.runtime.Immutable
-import com.flue.launcher.watchface.editor.BuildConfig
+import com.flue.launcher.watchface.store.client.BuildConfig
 import java.util.Locale
 
 /**

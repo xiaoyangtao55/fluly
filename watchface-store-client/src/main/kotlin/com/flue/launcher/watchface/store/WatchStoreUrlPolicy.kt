@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 /** Pure URL construction and redirect validation, kept separate for JVM tests. */
-internal object WatchStoreUrlPolicy {
+object WatchStoreUrlPolicy {
     private val uuidPattern = Regex(
         "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
     )
@@ -324,7 +324,7 @@ internal object WatchStoreUrlPolicy {
      * rejected instead of giving the connector a chance to choose the private
      * answer.
      */
-    internal fun requirePublicHttps(
+    fun requirePublicHttps(
         uri: URI,
         label: String = "request URL",
         resolver: (String) -> Array<InetAddress> = InetAddress::getAllByName,

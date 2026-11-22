@@ -1,18 +1,18 @@
 package com.flue.launcher.watchface.store
 
-internal data class WatchStoreTagEditResult(
+data class WatchStoreTagEditResult(
     val tags: List<String>,
     val editingText: String,
 )
 
-internal fun addWatchStoreTag(tags: List<String>, rawInput: String): List<String> {
+fun addWatchStoreTag(tags: List<String>, rawInput: String): List<String> {
     val candidate = rawInput.trim()
     if (candidate.isEmpty()) return tags
     if (tags.any { it.equals(candidate, ignoreCase = true) }) return tags
     return tags + candidate
 }
 
-internal fun beginEditWatchStoreTag(
+fun beginEditWatchStoreTag(
     tags: List<String>,
     index: Int,
 ): WatchStoreTagEditResult {
@@ -24,12 +24,12 @@ internal fun beginEditWatchStoreTag(
     )
 }
 
-internal fun removeWatchStoreTag(tags: List<String>, index: Int): List<String> =
+fun removeWatchStoreTag(tags: List<String>, index: Int): List<String> =
     if (index in tags.indices) {
         tags.filterIndexed { candidateIndex, _ -> candidateIndex != index }
     } else {
         tags
     }
 
-internal fun normalizeWatchStoreTags(tags: List<String>): List<String> =
+fun normalizeWatchStoreTags(tags: List<String>): List<String> =
     tags.fold(emptyList()) { normalized, raw -> addWatchStoreTag(normalized, raw) }
