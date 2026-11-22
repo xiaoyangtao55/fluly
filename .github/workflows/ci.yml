@@ -60,10 +60,15 @@ jobs:
   # push / PR 只测试；手动触发时额外构建并上传两款应用的 APK。
   # 此处 Release 未签名，正式签名发布由下方任务在手动选择 v* 标签时执行。
   build:
-    name: Build APKs
+    name: Build ${{ matrix.module }} ${{ matrix.variant }}
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [app, studio]
+        variant: [Debug, Release]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -98,18 +103,18 @@ jobs:
         run: |
           set -o pipefail
           ./gradlew \
-            :app:assembleDebug \
-            :app:assembleRelease \
-            :studio:assembleDebug \
-            :studio:assembleRelease \
-            --continue --stacktrace --info --no-daemon --console=plain \
+            ":${{ matrix.module }}:assemble${{ matrix.variant }}" \
+            '-Dorg.gradle.jvmargs=-Xmx5g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8' \
+            -Pkotlin.compiler.execution.strategy=in-process \
+            --max-workers=2 --no-parallel \
+            --stacktrace --info --no-daemon --console=plain \
             2>&1 | tee "$RUNNER_TEMP/assemble-apks.log"
 
       - name: Upload build diagnostics
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: build-diagnostics
+          name: build-diagnostics-${{ matrix.module }}-${{ matrix.variant }}
           path: |
             ${{ runner.temp }}/assemble-apks.log
             build/reports/problems/
@@ -119,12 +124,8 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: flue-apks
-          path: |
-            app/build/outputs/apk/debug/*.apk
-            app/build/outputs/apk/release/*.apk
-            studio/build/outputs/apk/debug/*.apk
-            studio/build/outputs/apk/release/*.apk
+          name: flue-${{ matrix.module }}-${{ matrix.variant }}
+          path: ${{ matrix.module }}/build/outputs/apk/**/*.apk
           if-no-files-found: error
 
   release:
