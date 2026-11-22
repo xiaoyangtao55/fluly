@@ -48,6 +48,31 @@ class WatchStoreModuleBoundaryContractTest {
     }
 
     @Test
+    fun storeFileProviderDoesNotMergeIntoHomeProvider() {
+        val android = "http://schemas.android.com/apk/res/android"
+        fun providerAttributes(module: String): List<Triple<String, String, String>> {
+            val document = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
+                .newDocumentBuilder().parse(File(root, "$module/src/main/AndroidManifest.xml"))
+            val providers = document.getElementsByTagName("provider")
+            return (0 until providers.length).map { index ->
+                val node = providers.item(index)
+                Triple(
+                    node.attributes.getNamedItemNS(android, "name").nodeValue,
+                    node.attributes.getNamedItemNS(android, "authorities").nodeValue,
+                    node.attributes.getNamedItemNS(android, "exported").nodeValue,
+                )
+            }
+        }
+        val home = providerAttributes("app")
+        val store = providerAttributes("watchface-store").single()
+        assertEquals("com.flue.launcher.watchface.store.ui.WatchStoreFileProvider", store.first)
+        assertEquals("\${applicationId}.watchstore.files", store.second)
+        assertEquals("false", store.third)
+        assertFalse("Manifest merger keys providers by class, not authority", home.any { it.first == store.first })
+        assertFalse("Store grants must keep a distinct authority", home.any { it.second == store.second })
+    }
+
+    @Test
     fun storeAndClientCannotImportSessionOrExposeWatchEditorEntry() {
         listOf("watchface-store", "watchface-store-client").forEach { module ->
             val closure = dependencyClosure(module)
