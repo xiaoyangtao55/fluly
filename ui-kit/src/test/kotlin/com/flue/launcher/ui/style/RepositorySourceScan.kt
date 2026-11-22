@@ -2,10 +2,11 @@ package com.flue.launcher.ui.style
 
 import java.io.File
 
-/** Source policies cover all seven modules, independent of Gradle's working directory. */
+/** Source policies cover all nine modules, independent of Gradle's working directory. */
 internal object RepositorySourceScan {
     private val modules = listOf(
         "app", "studio", "ui-kit", "watchface-editor", "agent", "watchface-core", "watchface-runtime",
+        "watchface-store-client", "watchface-store",
     )
 
     private val repositoryRoot: File by lazy {

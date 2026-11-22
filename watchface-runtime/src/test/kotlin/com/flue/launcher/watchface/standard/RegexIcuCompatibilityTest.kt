@@ -86,7 +86,10 @@ class RegexIcuCompatibilityTest {
                 ?: error("找不到仓库根目录 —— 工作目录是 ${File(".").absolutePath}")
 
         fun resolveMainSourceRoots(repositoryRoot: File): List<File> =
-            listOf("app", "studio", "agent", "ui-kit", "watchface-core", "watchface-runtime", "watchface-editor")
+            listOf(
+                "app", "studio", "agent", "ui-kit", "watchface-core", "watchface-runtime",
+                "watchface-editor", "watchface-store-client", "watchface-store",
+            )
                 .map { File(repositoryRoot, "$it/src/main") }
                 .onEach { check(it.isDirectory) { "模块源码目录缺失：$it" } }
 

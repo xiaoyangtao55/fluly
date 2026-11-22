@@ -8,18 +8,18 @@ class TransientDialogSourcePolicyTest {
     /**
      * 允许用原生 Dialog 的「整屏任务页」。
      *
-     * 扫描覆盖全部七模块；使用仓库相对路径，避免同名文件共享豁免。
+     * 扫描覆盖全部九模块；使用仓库相对路径，避免同名文件共享豁免。
      * 设置页拆分后的全屏任务按实际所在文件登记，不豁免瞬时菜单。
      */
     private val allowedFullscreenDialogFiles = setOf(
         "app/src/main/kotlin/com/example/wlauncher/SettingsActivity.kt",
-        "watchface-editor/src/main/kotlin/com/example/wlauncher/WatchStoreActivity.kt",
+        "watchface-store/src/main/kotlin/com/example/wlauncher/WatchStoreActivity.kt",
         // 从 SettingsActivity 拆出的捐赠图片全屏预览与备份阻塞进度页。
         "app/src/main/kotlin/com/example/wlauncher/ui/settings/SettingsAboutAndDonate.kt",
         "app/src/main/kotlin/com/example/wlauncher/ui/settings/SettingsBackupDialogs.kt",
         "ui-kit/src/main/kotlin/com/flue/launcher/ui/common/FlueImageCropOverlay.kt",
         "ui-kit/src/main/kotlin/com/flue/launcher/ui/common/InternalFileBrowser.kt",
-        "watchface-editor/src/main/kotlin/com/flue/launcher/ui/store/WatchStorePageStack.kt",
+        "watchface-store/src/main/kotlin/com/flue/launcher/ui/store/WatchStorePageStack.kt",
     )
 
     @Test

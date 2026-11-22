@@ -2,14 +2,16 @@
 
 ## Project Structure & Module Organization
 
-Flue is a seven-module Android project for watches, with two application modules and five shared libraries:
+Flue is a nine-module Android project for watches, with two application modules and seven shared libraries:
 
 - `:app`: HOME launcher, settings, services, and built-in watch-face configuration. Kotlin sources live in `app/src/main/kotlin/com/example/wlauncher` (package `com.flue.launcher`); resources are under `app/src/main/res`.
-- `:studio`: Flue Studio application hosting the editor, store, and Agent settings.
+- `:studio`: Flue Studio creation application hosting the editor and Agent settings; it does not host the store.
 - `:ui-kit`: shared themes, controls, motion, round-screen geometry, and overlays.
 - `:watchface-core`: shared watch-face models, expression classification, canvas geometry, and pure algorithms.
 - `:watchface-runtime`: WatchMaker/JB parsing, Lua execution, rendering, and archive installation.
-- `:watchface-editor`: watch-face editor and store, accessed through the `WatchEditorHost` boundary.
+- `:watchface-editor`: watch-face creation/editor, accessed through `WatchEditorHost`; publishing uses the store client without depending on store UI.
+- `:watchface-store-client`: shared store API, credentials, metadata, catalog, and install transactions; no editor or store UI dependency.
+- `:watchface-store`: store browsing, installation, and upload UI hosted by HOME through `WatchStoreHost`; no editor/Agent/FFmpeg dependency.
 - `:agent`: Agent conversations, providers, workspace tools, and local runtime integration.
 
 JVM tests live in each module's `src/test` tree; launcher tests use `app/src/test/kotlin` and `app/src/test/java`, with fixtures in `app/src/test/resources`. The browser watch-face helper is in `tools/watchface-agent-web`. Design notes and validation records are in `docs/`.
@@ -22,13 +24,13 @@ Use PowerShell or Android Studio with JDK 21:
 
 ```powershell
 .\gradlew.bat :app:testDebugUnitTest --no-daemon --console=plain
-.\gradlew.bat :ui-kit:testDebugUnitTest :watchface-core:testDebugUnitTest :watchface-runtime:testDebugUnitTest :watchface-editor:testDebugUnitTest :agent:testDebugUnitTest --no-daemon --console=plain
+.\gradlew.bat :ui-kit:testDebugUnitTest :watchface-core:testDebugUnitTest :watchface-runtime:testDebugUnitTest :watchface-editor:testDebugUnitTest :watchface-store-client:testDebugUnitTest :watchface-store:testDebugUnitTest :agent:testDebugUnitTest :studio:testDebugUnitTest --no-daemon --console=plain
 .\gradlew.bat :app:assembleDebug :studio:assembleDebug --no-daemon --console=plain
 .\gradlew.bat :app:assembleRelease :studio:assembleRelease --no-daemon --console=plain
 .\gradlew.bat :app:installDebug :studio:installDebug
 ```
 
-Use `./gradlew` instead of `.\gradlew.bat` on Linux/macOS. The test commands run JVM/Robolectric tests for the launcher and shared libraries; use `:studio:testDebugUnitTest` when Studio tests are added. Assemble tasks produce the two APKs; module-qualified `installDebug` tasks deploy them to a connected device. For the web helper, run `python -W error::ResourceWarning -m unittest test_backend.py` and `npm test` from `tools/watchface-agent-web`.
+Use `./gradlew` instead of `.\gradlew.bat` on Linux/macOS. The test commands cover JVM/Robolectric tasks across all nine modules (Studio's task may have no tests). CI runs tests only on push/PR, including version-tag pushes; APK assembly/upload is manual (`workflow_dispatch`), and signed release publishing additionally requires selecting a `v*` tag. Assemble tasks produce the two APKs; module-qualified `installDebug` tasks deploy them to a connected device. For the web helper, run `python -W error::ResourceWarning -m unittest test_backend.py` and `npm test` from `tools/watchface-agent-web`.
 
 ## Coding Style & Naming Conventions
 

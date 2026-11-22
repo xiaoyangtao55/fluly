@@ -42,6 +42,8 @@ jobs:
           :watchface-runtime:testDebugUnitTest
           :ui-kit:testDebugUnitTest
           :watchface-editor:testDebugUnitTest
+          :watchface-store-client:testDebugUnitTest
+          :watchface-store:testDebugUnitTest
           :studio:testDebugUnitTest
           --no-daemon --console=plain
 

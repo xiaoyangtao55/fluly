@@ -24,6 +24,10 @@ object TestSourceRoots {
         "../watchface-runtime/src/main/kotlin",
         "watchface-editor/src/main/kotlin",
         "../watchface-editor/src/main/kotlin",
+        "watchface-store-client/src/main/kotlin",
+        "../watchface-store-client/src/main/kotlin",
+        "watchface-store/src/main/kotlin",
+        "../watchface-store/src/main/kotlin",
         "agent/src/main/kotlin",
         "../agent/src/main/kotlin",
         // Studio 是独立应用模块，源码在 src/main/java 而不是 kotlin。
