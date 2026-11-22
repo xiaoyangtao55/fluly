@@ -1,0 +1,7 @@
+<resources>
+    <string name="editor_rights_edit_title">Declare editing rights</string>
+    <string name="editor_rights_edit_statement">I declare that I own or have permission to edit this external project and its assets. Importing does not make it an original work. This is my declaration, not verification of copyright. Store downloads cannot be edited or published here.</string>
+    <string name="editor_rights_declare">I have editing rights</string>
+    <string name="editor_rights_market_blocked">Store downloads cannot be edited or published in Studio.</string>
+    <string name="editor_rights_publish_statement">I declare that I have the rights required to publish this project and all its assets. This declaration is not copyright verification.</string>
+</resources>

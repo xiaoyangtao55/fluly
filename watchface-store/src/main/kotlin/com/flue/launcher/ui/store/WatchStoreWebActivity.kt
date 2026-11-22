@@ -57,9 +57,9 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.flue.launcher.watchface.editor.R
-import com.flue.launcher.watchface.editor.WatchEditorHost
-import com.flue.launcher.watchface.editor.WatchEditorHostProvider
+import com.flue.launcher.watchface.store.ui.R
+import com.flue.launcher.watchface.store.ui.WatchStoreHost
+import com.flue.launcher.watchface.store.ui.WatchStoreHostProvider
 import com.flue.launcher.i18n.FlueComponentActivity
 import com.flue.launcher.ui.common.InternalFileBrowserHost
 import com.flue.launcher.ui.common.InternalFileBrowserRequest
@@ -69,7 +69,9 @@ import com.flue.launcher.ui.theme.LauncherTheme
 import com.flue.launcher.ui.theme.ProvideGlobalUiScale
 import com.flue.launcher.ui.theme.WatchLauncherTheme
 import com.flue.launcher.watchface.WatchFaceDescriptor
-import com.flue.launcher.watchface.editor.WatchEditorSession
+import com.flue.launcher.watchface.standard.WatchArchiveService
+import com.flue.launcher.watchface.store.WatchStoreRepository
+import com.flue.launcher.watchface.store.catalog.WatchFaceInstallSource
 import com.flue.launcher.watchface.standard.WatchmakerWatchFaceStorage
 import com.flue.launcher.watchface.store.DEFAULT_WATCH_STORE_BASE_URL
 import com.flue.launcher.watchface.store.DEFAULT_WEB_ZOOM_PERCENT
@@ -193,12 +195,13 @@ class WatchStoreWebActivity : FlueComponentActivity() {
      * `by viewModels()` 与 `setContent` 里的 `viewModel()` 拿到的是**同一个实例**（同一个
      * Activity 的 ViewModelStore、同一个默认 key），所以装完的列表刷新与选中会直接反映到桌面。
      */
-    private val host: WatchEditorHost by lazy { WatchEditorHostProvider.require() }
+    private val host: WatchStoreHost by lazy { WatchStoreHostProvider.require() }
 
     /** C4：`<input type="file">` 的回调。**必须**有一条路把它喂掉，否则页面永久卡住。 */
     private var fileChooserCallback: ValueCallback<Array<Uri>>? = null
     private lateinit var systemPicker: ActivityResultLauncher<Array<String>>
 
+    private var pendingUploadUri by mutableStateOf<Uri?>(null)
     private var chooserVisible by mutableStateOf(false)
     private var installedPickerVisible by mutableStateOf(false)
     private var internalBrowserRequest by mutableStateOf<InternalFileBrowserRequest?>(null)
@@ -308,6 +311,25 @@ class WatchStoreWebActivity : FlueComponentActivity() {
                     onBack = { goBackOrFinish() },
                     onImportLogin = if (loginMode) ::captureWebLogin else null,
                 )
+                pendingUploadUri?.let { uri ->
+                    FlueAlertDialog(
+                        onDismissRequest = { pendingUploadUri = null; deliverFileChooserResult(null) },
+                        title = { Text(stringResource(R.string.watch_store_upload_rights_title)) },
+                        text = { Text(stringResource(R.string.watch_store_upload_rights_confirmation)) },
+                        confirmButton = {
+                            androidx.compose.material3.TextButton(onClick = {
+                                pendingUploadUri = null
+                                finishFileChooserResult(uri)
+                            }) { Text(stringResource(R.string.watch_store_upload_rights_agree)) }
+                        },
+                        dismissButton = {
+                            androidx.compose.material3.TextButton(onClick = {
+                                pendingUploadUri = null
+                                deliverFileChooserResult(null)
+                            }) { Text(stringResource(R.string.action_cancel)) }
+                        },
+                    )
+                }
                 if (chooserVisible) {
                     WebUploadChooserDialog(
                         onPickInstalled = {
@@ -645,7 +667,7 @@ class WatchStoreWebActivity : FlueComponentActivity() {
      * 改成自己下：
      * - **带上 WebView 的 cookie** —— 直链多半仍要登录态，不带就是 403；
      * - 落到自己的缓存目录，装完就删；
-     * - 安装交给 [WatchEditorHost.importWatchFaceArchive]，也就是「从文件导入 .watch」用的
+     * - 安装交给 [WatchStoreHost.importWatchFaceArchive]，也就是「从文件导入 .watch」用的
      *   同一条路：它会嗅探标准包与 JBWatch 包、有大小上限、装完刷新表盘列表并选中。
      *   这里不复制商店那套事务安装 —— 站外包没有市场 id，事务日志无从对账。
      */
@@ -801,8 +823,11 @@ class WatchStoreWebActivity : FlueComponentActivity() {
         lifecycleScope.launch {
             val faces = withContext(Dispatchers.IO) {
                 runCatching {
-                    WatchmakerWatchFaceStorage.scan(this@WatchStoreWebActivity)
-                        .filter(WatchFaceDescriptor::isWatchmaker)
+                    val catalog = WatchStoreRepository(this@WatchStoreWebActivity).readCatalog()
+                    host.availableWatchFaces.value.filter { descriptor ->
+                        descriptor.isWatchmaker &&
+                            installedSourceMayBePublished(catalog.resolveAlias(descriptor.id)?.source)
+                    }
                 }.getOrDefault(emptyList())
             }
             installedFaces = faces
@@ -816,9 +841,7 @@ class WatchStoreWebActivity : FlueComponentActivity() {
                 runCatching {
                     val target = File(uploadCacheDirectory(), "${safeFileName(descriptor.displayName)}.watch")
                     target.delete()
-                    WatchEditorSession.open(this@WatchStoreWebActivity, descriptor).use { session ->
-                        session.exportWatch(target, protectedExport = session.isProtected)
-                    }
+                    WatchArchiveService.exportWatch(this@WatchStoreWebActivity, descriptor, target)
                     target
                 }.getOrNull()
             }
@@ -857,9 +880,17 @@ class WatchStoreWebActivity : FlueComponentActivity() {
         File(cacheDir, DOWNLOAD_CACHE_DIRECTORY).apply { mkdirs() }
 
     private fun contentUriFor(file: File): Uri =
-        FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+        FileProvider.getUriForFile(this, "$packageName.watchstore.files", file)
 
     private fun deliverFileChooserResult(uri: Uri?) {
+        if (uri != null && fileChooserCallback != null) {
+            pendingUploadUri = uri
+            return
+        }
+        finishFileChooserResult(null)
+    }
+
+    private fun finishFileChooserResult(uri: Uri?) {
         val callback = fileChooserCallback ?: return
         fileChooserCallback = null
         callback.onReceiveValue(if (uri == null) null else arrayOf(uri))

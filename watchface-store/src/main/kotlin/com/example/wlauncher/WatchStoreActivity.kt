@@ -1,5 +1,10 @@
 package com.flue.launcher
 
+import com.flue.launcher.store.*
+import com.flue.launcher.ui.store.StoreUploadRightsConfirmation
+import com.flue.launcher.ui.store.installedSourceMayBePublished
+import com.flue.launcher.ui.store.maySubmitWatchStoreArchive
+
 import com.flue.launcher.i18n.FlueComponentActivity
 
 import androidx.lifecycle.repeatOnLifecycle
@@ -196,8 +201,8 @@ import com.flue.launcher.ui.store.watchStoreAccountMenuActions
 import com.flue.launcher.ui.store.watchStoreInstallStateShowsDownloadCount
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.flue.launcher.watchface.editor.R
-import com.flue.launcher.watchface.editor.WatchEditorHostProvider
+import com.flue.launcher.watchface.store.ui.R
+import com.flue.launcher.watchface.store.ui.WatchStoreHostProvider
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import com.flue.launcher.ui.common.FluePullToRefreshState
@@ -231,7 +236,7 @@ import com.flue.launcher.ui.theme.ProvideGlobalUiScale
 import com.flue.launcher.ui.theme.WatchColors
 import com.flue.launcher.ui.theme.WatchLauncherTheme
 import com.flue.launcher.watchface.WatchFaceDescriptor
-import com.flue.launcher.watchface.editor.WatchEditorSession
+import com.flue.launcher.watchface.standard.WatchArchiveService
 import com.flue.launcher.watchface.standard.WatchInstallMetadata
 import com.flue.launcher.watchface.store.HttpWatchStoreApi
 import com.flue.launcher.watchface.store.MyWatchFaceEntry
@@ -296,7 +301,7 @@ import kotlin.math.roundToInt
  * [WatchStoreRepository] (which switches to Dispatchers.IO).
  */
 class WatchStoreActivity : FlueComponentActivity() {
-    private val host by lazy { WatchEditorHostProvider.require() }
+    private val host by lazy { WatchStoreHostProvider.require() }
     private val resumeGeneration = MutableStateFlow(0)
     private lateinit var storeUiPreferences: WatchStoreUiPreferences
     private var storeBaseUrl: String? = null
@@ -407,12 +412,6 @@ class WatchStoreActivity : FlueComponentActivity() {
                             }
                         },
                         useInstalled = { launcherId -> host.selectWatchFace(launcherId) },
-                        editInstalled = { launcherId ->
-                            startActivity(
-                                Intent(this, WatchEditorActivity::class.java)
-                                    .putExtra(WatchEditorActivity.EXTRA_WATCH_FACE_ID, launcherId),
-                            )
-                        },
                         exportInstalled = { launcherId ->
                             val descriptor = availableWatchFaces.firstOrNull { it.id == launcherId }
                             if (descriptor == null) {
@@ -505,7 +504,6 @@ private fun WatchStoreScreen(
     onBack: () -> Unit,
     installArchive: suspend (java.io.File, installAsRound: Boolean) -> Result<InstalledStoreWatchFace>,
     useInstalled: (launcherId: String) -> Unit,
-    editInstalled: (launcherId: String) -> Unit,
     exportInstalled: (launcherId: String) -> Unit,
     deleteInstalled: suspend (launcherIds: Collection<String>) -> Result<Unit>,
     /**
@@ -1681,7 +1679,6 @@ private fun WatchStoreScreen(
                         },
                         onCancelDownload = { cancelDownload(id) },
                         onUse = { record -> record.activeLauncherIdOrNull()?.let(useInstalled) },
-                        onEdit = { record -> record.activeLauncherIdOrNull()?.let(editInstalled) },
                         onRename = { record, name -> renameInstalled(id, record, name) },
                         onReinstall = { download(id, detail?.screenType ?: WatchStoreScreenType.UNKNOWN) },
                         onDelete = { record -> removeInstalled(id, record) },
@@ -2894,7 +2891,6 @@ private fun WatchFaceDetailPage(
     onDownload: () -> Unit,
     onCancelDownload: () -> Unit,
     onUse: (WatchFaceRecord) -> Unit,
-    onEdit: (WatchFaceRecord) -> Unit,
     onRename: (WatchFaceRecord, String) -> Unit,
     onReinstall: () -> Unit,
     onDelete: (WatchFaceRecord) -> Unit,
@@ -3330,12 +3326,6 @@ private fun WatchFaceDetailPage(
                                     },
                                 )
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    StoreSecondaryButton(
-                                        label = stringResource(R.string.watch_store_edit),
-                                        onClick = { onEdit(record) },
-                                        icon = MiuixIcons.Edit,
-                                        modifier = Modifier.weight(1f),
-                                    )
                                     StoreSecondaryButton(
                                         label = stringResource(R.string.watch_store_export),
                                         onClick = { onExport(record) },
@@ -5722,9 +5712,18 @@ private fun MyUploadEditOverlay(
         focusedTextColor = style.bodyColor,
         unfocusedTextColor = style.bodyColor,
     )
-    val installedWatchmakerFaces = remember(installedFaces) {
-        installedFaces.filter { it.isWatchmaker && it.sourceDirPath != null }
+    var uploadCatalog by remember { mutableStateOf<com.flue.launcher.watchface.store.catalog.WatchFaceCatalogSnapshot?>(null) }
+    var rightsConfirmed by remember { mutableStateOf(false) }
+    LaunchedEffect(installedFaces) {
+        uploadCatalog = runCatching { repository.readCatalog() }.getOrNull()
     }
+    val installedWatchmakerFaces = remember(installedFaces, uploadCatalog) {
+        installedFaces.filter { descriptor ->
+            descriptor.isWatchmaker && descriptor.sourceDirPath != null &&
+                uploadCatalog != null && installedSourceMayBePublished(uploadCatalog?.resolveAlias(descriptor.id)?.source)
+        }
+    }
+    LaunchedEffect(selectedDescriptorId, pickedFileUri) { rightsConfirmed = false }
     val selectedDescriptor = selectedDescriptorId
         ?.let { id -> installedWatchmakerFaces.firstOrNull { it.id == id } }
 
@@ -5732,6 +5731,7 @@ private fun MyUploadEditOverlay(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
+            rightsConfirmed = false
             pickedFileUri = uri
             selectedDescriptorId = null
             pickedFileName = queryStoreUploadDisplayName(context, uri)
@@ -5778,6 +5778,7 @@ private fun MyUploadEditOverlay(
 
         val replacementUri = pickedFileUri
         val replacementDescriptor = selectedDescriptor
+        if (!maySubmitWatchStoreArchive(replacementUri != null || replacementDescriptor != null, rightsConfirmed)) return
         val selectedCategory = categories.orEmpty().firstOrNull { it.id == categoryId } ?: entry.category
         formError = null
         updatePercent = null
@@ -5794,9 +5795,7 @@ private fun MyUploadEditOverlay(
                                 context.cacheDir,
                             )
                             if (replacementDescriptor != null) {
-                                WatchEditorSession.open(context, replacementDescriptor).use { session ->
-                                    session.exportWatch(archive, protectedExport = session.isProtected)
-                                }
+                                WatchArchiveService.exportWatch(context, replacementDescriptor, archive)
                             } else {
                                 copyPickedWatchArchive(context, requireNotNull(replacementUri), archive)
                             }
@@ -6021,6 +6020,7 @@ private fun MyUploadEditOverlay(
                             .background(if (selected) style.selectedCardColor else style.cardColor)
                             .border(1.dp, style.outlineColor, style.rowShape)
                             .clickable(enabled = !saving) {
+                                rightsConfirmed = false
                                 selectedDescriptorId = descriptor.id
                                 pickedFileUri = null
                                 pickedFileName = null
@@ -6130,10 +6130,14 @@ private fun MyUploadEditOverlay(
                     }
                 }
             }
+            StoreUploadRightsConfirmation(rightsConfirmed, !saving) { rightsConfirmed = it }
+
             StorePrimaryButton(
                 label = stringResource(R.string.watch_store_update_upload),
                 onClick = ::update,
-                enabled = !saving &&
+                enabled = !saving && maySubmitWatchStoreArchive(
+                    pickedFileUri != null || selectedDescriptor != null, rightsConfirmed,
+                ) &&
                     name.isNotBlank() &&
                     description.isNotBlank() &&
                     selectedCategoryId.isNotBlank(),
@@ -6146,7 +6150,7 @@ private fun MyUploadEditOverlay(
 /**
  * 商店内上传覆层。与编辑器上传覆层同构：登录/注册 → 选择来源 → 元数据 →
  * 上传；登录表单、凭据记忆与错误映射复用 WatchStoreUploadCommon 里的共享
- * 实现。来源有两路：a) 已安装 .watch 表盘（经 WatchEditorSession 导出）；
+ * 实现。来源有两路：a) 已安装 .watch 表盘（经 runtime Archive API 导出）；
  * b) 系统文件选择器选择的本地 .watch 文件。上传中禁用返回与关闭。
  */
 @Composable
@@ -6209,9 +6213,18 @@ private fun StoreUploadOverlay(
         mutableStateOf(if (isScreenRound) WatchStoreScreenType.ROUND else WatchStoreScreenType.SQUARE)
     }
 
-    val installedWatchmakerFaces = remember(installedFaces) {
-        installedFaces.filter { it.isWatchmaker && it.sourceDirPath != null }
+    var uploadCatalog by remember { mutableStateOf<com.flue.launcher.watchface.store.catalog.WatchFaceCatalogSnapshot?>(null) }
+    var rightsConfirmed by remember { mutableStateOf(false) }
+    LaunchedEffect(installedFaces) {
+        uploadCatalog = runCatching { repository.readCatalog() }.getOrNull()
     }
+    val installedWatchmakerFaces = remember(installedFaces, uploadCatalog) {
+        installedFaces.filter { descriptor ->
+            descriptor.isWatchmaker && descriptor.sourceDirPath != null &&
+                uploadCatalog != null && installedSourceMayBePublished(uploadCatalog?.resolveAlias(descriptor.id)?.source)
+        }
+    }
+    LaunchedEffect(selectedDescriptorId, pickedFileUri) { rightsConfirmed = false }
     val selectedDescriptor = selectedDescriptorId
         ?.let { id -> installedWatchmakerFaces.firstOrNull { it.id == id } }
     val sourceChosen = selectedDescriptor != null || pickedFileUri != null
@@ -6220,6 +6233,7 @@ private fun StoreUploadOverlay(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
+            rightsConfirmed = false
             pickedFileUri = uri
             selectedDescriptorId = null
             val display = queryStoreUploadDisplayName(context, uri)
@@ -6278,11 +6292,11 @@ private fun StoreUploadOverlay(
             }
     }
 
-    LaunchedEffect(auth, selectedDescriptorId, pickedFileUri) {
+    LaunchedEffect(auth, selectedDescriptorId, pickedFileUri, rightsConfirmed) {
         val activeAuth = auth
         val descriptor = selectedDescriptor
         val fileUri = pickedFileUri
-        if (activeAuth == null || (descriptor == null && fileUri == null)) {
+        if (!rightsConfirmed || activeAuth == null || (descriptor == null && fileUri == null)) {
             parsingMetadata = false
             return@LaunchedEffect
         }
@@ -6292,9 +6306,7 @@ private fun StoreUploadOverlay(
                 val archive = File.createTempFile("flue_store_parse_", ".watch", context.cacheDir)
                 try {
                     if (descriptor != null) {
-                        WatchEditorSession.open(context, descriptor).use { session ->
-                            session.exportWatch(archive, protectedExport = session.isProtected)
-                        }
+                        WatchArchiveService.exportWatch(context, descriptor, archive)
                     } else {
                         copyPickedWatchArchive(context, requireNotNull(fileUri), archive)
                     }
@@ -6368,6 +6380,7 @@ private fun StoreUploadOverlay(
 
     fun upload() {
         if (busy != null) return
+        if (!rightsConfirmed) return
         val activeAuth = auth ?: return
         val trimmedName = name.trim()
         if (trimmedName.isEmpty()) {
@@ -6399,16 +6412,14 @@ private fun StoreUploadOverlay(
                     val archive = File.createTempFile("flue_store_upload_", ".watch", context.cacheDir)
                     try {
                         if (descriptor != null) {
-                            WatchEditorSession.open(context, descriptor).use { session ->
-                                session.exportWatch(
-                                    archive,
+                            WatchArchiveService.exportWatch(
+                                    context, descriptor, archive,
                                     rootAttributeOverrides = mapOf(
                                         "designer_name" to effectiveAuthor,
                                         "author" to effectiveAuthor,
                                     ),
                                     protectedExport = uploadProtected,
                                 )
-                            }
                         } else {
                             copyPickedWatchArchive(context, requireNotNull(fileUri), archive)
                         }
@@ -6669,6 +6680,7 @@ private fun StoreUploadOverlay(
                                         .background(style.cardColor)
                                         .border(1.dp, style.outlineColor, style.rowShape)
                                         .clickable(enabled = busy == null) {
+                                            rightsConfirmed = false
                                             selectedDescriptorId = descriptor.id
                                             pickedFileUri = null
                                             pickedFileName = null
@@ -6691,6 +6703,7 @@ private fun StoreUploadOverlay(
                         }
                     }
                     if (sourceChosen) {
+                        StoreUploadRightsConfirmation(rightsConfirmed, busy == null) { rightsConfirmed = it }
                         OutlinedTextField(
                             value = name,
                             onValueChange = {
@@ -6904,7 +6917,7 @@ private fun StoreUploadOverlay(
                         StorePrimaryButton(
                             label = stringResource(R.string.watch_store_upload_this_face),
                             onClick = { upload() },
-                            enabled = busy == null && !parsingMetadata &&
+                            enabled = rightsConfirmed && busy == null && !parsingMetadata &&
                                 name.isNotBlank() &&
                                 description.isNotBlank() &&
                                 selectedCategoryId != null,
@@ -7775,9 +7788,7 @@ private suspend fun exportInstalledWatchFace(
         }
         val temporary = File.createTempFile("flue_watch_export_", ".watch", context.cacheDir)
         try {
-            WatchEditorSession.open(context, descriptor).use { session ->
-                session.exportWatch(temporary, protectedExport = session.isProtected)
-            }
+            WatchArchiveService.exportWatch(context, descriptor, temporary)
             context.contentResolver.openOutputStream(destination, "w")?.use { output ->
                 temporary.inputStream().buffered().use { input -> input.copyTo(output) }
             } ?: error(context.getString(R.string.watch_store_error_write_export))

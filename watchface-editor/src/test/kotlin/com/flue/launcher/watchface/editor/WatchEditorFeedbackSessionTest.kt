@@ -52,7 +52,7 @@ class WatchEditorFeedbackSessionTest {
         try {
             val source = File(root, "source").apply { mkdirs() }
             File(source, "watch.xml").writeText(xml)
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { block(it, root) }
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { block(it, root) }
         } finally { root.deleteRecursively() }
     }
 

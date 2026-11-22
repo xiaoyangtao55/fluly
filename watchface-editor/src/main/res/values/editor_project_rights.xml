@@ -1,0 +1,7 @@
+<resources>
+    <string name="editor_rights_edit_title">声明拥有编辑权利</string>
+    <string name="editor_rights_edit_statement">我声明拥有此外部工程及其素材的编辑权利，或已获得相应许可。导入不会使其成为原创作品。此项仅为我的声明，不是版权核验。商店下载内容不能在此编辑或发布。</string>
+    <string name="editor_rights_declare">我拥有编辑权利</string>
+    <string name="editor_rights_market_blocked">商店下载内容不能在 Studio 中编辑或发布。</string>
+    <string name="editor_rights_publish_statement">我声明拥有发布此工程及全部素材所需的权利。此声明不是版权核验。</string>
+</resources>

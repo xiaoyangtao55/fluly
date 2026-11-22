@@ -1,0 +1,7 @@
+<resources>
+    <string name="editor_rights_edit_title">編集する権利の申告</string>
+    <string name="editor_rights_edit_statement">この外部プロジェクトと素材を編集する権利を所有しているか、必要な許可を得ていることを申告します。インポートしてもオリジナル作品にはなりません。これは利用者による申告であり、著作権の確認ではありません。ストアからダウンロードした作品はここで編集・公開できません。</string>
+    <string name="editor_rights_declare">編集する権利があります</string>
+    <string name="editor_rights_market_blocked">ストアからダウンロードした作品は Studio で編集・公開できません。</string>
+    <string name="editor_rights_publish_statement">このプロジェクトとすべての素材を公開するために必要な権利を有することを申告します。この申告は著作権の確認ではありません。</string>
+</resources>

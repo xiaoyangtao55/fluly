@@ -12,7 +12,6 @@ import com.flue.launcher.ui.theme.UiStyle
 import com.flue.launcher.watchface.WatchFaceDescriptor
 import com.flue.launcher.watchface.editor.WatchEditorHost
 import com.flue.launcher.watchface.editor.WatchEditorHostUi
-import com.flue.launcher.watchface.editor.WatchEditorSession
 import com.flue.launcher.watchface.standard.WatchmakerWatchFaceStorage
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +32,7 @@ object StudioServices {
 /**
  * Studio 版的 [WatchEditorHost]。
  *
- * 编辑器 / 商店原来接的是 `LauncherViewModel`：主题、表盘列表、安装、选中、删除。
+ * 编辑器原来接的是 `LauncherViewModel`：主题、工程列表、导入、选中、删除。
  * 搬进 Studio 之后没有桌面进程可借，这里直接落到 `:watchface-runtime` 的表盘存储上，
  * 再给几份静态偏好 —— Studio 只有一套深色主题，也不接管「设为当前表盘」这件事。
  */
@@ -81,27 +80,6 @@ class StudioWatchEditorHost(private val context: Context) : WatchEditorHost {
             refreshFaces()
             descriptor
         }
-
-    override suspend fun installWatchStoreArchive(
-        archive: File,
-        installAsRound: Boolean,
-    ): Result<WatchFaceDescriptor> = runCatching {
-        val descriptor = withContext(Dispatchers.IO) {
-            val imported = WatchmakerWatchFaceStorage.importArchiveFile(
-                context,
-                archive,
-                forceNewInstall = true,
-            )
-            // 商店下载的表盘要按用户的屏幕形状改根属性，和 HOME 侧保持一致。
-            WatchEditorSession.open(context, imported).use { editor ->
-                editor.updateRootAttribute("shape", if (installAsRound) "R" else "S")
-                editor.saveCurrentRevision()
-            }
-            WatchmakerWatchFaceStorage.scan(context).firstOrNull { it.id == imported.id } ?: imported
-        }
-        refreshFaces()
-        descriptor
-    }
 
     /** Studio 不是桌面，「设为当前表盘」没有落点；编辑器里的这个动作变成空操作。 */
     override fun selectWatchFace(launcherId: String) = Unit

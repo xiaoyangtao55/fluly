@@ -40,13 +40,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flue.launcher.watchface.editor.R
+import com.flue.launcher.watchface.store.ui.R
 import com.flue.launcher.WatchPreview
 import com.flue.launcher.throwIfCancellation
 import com.flue.launcher.ui.style.FlueCard
 import com.flue.launcher.ui.style.FlueOutlinedButton
 import com.flue.launcher.ui.theme.LauncherTheme
-import com.flue.launcher.watchStoreSocialErrorMessage
+import com.flue.launcher.store.watchStoreSocialErrorMessage
 import com.flue.launcher.watchface.store.HttpWatchStoreApi
 import com.flue.launcher.watchface.store.WatchStoreCreator
 import com.flue.launcher.watchface.store.WatchStorePagination

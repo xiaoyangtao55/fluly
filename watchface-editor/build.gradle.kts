@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    // 与源码包名一致：模块内有 500+ 条表盘编辑器 / 商店文案。
+    // Studio 创作编辑器；商店 UI 在独立模块，发布仅复用 client。
     namespace = "com.flue.launcher.watchface.editor"
     compileSdk = 36
 
@@ -16,14 +16,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    defaultConfig {
-        // 商店默认地址随模块走：app 里的同名 buildConfigField 只服务 app 自己的代码。
-        // 与 app 保持一致，可用 -PflueWatchStoreBaseUrl=https://host/api 覆盖。
-        val watchStoreBaseUrl = providers.gradleProperty("flueWatchStoreBaseUrl")
-            .getOrElse("https://jbwatchface.ai-life.xyz/api")
-        buildConfigField("String", "WATCH_STORE_BASE_URL", "\"$watchStoreBaseUrl\"")
     }
 
     buildFeatures {
@@ -44,11 +36,10 @@ kotlin {
 }
 
 /**
- * 表盘编辑器与表盘商店。
+ * Studio 的表盘创作编辑器。
  *
- * 两件事放一个模块，是因为编辑器里内嵌了「发布到市场」的整条上传链路
- * （`WatchEditorPublishSheet` 直接用 store 的 API 与凭据存储），拆成两个模块
- * 只会让这条链路跨模块打洞。
+ * 发布仅依赖 :watchface-store-client 的 API 与凭据，不包含商店浏览或安装 UI。
+ * HOME 的商店单独使用 :watchface-store，不会因此带入 Agent 或 FFmpeg。
  *
  * 这里**不**包含 HOME 的内置表盘配置页（`InternalWatchFaceConfigActivity` /
  * `CanvasAdjustActivity`）—— 那是桌面本体的一部分，留在 app。
@@ -62,6 +53,7 @@ dependencies {
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
     implementation(project(":agent"))
+    implementation(project(":watchface-store-client"))
 
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)

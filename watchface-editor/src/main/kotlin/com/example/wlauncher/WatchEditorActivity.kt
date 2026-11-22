@@ -193,7 +193,7 @@ import com.flue.launcher.ui.common.chordScaleForPosition
 import com.flue.launcher.ui.common.chordScaleItem
 import com.flue.launcher.ui.common.flueContentSizeSpring
 import com.flue.launcher.ui.common.roundScrollablePadding
-import com.flue.launcher.ui.store.StoreRoundList
+import com.flue.launcher.ui.editor.EditorPublishRoundList
 import com.flue.launcher.ui.style.flueOverscroll
 import com.flue.launcher.ui.common.isFlueScreenRound
 import com.flue.launcher.ui.common.InternalFileBrowserHost
@@ -310,7 +310,6 @@ import com.flue.launcher.watchface.store.WatchStoreFeatureFlags
 import com.flue.launcher.watchface.store.WatchStoreHttpException
 import com.flue.launcher.watchface.store.WatchStorePayloadTooLargeException
 import com.flue.launcher.watchface.store.WatchStoreScreenType
-import com.flue.launcher.watchface.store.WatchStoreRepository
 import java.io.File
 import java.io.FileInputStream
 import java.nio.file.Files
@@ -1104,7 +1103,14 @@ private fun WatchEditorRoute(
         }
     }
 
-    fun handleWatchArchiveUri(uri: Uri?) {
+    var pendingRightsAction by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var initialEditRightsDeclared by remember(watchFaceId) { mutableStateOf(false) }
+
+    fun handleWatchArchiveUri(uri: Uri?, editRightsDeclared: Boolean = false) {
+        if (uri != null && !editRightsDeclared) {
+            pendingRightsAction = { handleWatchArchiveUri(uri, true) }
+            return
+        }
         if (uri != null) {
             scope.launch {
         busyMessage = context.getString(R.string.watch_editor_status_importing_watch)
@@ -1118,6 +1124,9 @@ private fun WatchEditorRoute(
                                 temporary.outputStream().use { output -> input.copyTo(output) }
                     } ?: error(context.getString(R.string.watch_editor_error_read_file))
                             val descriptor = host.importWatchmakerWatchFaceFile(temporary).getOrThrow()
+                            com.flue.launcher.watchface.editor.WatchEditorProjectPolicy.declareExternalImport(
+                                File(requireNotNull(descriptor.sourceDirPath)), descriptor.id,
+                            )
                             val opened = WatchEditorSession.open(context, descriptor)
                             Triple(descriptor, opened, opened.snapshot())
                         } finally {
@@ -1148,7 +1157,11 @@ private fun WatchEditorRoute(
         handleWatchArchiveUri(it)
     }
 
-    fun handleConversionUri(uri: Uri?) {
+    fun handleConversionUri(uri: Uri?, editRightsDeclared: Boolean = false) {
+        if (uri != null && !editRightsDeclared) {
+            pendingRightsAction = { handleConversionUri(uri, true) }
+            return
+        }
         if (uri != null) {
             scope.launch {
                 busyMessage = context.getString(R.string.watch_editor_status_converting_watch)
@@ -1216,6 +1229,9 @@ private fun WatchEditorRoute(
                                     val descriptor = host.importWatchmakerWatchFaceFile(
                                         conversion.outputFile,
                                     ).getOrThrow()
+                                    com.flue.launcher.watchface.editor.WatchEditorProjectPolicy.declareExternalImport(
+                                        File(requireNotNull(descriptor.sourceDirPath)), descriptor.id,
+                                    )
                                     val opened = WatchEditorSession.open(context, descriptor)
                                     Triple(descriptor, opened, opened.snapshot())
                                 }
@@ -1328,7 +1344,26 @@ private fun WatchEditorRoute(
     }
     // 新建表盘统一生成 WatchMaker 1.0。已有 Studio 2.0 表盘仍可导入和编辑，
     // 但新建入口不再暴露版本选择，也不会写 build_source="studio"。
-    LaunchedEffect(watchFaceId, blankCanvasSize) {
+    if (pendingRightsAction != null) {
+        FlueAlertDialog(
+            onDismissRequest = { pendingRightsAction = null },
+            title = { Text(stringResource(R.string.editor_rights_edit_title)) },
+            text = { Text(stringResource(R.string.editor_rights_edit_statement)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    val action = pendingRightsAction
+                    pendingRightsAction = null
+                    action?.invoke()
+                }) { Text(stringResource(R.string.editor_rights_declare)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRightsAction = null }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        )
+    }
+    LaunchedEffect(watchFaceId, blankCanvasSize, initialEditRightsDeclared) {
         val requestedCanvas = blankCanvasSize
         loading = true
         errorMessage = null
@@ -1347,7 +1382,7 @@ private fun WatchEditorRoute(
                     val descriptor = WatchmakerWatchFaceStorage.scan(context)
                         .firstOrNull { it.id == watchFaceId }
                         ?: error(context.getString(R.string.watch_editor_error_face_not_found))
-                    WatchEditorSession.open(context, descriptor)
+                    WatchEditorSession.open(context, descriptor, editRightsDeclared = initialEditRightsDeclared)
                 }
                 opened to opened.snapshot()
             }
@@ -1356,7 +1391,13 @@ private fun WatchEditorRoute(
             updateSnapshot(initialSnapshot)
             previewToken++
         }.onFailure { error ->
-            errorMessage = context.localizedEditorError(R.string.watch_editor_error_open, error)
+            if (error is com.flue.launcher.watchface.editor.WatchEditorRightsRequiredException) {
+                pendingRightsAction = { initialEditRightsDeclared = true }
+            } else {
+                errorMessage = if (error is com.flue.launcher.watchface.editor.WatchEditorMarketSourceException) {
+                    context.getString(R.string.editor_rights_market_blocked)
+                } else context.localizedEditorError(R.string.watch_editor_error_open, error)
+            }
         }
         loading = false
     }
@@ -1583,10 +1624,6 @@ private fun WatchEditorRoute(
                                     syncAgentMirrorFromEditor(active)
                                     if (!createNewLogicalId) {
                                         active.saveCurrentRevision()
-                                        active.logicalId?.let { launcherId ->
-                                            WatchStoreRepository(context)
-                                                .detachEditedMarketInstall(launcherId)
-                                        }
                                         val descriptor = WatchmakerWatchFaceStorage.scan(context)
                                             .firstOrNull { it.id == active.logicalId }
                                                 ?: error(context.getString(R.string.watch_editor_error_rescan_revision))
@@ -1605,6 +1642,7 @@ private fun WatchEditorRoute(
                                             active.exportWatch(archive, protectedExport = active.isProtected)
                                             val descriptor = host.importWatchmakerWatchFaceFile(archive)
                                                 .getOrThrow()
+                                            active.inheritProjectRights(context, descriptor)
                                             val opened = WatchEditorSession.open(context, descriptor)
                                             EditorSaveResult(
                                                 descriptor = descriptor,
@@ -4208,7 +4246,7 @@ private fun EditorResourceManagerOverlay(
                 }
             }
             // StoreRoundList 那一套（圆屏弦宽 + 回弹 + 首尾能拉到圆心）在这里同样适用。
-            StoreRoundList(modifier = Modifier.weight(1f)) {
+            EditorPublishRoundList(modifier = Modifier.weight(1f)) {
                 item("import_audio") {
                     OutlinedButton(onClick = onImportAudio, enabled = !busy) { Text(stringResource(R.string.watch_editor_audio_import)) }
                 }
@@ -6787,8 +6825,14 @@ private fun EditorStoreUploadOverlay(
         }
     }
 
+    var publicationRightsDeclared by remember(session) { mutableStateOf(false) }
+
     fun upload() {
         if (busy != null) return
+        if (!publicationRightsDeclared) {
+            formError = context.getString(R.string.editor_rights_publish_statement)
+            return
+        }
         val activeAuth = auth ?: return
         val trimmedName = name.trim()
         if (trimmedName.isEmpty()) {
@@ -6817,6 +6861,7 @@ private fun EditorStoreUploadOverlay(
                 withContext(Dispatchers.IO) {
                     val archive = File.createTempFile("flue_store_upload_", ".watch", context.cacheDir)
                     try {
+                        session.requirePublicationRights(publicationRightsDeclared)
                         session.exportWatch(
                             archive,
                             rootAttributeOverrides = mapOf(
@@ -7156,9 +7201,21 @@ private fun EditorStoreUploadOverlay(
                             )
                         }
                     }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = publicationRightsDeclared,
+                            onCheckedChange = { publicationRightsDeclared = it },
+                            enabled = busy == null,
+                        )
+                        Text(
+                            stringResource(R.string.editor_rights_publish_statement),
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                     Button(
                         onClick = { upload() },
-                        enabled = busy == null &&
+                        enabled = busy == null && publicationRightsDeclared &&
                             name.isNotBlank() &&
                             description.isNotBlank() &&
                             selectedCategoryId != null,

@@ -48,7 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flue.launcher.watchface.editor.R
+import com.flue.launcher.watchface.store.ui.R
 import com.flue.launcher.WatchPreview
 import com.flue.launcher.blockPointerPassThrough
 import com.flue.launcher.throwIfCancellation
@@ -60,7 +60,7 @@ import com.flue.launcher.ui.style.FlueLoadingIndicator
 import com.flue.launcher.ui.theme.LauncherTheme
 import com.flue.launcher.ui.theme.WatchColors
 import com.flue.launcher.ui.common.isFlueScreenRound
-import com.flue.launcher.watchStoreSocialErrorMessage
+import com.flue.launcher.store.watchStoreSocialErrorMessage
 import com.flue.launcher.watchface.store.HttpWatchStoreApi
 import com.flue.launcher.watchface.store.WatchStoreCollection
 import com.flue.launcher.watchface.store.WatchStoreCollectionItem

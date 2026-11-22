@@ -85,7 +85,7 @@ class WatchEditorSessionTest {
             File(source, "watch.xml").writeText(SOURCE_XML)
             File(source, "watch.pxml").writeText("stale protected definition")
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 session.updateRootAttribute("name", "Updated")
                 val output = File(root, "plain.watch")
                 session.exportWatch(output)
@@ -108,7 +108,7 @@ class WatchEditorSessionTest {
                 writeText("function on_display_bright()\nend\n")
             }
 
-            WatchEditorSession.openInstalled(installed, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(installed, File(root, "cache"), editRightsDeclared = true).use { session ->
                 assertEquals("function on_display_bright()\nend\n", session.globalScript())
                 assertFalse("scripts/script.txt" in session.snapshot().resourcePaths)
                 assertFalse(session.isDirty)
@@ -208,7 +208,7 @@ class WatchEditorSessionTest {
         val originalXml = sourceXml.readBytes()
         val cache = File(root, "cache")
 
-        WatchEditorSession.openInstalled(installed, cache).use { session ->
+        WatchEditorSession.openInstalled(installed, cache, editRightsDeclared = true).use { session ->
             assertTrue(session.draftDirectory.canonicalPath.startsWith(cache.canonicalPath))
             assertNotEquals(installed.canonicalFile, session.draftDirectory.canonicalFile)
 
@@ -233,7 +233,7 @@ class WatchEditorSessionTest {
                 writeText("1700000000000")
             }
 
-            WatchEditorSession.openInstalled(installed, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(installed, File(root, "cache"), editRightsDeclared = true).use { session ->
                 assertFalse(File(session.draftDirectory, ".flue").exists())
                 // Defense in depth: even an internal file created after open
                 // must not enter draft accounting or the exported archive.
@@ -265,7 +265,7 @@ class WatchEditorSessionTest {
             val source = File(root, "source").apply { mkdirs() }
             File(source, "watch.xml").writeText(SOURCE_XML)
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val initial = session.snapshot()
                 val image = initial.layers.first()
                 val text = initial.layers.last()
@@ -316,7 +316,7 @@ class WatchEditorSessionTest {
                 """.trimIndent(),
             )
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val initial = session.snapshot()
                 assertEquals(2, initial.layers.size)
                 assertEquals(listOf("image", "text"), initial.layers.map { it.type })
@@ -389,7 +389,7 @@ class WatchEditorSessionTest {
             }
             val originalInstalledBytes = installedXml.readBytes()
 
-            WatchEditorSession.openInstalled(installed, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(installed, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val output = File(root, "upload.watch")
                 session.exportWatch(
                     output,
@@ -523,7 +523,7 @@ class WatchEditorSessionTest {
         )
 
         assertEditorFailure {
-            WatchEditorSession.openInstalled(source, File(root, "cache"))
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true)
         }
     }
 
@@ -533,7 +533,7 @@ class WatchEditorSessionTest {
         File(source, "watch.xml").writeText(SOURCE_XML)
 
         withUnsupportedDoctypeFeature {
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 assertEquals("Original", session.snapshot().rootAttributes["name"])
             }
         }
@@ -547,7 +547,7 @@ class WatchEditorSessionTest {
 
             assertEditorFailure {
                 withUnsupportedDoctypeFeature {
-                    WatchEditorSession.openInstalled(source, File(root, "cache"))
+                    WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true)
                 }
             }
         }
@@ -645,7 +645,7 @@ class WatchEditorSessionTest {
                 """.trimIndent(),
             )
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val key = session.snapshot().layers.single().key
                 val original = session.layerTransform(key)
                 assertEquals(1.5f, original.scaleX, 0f)
@@ -691,7 +691,7 @@ class WatchEditorSessionTest {
                 """.trimIndent(),
             )
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val key = session.snapshot().layers.single().key
                 val original = session.layerTransform(key)
 
@@ -738,7 +738,7 @@ class WatchEditorSessionTest {
                 """.trimIndent(),
             )
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val initial = session.snapshot()
                 assertEquals(listOf("a", "b", "c"), initial.layers.map { it.id })
                 val originalKeys = initial.layers.associate {
@@ -807,7 +807,7 @@ class WatchEditorSessionTest {
                 """.trimIndent(),
             )
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 session.addLayer("shape", mapOf("id" to "inside"))
                 session.save()
 
@@ -916,7 +916,7 @@ class WatchEditorSessionTest {
                 </Watch>
                 """.trimIndent(),
             )
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val layers = session.snapshot().layers
                 val rows = buildWatchEditorTreeRows(layers)
                 assertEquals("group", rows[0].layer.id)
@@ -950,6 +950,7 @@ class WatchEditorSessionTest {
                 logicalId = "watchmaker:installed",
                 installedDirectory = installed,
                 removeDraftOnClose = false,
+                editRightsDeclared = true,
             ).use { session ->
                 assertTrue(session.canSaveCurrentRevision)
                 session.updateRootAttribute("name", "Revision")
@@ -983,7 +984,7 @@ class WatchEditorSessionTest {
         val installed = File(root, "installed").apply { mkdirs() }
         File(installed, "watch.xml").writeText(NESTED_GROUP_XML)
 
-        WatchEditorSession.openInstalled(installed, File(root, "cache")).use { session ->
+        WatchEditorSession.openInstalled(installed, File(root, "cache"), editRightsDeclared = true).use { session ->
             val editorLayers = session.snapshot().layers
             val rendererLayers = WatchmakerDefinitionParser()
                 .parse(session.watchXmlFile)
@@ -1088,7 +1089,7 @@ class WatchEditorSessionTest {
                 """.trimIndent(),
             )
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val bound = session.snapshot().layers.first { it.id == "second-hand" }.key
                 assertEquals(
                     setOf("rotation", "anim_scale_x", "anim_scale_y"),
@@ -1165,7 +1166,7 @@ class WatchEditorSessionTest {
             """.trimIndent(),
         )
 
-        WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+        WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
             val added = session.addLayer("text")
             val addedLayer = session.snapshot().layers.first { it.key == added }
             val id = addedLayer.id
@@ -1190,7 +1191,7 @@ class WatchEditorSessionTest {
         val source = File(root, "source").apply { mkdirs() }
         File(source, "watch.xml").writeText("""<Watch name="Plain" shape="R"/>""")
 
-        WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+        WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
             val added = session.addLayer("text")
             val layer = session.snapshot().layers.first { it.key == added }
             assertEquals(null, layer.id)
@@ -1225,7 +1226,7 @@ class WatchEditorSessionTest {
                 """.trimIndent(),
             )
 
-            WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+            WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
                 val output = File(root, "out.watch")
                 session.exportWatch(output)
 
@@ -1254,7 +1255,7 @@ class WatchEditorSessionTest {
             """<Watch name="Override" shape="R"><Layer type="text" text="{wt}"/></Watch>""",
         )
 
-        WatchEditorSession.openInstalled(source, File(root, "cache")).use { session ->
+        WatchEditorSession.openInstalled(source, File(root, "cache"), editRightsDeclared = true).use { session ->
             val output = File(root, "out.watch")
             session.exportWatch(output, rootAttributeOverrides = mapOf("features" to "Curated"))
 

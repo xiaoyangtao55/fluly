@@ -16,7 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.flue.launcher.watchface.editor.R
+import com.flue.launcher.watchface.store.ui.R
 import com.flue.launcher.ui.theme.WatchColors
 import com.flue.launcher.watchface.store.WatchStoreUiPreferences
 

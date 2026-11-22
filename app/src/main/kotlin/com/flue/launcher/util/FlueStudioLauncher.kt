@@ -8,8 +8,9 @@ import com.flue.launcher.R
 /**
  * HOME 侧打开 Flue Studio 的唯一入口。
  *
- * 编辑器、商店、视频转码都在 Studio 里，HOME 只负责跳过去 —— 表盘本身不进 IPC：
- * Studio 编辑或下载出来的 `.watch` 由用户在 HOME 的「导入表盘」里走 SAF 装进来。
+ * 编辑器、Agent 与视频转码留在 Studio；商店由 HOME 自己承载并安装。
+ * Studio 创作导出的 `.watch` 由用户在 HOME 的「导入表盘」里走 SAF 装进来，
+ * HOME 的商店安装库不会作为 Studio 工程自动开放编辑。
  * 这是 v1 的边界，等跨 App 的 Provider 契约落地再换成直接安装。
  */
 object FlueStudioLauncher {

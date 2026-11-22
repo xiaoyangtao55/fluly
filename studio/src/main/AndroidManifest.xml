@@ -12,7 +12,7 @@
         android:theme="@style/Theme.FlueStudio">
 
 
-        <!-- 编辑器 / 商店：从 HOME 搬过来之后由 Studio 承载。
+        <!-- Studio 只承载创作编辑器；商店由独立应用承载。
              label 与 theme 都用 Studio 自己的，避免依赖 launcher 的资源。 -->
         <activity
             android:name="com.flue.launcher.WatchEditorActivity"
@@ -21,20 +21,6 @@
             android:theme="@style/Theme.FlueStudio.Editor"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
-
-        <activity
-            android:name="com.flue.launcher.WatchStoreActivity"
-            android:exported="false"
-            android:label="表盘商店"
-            android:theme="@style/Theme.FlueStudio.Editor"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name="com.flue.launcher.ui.store.WatchStoreWebActivity"
-            android:exported="false"
-            android:label="表盘商店"
-            android:theme="@style/Theme.FlueStudio.Editor"
-            android:screenOrientation="portrait" />
 
         <activity
             android:name=".StudioActivity"

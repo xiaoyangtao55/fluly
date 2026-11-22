@@ -81,7 +81,6 @@ import com.flue.launcher.R
 import com.flue.launcher.SETTINGS_DESTINATION_WATCH_FACES
 import com.flue.launcher.SettingsActivity
 import com.flue.launcher.ui.settings.WatchFaceStaticPreview
-import com.flue.launcher.util.FlueStudioLauncher
 import com.flue.launcher.ui.common.isFlueScreenRound
 import com.flue.launcher.ui.style.FlueAlertDialog
 import com.flue.launcher.ui.style.FlueFullScreenOverlay
@@ -332,7 +331,7 @@ fun WatchFaceCardSelector(
                         if (!centered) {
                             scope.launch { pagerState.animateScrollToPage(page) }
                         } else if (item.isStore) {
-                            FlueStudioLauncher.open(context)
+                            context.startActivity(android.content.Intent(context, com.flue.launcher.WatchStoreActivity::class.java))
                         } else {
                             vm.selectWatchFace(item.stableId)
                             requestClose()
@@ -391,7 +390,7 @@ fun WatchFaceCardSelector(
                             modifier = Modifier.weight(1f),
                         )
                     }
-                    if (focused != null && capabilities?.canEdit == true) {
+                    if (focused?.isBuiltin == true && capabilities?.canEdit == true) {
                         WatchFaceCardAction(
                             text = stringResource(R.string.widget_edit),
                             primary = true,
@@ -405,7 +404,6 @@ fun WatchFaceCardSelector(
                                         Intent(context, InternalWatchFaceConfigActivity::class.java)
                                             .putExtra(EXTRA_INTERNAL_WATCHFACE_ID, focused.id),
                                     )
-                                    focused.isWatchmaker -> FlueStudioLauncher.open(context)
                                     else -> Toast.makeText(
                                         context,
                                         context.getString(R.string.toast_no_watchface_config),

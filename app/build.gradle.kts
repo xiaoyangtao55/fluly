@@ -115,6 +115,7 @@ dependencies {
     implementation(project(":ui-kit"))
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
+    implementation(project(":watchface-store"))
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)

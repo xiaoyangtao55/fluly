@@ -10,7 +10,7 @@ import java.io.File
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * 编辑器 / 商店要用、但只有启动器才知道的那些事。
+ * 创作编辑器要用、但只有宿主才知道的那些事；不提供商店下载或安装能力。
  *
  * 这个模块里所有页面原本都直接拿 `LauncherViewModel`：主题偏好、表盘列表、
  * 安装归档、删除导入、最近任务隐藏，还有「改完表盘通知桌面刷新」。搬进模块之后
@@ -50,12 +50,6 @@ interface WatchEditorHost {
 
     /** 从 `content://` 或文件 Uri 导入一个表盘归档（站外下载走这条路）。 */
     suspend fun importWatchFaceArchive(uri: Uri): Result<WatchFaceDescriptor>
-
-    /** 安装商店下载下来的归档。 */
-    suspend fun installWatchStoreArchive(
-        archive: File,
-        installAsRound: Boolean,
-    ): Result<WatchFaceDescriptor>
 
     /** 把某个已安装表盘设为当前表盘。 */
     fun selectWatchFace(launcherId: String)

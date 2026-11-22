@@ -57,7 +57,7 @@ dependencies {
     implementation(project(":ui-kit"))
     implementation(project(":watchface-core"))
     implementation(project(":watchface-runtime"))
-    // 编辑器与商店整块搬进 Studio：HOME 从此不再打包 ffmpeg / miuix / WebView 商店。
+    // Studio 只承载创作编辑器和 Agent；商店 UI/安装由 HOME 的独立模块负责。
     implementation(project(":watchface-editor"))
     implementation(libs.core.ktx)
     implementation(libs.activity.compose)

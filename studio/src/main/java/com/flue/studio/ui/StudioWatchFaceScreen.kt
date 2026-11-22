@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.flue.launcher.WatchEditorActivity
-import com.flue.launcher.WatchStoreActivity
 import com.flue.launcher.watchface.WatchFaceDescriptor
 import com.flue.launcher.watchface.standard.WatchmakerWatchFaceHost
 import com.flue.studio.StudioServices
@@ -68,6 +67,7 @@ fun StudioWatchFaceScreen(modifier: Modifier = Modifier) {
     var status by remember { mutableStateOf<String?>(null) }
     var renderReady by remember { mutableStateOf(false) }
     var refreshToken by remember { mutableStateOf(0) }
+    var showImportRights by remember { mutableStateOf(false) }
 
     val selected = faces.firstOrNull { it.id == selectedId } ?: faces.firstOrNull()
 
@@ -89,7 +89,16 @@ fun StudioWatchFaceScreen(modifier: Modifier = Modifier) {
             val result = host.importWatchFaceArchive(uri)
             busy = false
             result.onSuccess { descriptor ->
-                status = "已安装：${descriptor.displayName}"
+                // A local declaration is not an authorship claim; known market sources still fail closed.
+                val rightsResult = runCatching {
+                    descriptor.sourceDirPath?.let { path ->
+                        com.flue.launcher.watchface.editor.WatchEditorProjectPolicy.declareExternalImport(
+                            java.io.File(path), launcherId = descriptor.id,
+                        )
+                    }
+                }
+                status = if (rightsResult.isSuccess) "已导入：${descriptor.displayName}" else
+                    context.getString(com.flue.launcher.watchface.editor.R.string.editor_rights_market_blocked)
                 selectedId = descriptor.id
                 refreshToken += 1
             }.onFailure { error ->
@@ -98,144 +107,150 @@ fun StudioWatchFaceScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    Column(modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedButton(onClick = { roundScreen = true }) {
-                Text(if (roundScreen) "● 圆形" else "○ 圆形")
-            }
-            OutlinedButton(onClick = { roundScreen = false }) {
-                Text(if (!roundScreen) "● 方形" else "○ 方形")
-            }
-            Spacer(Modifier.width(4.dp))
-            Button(
-                onClick = {
-                    importer.launch(
-                        arrayOf(
-                            "application/zip",
-                            "application/x-zip-compressed",
-                            "application/octet-stream",
-                            "application/*",
-                            "*/*",
-                        )
-                    )
+    com.flue.launcher.ui.style.FlueOverlayHost(modifier = modifier.fillMaxSize()) {
+        if (showImportRights) {
+            com.flue.launcher.ui.style.FlueAlertDialog(
+                onDismissRequest = { showImportRights = false },
+                title = { Text(context.getString(com.flue.launcher.watchface.editor.R.string.editor_rights_edit_title)) },
+                text = { Text(context.getString(com.flue.launcher.watchface.editor.R.string.editor_rights_edit_statement)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showImportRights = false
+                        importer.launch(arrayOf("application/zip", "application/octet-stream", "*/*"))
+                    }) { Text(context.getString(com.flue.launcher.watchface.editor.R.string.editor_rights_declare)) }
                 },
-                enabled = !busy,
-            ) { Text("导入 .watch") }
-            TextButton(onClick = { reload() }, enabled = !busy) { Text("刷新") }
+                dismissButton = {
+                    TextButton(onClick = { showImportRights = false }) { Text(context.getString(android.R.string.cancel)) }
+                },
+            )
         }
 
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
-            val side = minOf(maxWidth - 32.dp, maxHeight * 0.62f)
-            val previewShape = if (roundScreen) CircleShape else RoundedCornerShape(side * 0.18f)
-            Box(
-                modifier = Modifier
-                    .size(side)
-                    .clip(previewShape)
-                    .background(Color.Black),
+        Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedButton(onClick = { roundScreen = true }) {
+                    Text(if (roundScreen) "● 圆形" else "○ 圆形")
+                }
+                OutlinedButton(onClick = { roundScreen = false }) {
+                    Text(if (!roundScreen) "● 方形" else "○ 方形")
+                }
+                Spacer(Modifier.width(4.dp))
+                Button(
+                    onClick = { showImportRights = true },
+                    enabled = !busy,
+                ) { Text("导入 .watch") }
+                TextButton(onClick = { reload() }, enabled = !busy) { Text("刷新") }
+            }
+
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center,
             ) {
-                if (selected == null) {
-                    Text(
-                        text = if (busy) "正在安装…" else "还没有 .watch 表盘\n点右上「导入 .watch」",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF9E9E9E),
-                    )
-                } else {
-                    // 换表盘时画面不会立刻出来，先压一层加载态，等渲染器回调再撤。
-                    WatchmakerWatchFaceHost(
-                        descriptor = selected,
-                        isFaceVisible = true,
-                        refreshToken = refreshToken,
-                        onLongPress = null,
-                        onDoubleTap = null,
-                        onLoadFailure = { failed, error ->
-                            status = "渲染失败：${failed.displayName} · ${error.message ?: error.javaClass.simpleName}"
-                        },
-                        onRenderReady = { renderReady = true },
-                        roundScreen = roundScreen,
-                    )
-                    if (!renderReady) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.55f)),
-                            contentAlignment = Alignment.Center,
-                        ) { CircularProgressIndicator(modifier = Modifier.size(28.dp)) }
+                val side = minOf(maxWidth - 32.dp, maxHeight * 0.62f)
+                val previewShape = if (roundScreen) CircleShape else RoundedCornerShape(side * 0.18f)
+                Box(
+                    modifier = Modifier
+                        .size(side)
+                        .clip(previewShape)
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (selected == null) {
+                        Text(
+                            text = if (busy) "正在安装…" else "还没有 .watch 表盘\n点右上「导入 .watch」",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF9E9E9E),
+                        )
+                    } else {
+                        // 换表盘时画面不会立刻出来，先压一层加载态，等渲染器回调再撤。
+                        WatchmakerWatchFaceHost(
+                            descriptor = selected,
+                            isFaceVisible = true,
+                            refreshToken = refreshToken,
+                            onLongPress = null,
+                            onDoubleTap = null,
+                            onLoadFailure = { failed, error ->
+                                status = "渲染失败：${failed.displayName} · ${error.message ?: error.javaClass.simpleName}"
+                            },
+                            onRenderReady = { renderReady = true },
+                            roundScreen = roundScreen,
+                        )
+                        if (!renderReady) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.55f)),
+                                contentAlignment = Alignment.Center,
+                            ) { CircularProgressIndicator(modifier = Modifier.size(28.dp)) }
+                        }
                     }
                 }
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedButton(
-                onClick = {
-                    context.startActivity(
-                        Intent(context, WatchEditorActivity::class.java)
-                            .putExtra(WatchEditorActivity.EXTRA_WATCH_FACE_ID, selected?.id),
-                    )
-                },
-                enabled = selected != null,
-            ) { Text("编辑") }
-            Button(
-                onClick = { context.startActivity(Intent(context, WatchEditorActivity::class.java)) },
-            ) { Text("新建表盘") }
-            OutlinedButton(
-                onClick = { context.startActivity(Intent(context, WatchStoreActivity::class.java)) },
-            ) { Text("商店") }
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(
+                            Intent(context, WatchEditorActivity::class.java)
+                                .putExtra(WatchEditorActivity.EXTRA_WATCH_FACE_ID, selected?.id),
+                        )
+                    },
+                    enabled = selected != null,
+                ) { Text("编辑") }
+                Button(
+                    onClick = { context.startActivity(Intent(context, WatchEditorActivity::class.java)) },
+                ) { Text("新建表盘") }
+            }
 
-        status?.let { line ->
+            status?.let { line ->
+                Text(
+                    text = line,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+
             Text(
-                text = line,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 8.dp),
+                text = "已安装 ${faces.size} 个表盘",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
             )
-        }
-
-        Text(
-            text = "已安装 ${faces.size} 个表盘",
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
-        )
-        if (faces.isEmpty()) {
-            Text(
-                text = "把 .watch 文件（WatchMaker 1.0 / Studio 2.0）导入后即可在这里预览。",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(faces, key = { it.id }) { face ->
-                    FaceRow(
-                        face = face,
-                        selected = face.id == selected?.id,
-                        onSelect = {
-                            if (face.id != selected?.id) {
-                                selectedId = face.id
-                                renderReady = false
-                            }
-                        },
-                        onDelete = {
-                            scope.launch {
-                                val deleted = host.deleteImportedWatchFaces(listOf(face.id)).isSuccess
-                                status = if (deleted) "已删除：${face.displayName}" else "删除失败：${face.displayName}"
-                                if (deleted && face.id == selected?.id) selectedId = null
-                            }
-                        },
-                    )
+            if (faces.isEmpty()) {
+                Text(
+                    text = "把 .watch 文件（WatchMaker 1.0 / Studio 2.0）导入后即可在这里预览。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(faces, key = { it.id }) { face ->
+                        FaceRow(
+                            face = face,
+                            selected = face.id == selected?.id,
+                            onSelect = {
+                                if (face.id != selected?.id) {
+                                    selectedId = face.id
+                                    renderReady = false
+                                }
+                            },
+                            onDelete = {
+                                scope.launch {
+                                    val deleted = host.deleteImportedWatchFaces(listOf(face.id)).isSuccess
+                                    status = if (deleted) "已删除：${face.displayName}" else "删除失败：${face.displayName}"
+                                    if (deleted && face.id == selected?.id) selectedId = null
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }

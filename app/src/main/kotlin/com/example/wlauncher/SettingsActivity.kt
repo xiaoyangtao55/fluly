@@ -1730,23 +1730,8 @@ private fun SettingsRootScreen(
                     refreshToken = watchFaceRefreshToken,
                 )
             }
-            if (selectedWatchFace.isWatchmaker) {
-                item("watchface_editor_current") {
-                    ActionCard(
-                        title = stringResource(R.string.settings_watchface_editor_current),
-                        subtitle = stringResource(
-                            R.string.settings_watchface_editor_current_sub_fmt,
-                            selectedWatchFace.displayName
-                        ),
-                        scale = itemFisheye(listState, "watchface_editor_current", screenCenterY, screenHeightPx),
-                        icon = { SettingsIcon(material = OfficialMiuixIcons.OfficialSettings, miuix = OfficialMiuixIcons.OfficialSettings) },
-                        onClick = { FlueStudioLauncher.open(context) }
-                    )
-                }
-            }
-            // 新建紧跟在「编辑当前表盘」之后：两个都是编辑器入口，放一起。
-            // 注意它必须在上面那个 isWatchmaker 判断之外——没有选中 .watch
-            // 表盘时也要能新建。
+            // HOME 安装库只负责使用，不把商店或导入作品自动交给 Studio 编辑。
+            // 创作入口打开独立 Studio 工程，不传当前安装表盘的私有路径。
             flueSettingsGroup {
                 row("watchface_editor_new") { position ->
                     ActionCard(
@@ -1801,7 +1786,7 @@ private fun SettingsRootScreen(
                                 miuix = OfficialMiuixIcons.OfficialCarrier,
                             )
                         },
-                        onClick = { FlueStudioLauncher.open(context) },
+                        onClick = { context.startActivity(Intent(context, com.flue.launcher.WatchStoreActivity::class.java)) },
                         groupPosition = position,
                     )
                 }

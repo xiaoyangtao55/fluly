@@ -60,7 +60,24 @@ class WatchEditorSession private constructor(
     initialLayerKeys: List<WatchEditorLayerKey>?,
     val logicalId: String? = null,
     private val installedDirectory: File? = null,
+    val projectRights: WatchEditorProjectRights,
+    private val provenanceDirectory: File? = installedDirectory,
 ) : Closeable {
+    /** Save-as inherits workflow provenance; an archive never supplies this private marker. */
+    fun inheritProjectRights(context: Context, descriptor: WatchFaceDescriptor) {
+        ensureOpen()
+        provenanceDirectory?.let { WatchEditorProjectPolicy.requireNonMarket(it, logicalId) }
+        val target = descriptor.sourceDirPath?.let(::File) ?: error("Missing project directory")
+        require(target.canonicalFile.parentFile == WatchmakerWatchFaceStorage.rootDirectory(context).canonicalFile)
+        WatchEditorProjectPolicy.requireNonMarket(target, descriptor.id)
+        WatchEditorProjectPolicy.write(target, projectRights)
+    }
+
+    fun requirePublicationRights(publicationRightsDeclared: Boolean) {
+        ensureOpen()
+        provenanceDirectory?.let { WatchEditorProjectPolicy.requireNonMarket(it, logicalId) }
+        WatchEditorProjectPolicy.requirePublishable(projectRights, publicationRightsDeclared)
+    }
     private data class EditorState(
         val xml: ByteArray,
         val layerKeys: List<WatchEditorLayerKey>,
@@ -1147,6 +1164,7 @@ class WatchEditorSession private constructor(
         val target = installedDirectory?.canonicalFile
             ?: throw WatchEditorException("当前草稿没有可更新的 logicalId")
         require(target.isDirectory) { "原表盘安装目录不存在" }
+        WatchEditorProjectPolicy.requireNonMarket(target, logicalId)
         val parent = target.parentFile
             ?: throw WatchEditorException("原表盘安装目录无有效父目录")
         validateDocument()
@@ -2483,6 +2501,7 @@ class WatchEditorSession private constructor(
             context: Context,
             descriptor: WatchFaceDescriptor,
             limits: WatchEditorLimits = WatchEditorLimits.DEFAULT,
+            editRightsDeclared: Boolean = false,
         ): WatchEditorSession {
             require(descriptor.isWatchmaker) { "只有标准 .watch 表盘可在编辑器中打开" }
             val source = descriptor.sourceDirPath?.let(::File)
@@ -2498,6 +2517,7 @@ class WatchEditorSession private constructor(
                 limits = limits,
                 logicalId = descriptor.id,
                 installedDirectory = sourceCanonical,
+                editRightsDeclared = editRightsDeclared,
             )
         }
 
@@ -2509,9 +2529,11 @@ class WatchEditorSession private constructor(
             removeDraftOnClose: Boolean = true,
             logicalId: String? = null,
             installedDirectory: File? = null,
+            editRightsDeclared: Boolean = false,
         ): WatchEditorSession {
             val source = sourceDirectory.canonicalFile
             require(source.isDirectory) { "表盘源目录不存在" }
+            val projectRights = WatchEditorProjectPolicy.open(source, editRightsDeclared, logicalId)
             val cache = prepareCacheDirectory(cacheDirectory)
             require(!isWithin(cache, source) && !isWithin(source, cache)) {
                 "源目录与草稿目录不能相互嵌套"
@@ -2531,6 +2553,8 @@ class WatchEditorSession private constructor(
                     initialLayerKeys = null,
                     logicalId = logicalId,
                     installedDirectory = installedDirectory?.canonicalFile,
+                    projectRights = projectRights,
+                    provenanceDirectory = source,
                 )
             } catch (error: Exception) {
                 draft.deleteRecursively()
@@ -2602,6 +2626,7 @@ class WatchEditorSession private constructor(
                     initialLayerKeys = emptyList(),
                     logicalId = null,
                     installedDirectory = null,
+                    projectRights = WatchEditorProjectRights(WatchEditorProjectRights.Origin.CREATED, false),
                 )
             } catch (error: Exception) {
                 draft.deleteRecursively()

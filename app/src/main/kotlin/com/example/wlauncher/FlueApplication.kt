@@ -40,6 +40,8 @@ class FlueApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        com.flue.launcher.watchface.store.ui.WatchStoreHostProvider.host =
+            com.flue.launcher.watchface.HomeWatchStoreHost(this)
         // 运行时模块不能反向依赖 HOME 的通知监听服务，媒体会话查询组件由这里注入。
         WatchMediaSessionHost.listenerComponent =
             android.content.ComponentName(this, com.flue.launcher.service.WLauncherNotificationListener::class.java)
