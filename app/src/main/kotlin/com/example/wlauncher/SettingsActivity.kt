@@ -2159,14 +2159,14 @@ private fun SettingsRootScreen(
 
                     override fun onPick(entry: SettingsEntry.Picker, optionId: String) {
                         when (entry.id) {
-                            "layout" -> vm.setLayoutMode(LayoutMode.valueOf(optionId.uppercase()))
-                            "theme_mode" -> vm.setThemeMode(ThemeMode.valueOf(optionId.uppercase()))
-                            "transition_motion" -> vm.setTransitionMotion(
-                                FlueTransitionMotion.valueOf(optionId.uppercase()),
-                            )
-                            "screen_shape" -> vm.setScreenShapeOverride(
-                                FlueScreenShape.valueOf(optionId.uppercase()),
-                            )
+                            "layout" -> com.flue.launcher.ui.settings.settingsEnumOption<LayoutMode>(optionId)
+                                ?.let(vm::setLayoutMode)
+                            "theme_mode" -> com.flue.launcher.ui.settings.settingsEnumOption<ThemeMode>(optionId)
+                                ?.let(vm::setThemeMode)
+                            "transition_motion" -> com.flue.launcher.ui.settings.settingsEnumOption<FlueTransitionMotion>(optionId)
+                                ?.let(vm::setTransitionMotion)
+                            "screen_shape" -> com.flue.launcher.ui.settings.settingsEnumOption<FlueScreenShape>(optionId)
+                                ?.let(vm::setScreenShapeOverride)
                         }
                     }
 
