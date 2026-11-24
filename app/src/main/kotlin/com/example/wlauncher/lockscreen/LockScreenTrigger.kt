@@ -34,6 +34,7 @@ class LockScreenForegroundGate {
 fun startLockScreenWatchFace(context: Context) {
     val intent = Intent(context, LockScreenWatchFaceActivity::class.java)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    Log.i(LOG_TAG, "request overlay launch")
     runCatching { context.startActivity(intent) }
         .onFailure { Log.w(LOG_TAG, "无法拉起锁屏表盘", it) }
 }
@@ -50,7 +51,9 @@ fun screenOffReceiverFor(
     override fun onReceive(receiverContext: Context?, intent: Intent?) {
         if (intent?.action != Intent.ACTION_SCREEN_OFF) return
         val fromLauncher = foregroundGate.consumeScreenOff()
-        if (fromLauncher && isEnabled()) startLockScreenWatchFace(context)
+        val enabled = isEnabled()
+        Log.i(LOG_TAG, "SCREEN_OFF gate=$fromLauncher enabled=$enabled")
+        if (fromLauncher && enabled) startLockScreenWatchFace(context)
     }
 }
 

@@ -305,7 +305,9 @@ class LauncherActivity : FlueComponentActivity() {
     }
 
     override fun onPause() {
-        lockScreenForegroundGate.onPause(isScreenInteractive())
+        val interactiveAtPause = isScreenInteractive()
+        Log.i("LockScreenWatchFace", "HOME pause interactive=$interactiveAtPause")
+        lockScreenForegroundGate.onPause(interactiveAtPause)
         super.onPause()
         deferredResumeMaintenance?.let(window.decorView::removeCallbacks)
         deferredResumeMaintenance = null
@@ -314,7 +316,9 @@ class LauncherActivity : FlueComponentActivity() {
     }
 
     override fun onStop() {
-        lockScreenForegroundGate.onStop(isScreenInteractive())
+        val interactiveAtStop = isScreenInteractive()
+        Log.i("LockScreenWatchFace", "HOME stop interactive=$interactiveAtStop")
+        lockScreenForegroundGate.onStop(interactiveAtStop)
         runCatching { widgetHostLifecycle.release(this) }
             .onFailure { error ->
                 Log.e(WIDGET_HOST_LOG_TAG, "Unable to stop AppWidgetHost listening", error)

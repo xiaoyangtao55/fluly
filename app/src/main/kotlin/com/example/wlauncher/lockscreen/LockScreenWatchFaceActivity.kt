@@ -37,6 +37,8 @@ import com.flue.launcher.ui.common.isFlueScreenRound
 import com.flue.launcher.ui.theme.ProvideGlobalUiScale
 import com.flue.launcher.ui.theme.WatchLauncherTheme
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import android.util.Log
 
 private const val UNLOCK_SELF_CHECK_DELAY_MS = 2_000L
 
@@ -57,6 +59,32 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
     private var descriptor by mutableStateOf<WatchFaceDescriptor?>(null)
     private var faceVisible by mutableStateOf(false)
     private var resumed = false
+    private var configurationJob: Job? = null
+
+    private fun reloadConfiguration() {
+        configurationJob?.cancel()
+        configurationJob = lifecycleScope.launch {
+            val snapshot = readLockScreenFaceConfig()
+            val resolved = withContext(Dispatchers.IO) {
+                resolveLockScreenFace(
+                    snapshot.watchFaceId,
+                    WatchFaceDescriptors.builtInDescriptors(this@LockScreenWatchFaceActivity) +
+                        runCatching { JbWatchFaceStorage.scan(this@LockScreenWatchFaceActivity) }.getOrDefault(emptyList()) +
+                        runCatching { WatchmakerWatchFaceStorage.scan(this@LockScreenWatchFaceActivity) }.getOrDefault(emptyList()),
+                )
+            }
+            descriptor = resolved
+            config = snapshot
+            Log.i("LockScreenWatchFace", "configuration loaded type=${resolved?.type}")
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        Log.i("LockScreenWatchFace", "overlay reused; refreshing configuration")
+        reloadConfiguration()
+    }
     private var touchDownX = 0f
     private var touchDownY = 0f
     private var singlePointerGesture = false
@@ -118,7 +146,9 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
     private val unlockSelfCheck = Runnable {
         val keyguard = getSystemService(KeyguardManager::class.java)
         val power = getSystemService(PowerManager::class.java)
+        Log.i("LockScreenWatchFace", "self-check interactive=${power?.isInteractive} keyguard=${keyguard?.isKeyguardLocked}")
         if (power?.isInteractive == true && keyguard?.isKeyguardLocked == false && !isFinishing) {
+            Log.i("LockScreenWatchFace", "overlay finish: self-check unlocked")
             finish()
         }
     }
@@ -157,20 +187,8 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
         )
         onBackPressedDispatcher.addCallback(this) { finish() }
 
-        lifecycleScope.launch {
-            val snapshot = readLockScreenFaceConfig()
-            descriptor = withContext(Dispatchers.IO) {
-                resolveLockScreenFace(
-                    snapshot.watchFaceId,
-                    WatchFaceDescriptors.builtInDescriptors(this@LockScreenWatchFaceActivity) +
-                        runCatching { JbWatchFaceStorage.scan(this@LockScreenWatchFaceActivity) }
-                            .getOrDefault(emptyList()) +
-                        runCatching { WatchmakerWatchFaceStorage.scan(this@LockScreenWatchFaceActivity) }
-                            .getOrDefault(emptyList()),
-                )
-            }
-            config = snapshot
-        }
+        Log.i("LockScreenWatchFace", "overlay created")
+        reloadConfiguration()
 
         setContent {
             val snapshot = config
@@ -192,6 +210,7 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
                                     onDoubleTap = null,
                                     onTapAction = {},
                                     tapHapticsEnabled = false,
+                                    allowPermissionRequests = false,
                                     canvasSettings = snapshot.canvasSettings,
                                     roundScreen = isFlueScreenRound(),
                                     gravityParallaxEnabled = snapshot.gravityParallaxEnabled,

@@ -1069,6 +1069,12 @@ class WatchmakerWatchFaceView @JvmOverloads constructor(
         touchGestureActive = false
     }
 
+    private var permissionRequestsAllowed = true
+
+    fun setPermissionRequestsAllowed(allowed: Boolean) {
+        permissionRequestsAllowed = allowed
+    }
+
     fun setTapHapticsEnabled(enabled: Boolean) {
         tapHapticsEnabled = enabled
     }
@@ -6467,7 +6473,7 @@ class WatchmakerWatchFaceView @JvmOverloads constructor(
      * 那些上下文下弹权限框是错的。
      */
     private fun requestLocationPermissionIfFaceNeedsIt(prepared: PreparedSource?) {
-        if (prepared == null || !prepared.usesLocationTags) return
+        if (!permissionRequestsAllowed || prepared == null || !prepared.usesLocationTags) return
         if (WatchLocationPermissionPolicy.isGranted(context)) return
         val activity = context.findHostActivity() ?: return
         if (!locationPromptedFaceKeys.add(prepared.rootCacheKey)) return
@@ -7481,6 +7487,7 @@ fun WatchmakerWatchFaceHost(
      * 谁挂载这个 View 谁给值。
      */
     roundScreen: Boolean? = null,
+    allowPermissionRequests: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val ownedDataProvider = rememberWatchmakerWatchDataProvider(
@@ -7497,6 +7504,7 @@ fun WatchmakerWatchFaceHost(
         update = { stage ->
             val view = stage.renderer
             view.setWatchDataProvider(resolvedDataProvider)
+            view.setPermissionRequestsAllowed(allowPermissionRequests)
             view.setTapHapticsEnabled(tapHapticsEnabled)
             view.setCanvasSettings(canvasSettings)
             view.setGravityParallaxEnabled(gravityParallaxEnabled)
