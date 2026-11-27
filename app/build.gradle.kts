@@ -136,7 +136,6 @@ dependencies {
     implementation(libs.compose.material.icons)
     implementation(libs.compose.animation)
     implementation(libs.compose.cloudy)
-    implementation(libs.graphics.shapes)
     // miuix-icons 0.8.8 publishes its MiuixIcons receiver through a runtime
     // dependency. Add the matching core module explicitly so Kotlin can
     // resolve the official extension properties at compile time.

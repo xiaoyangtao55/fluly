@@ -86,8 +86,6 @@ import com.flue.launcher.watchface.BuiltInWatchFaceOptions
 import com.flue.launcher.watchface.InternalWatchFaceStorage
 import com.flue.launcher.watchface.WatchClockColorMode
 import com.flue.launcher.watchface.WatchClockPosition
-import com.flue.launcher.watchface.WatchFaceClockStyle
-import com.flue.launcher.watchface.WatchFaceMd3eShape
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -133,26 +131,10 @@ private fun InternalWatchFaceConfigScreen(
     val videoFillScreen by vm.builtInVideoFillScreen.collectAsStateWithLifecycle()
     val videoClockColorMode by vm.builtInVideoClockColorMode.collectAsStateWithLifecycle()
     val watchFaceFontPath by vm.builtInWatchFaceFontPath.collectAsStateWithLifecycle()
-    val photoClockStyle by vm.builtInPhotoClockStyle.collectAsStateWithLifecycle()
-    val videoClockStyle by vm.builtInVideoClockStyle.collectAsStateWithLifecycle()
-    val photoMd3eShape by vm.builtInPhotoMd3eShape.collectAsStateWithLifecycle()
-    val videoMd3eShape by vm.builtInVideoMd3eShape.collectAsStateWithLifecycle()
     val photoUseThemeTextColor by vm.builtInPhotoUseThemeTextColor.collectAsStateWithLifecycle()
     val videoUseThemeTextColor by vm.builtInVideoUseThemeTextColor.collectAsStateWithLifecycle()
     val photoTextColorArgb by vm.builtInPhotoTextColorArgb.collectAsStateWithLifecycle()
     val videoTextColorArgb by vm.builtInVideoTextColorArgb.collectAsStateWithLifecycle()
-    val photoMd3eAutoColors by vm.builtInPhotoMd3eAutoColors.collectAsStateWithLifecycle()
-    val videoMd3eAutoColors by vm.builtInVideoMd3eAutoColors.collectAsStateWithLifecycle()
-    val photoMd3eTextColorArgb by vm.builtInPhotoMd3eTextColorArgb.collectAsStateWithLifecycle()
-    val videoMd3eTextColorArgb by vm.builtInVideoMd3eTextColorArgb.collectAsStateWithLifecycle()
-    val photoMd3eFaceColorArgb by vm.builtInPhotoMd3eFaceColorArgb.collectAsStateWithLifecycle()
-    val videoMd3eFaceColorArgb by vm.builtInVideoMd3eFaceColorArgb.collectAsStateWithLifecycle()
-    val photoMd3eHourColorArgb by vm.builtInPhotoMd3eHourColorArgb.collectAsStateWithLifecycle()
-    val videoMd3eHourColorArgb by vm.builtInVideoMd3eHourColorArgb.collectAsStateWithLifecycle()
-    val photoMd3eMinuteColorArgb by vm.builtInPhotoMd3eMinuteColorArgb.collectAsStateWithLifecycle()
-    val videoMd3eMinuteColorArgb by vm.builtInVideoMd3eMinuteColorArgb.collectAsStateWithLifecycle()
-    val photoMd3eSecondColorArgb by vm.builtInPhotoMd3eSecondColorArgb.collectAsStateWithLifecycle()
-    val videoMd3eSecondColorArgb by vm.builtInVideoMd3eSecondColorArgb.collectAsStateWithLifecycle()
     val photoShowSeconds by vm.builtInPhotoShowSeconds.collectAsStateWithLifecycle()
     val videoShowSeconds by vm.builtInVideoShowSeconds.collectAsStateWithLifecycle()
     val photoCustomText by vm.builtInPhotoCustomText.collectAsStateWithLifecycle()
@@ -162,32 +144,16 @@ private fun InternalWatchFaceConfigScreen(
     val activeClockPosition = if (isPhoto) photoClockPosition else videoClockPosition
     val activeClockSize = if (isPhoto) photoClockSize else videoClockSize
     val activeClockBold = if (isPhoto) photoClockBold else videoClockBold
-    val activeClockStyle = if (isPhoto) photoClockStyle else videoClockStyle
-    val activeMd3eShape = if (isPhoto) photoMd3eShape else videoMd3eShape
     val activeUseThemeTextColor = if (isPhoto) photoUseThemeTextColor else videoUseThemeTextColor
     val activeTextColorArgb = if (isPhoto) photoTextColorArgb else videoTextColorArgb
-    val activeMd3eAutoColors = if (isPhoto) photoMd3eAutoColors else videoMd3eAutoColors
-    val activeMd3eTextColorArgb = if (isPhoto) photoMd3eTextColorArgb else videoMd3eTextColorArgb
-    val activeMd3eFaceColorArgb = if (isPhoto) photoMd3eFaceColorArgb else videoMd3eFaceColorArgb
-    val activeMd3eHourColorArgb = if (isPhoto) photoMd3eHourColorArgb else videoMd3eHourColorArgb
-    val activeMd3eMinuteColorArgb = if (isPhoto) photoMd3eMinuteColorArgb else videoMd3eMinuteColorArgb
-    val activeMd3eSecondColorArgb = if (isPhoto) photoMd3eSecondColorArgb else videoMd3eSecondColorArgb
     val activeShowSeconds = if (isPhoto) photoShowSeconds else videoShowSeconds
     val activeCustomText = if (isPhoto) photoCustomText else videoCustomText
     var localPath by remember(watchFaceId) { mutableStateOf(currentPath) }
     var localClockPosition by remember(watchFaceId) { mutableStateOf(activeClockPosition) }
     var localClockSize by remember(watchFaceId) { mutableFloatStateOf(activeClockSize.toFloat()) }
     var localClockBold by remember(watchFaceId) { mutableStateOf(activeClockBold) }
-    var localClockStyle by remember(watchFaceId) { mutableStateOf(activeClockStyle) }
-    var localMd3eShape by remember(watchFaceId) { mutableStateOf(activeMd3eShape) }
     var localUseThemeTextColor by remember(watchFaceId) { mutableStateOf(activeUseThemeTextColor) }
     var localTextColorArgb by remember(watchFaceId) { mutableStateOf(activeTextColorArgb) }
-    var localMd3eAutoColors by remember(watchFaceId) { mutableStateOf(activeMd3eAutoColors) }
-    var localMd3eTextColorArgb by remember(watchFaceId) { mutableStateOf(activeMd3eTextColorArgb) }
-    var localMd3eFaceColorArgb by remember(watchFaceId) { mutableStateOf(activeMd3eFaceColorArgb) }
-    var localMd3eHourColorArgb by remember(watchFaceId) { mutableStateOf(activeMd3eHourColorArgb) }
-    var localMd3eMinuteColorArgb by remember(watchFaceId) { mutableStateOf(activeMd3eMinuteColorArgb) }
-    var localMd3eSecondColorArgb by remember(watchFaceId) { mutableStateOf(activeMd3eSecondColorArgb) }
     var localShowSeconds by remember(watchFaceId) { mutableStateOf(activeShowSeconds) }
     var localCustomText by remember(watchFaceId) { mutableStateOf(activeCustomText) }
     var localVideoFillScreen by remember(watchFaceId) { mutableStateOf(videoFillScreen) }
@@ -199,16 +165,8 @@ private fun InternalWatchFaceConfigScreen(
         activeClockPosition,
         activeClockSize,
         activeClockBold,
-        activeClockStyle,
-        activeMd3eShape,
         activeUseThemeTextColor,
         activeTextColorArgb,
-        activeMd3eAutoColors,
-        activeMd3eTextColorArgb,
-        activeMd3eFaceColorArgb,
-        activeMd3eHourColorArgb,
-        activeMd3eMinuteColorArgb,
-        activeMd3eSecondColorArgb,
         activeShowSeconds,
         activeCustomText,
         videoFillScreen,
@@ -218,16 +176,8 @@ private fun InternalWatchFaceConfigScreen(
         localClockPosition = activeClockPosition
         localClockSize = activeClockSize.toFloat()
         localClockBold = activeClockBold
-        localClockStyle = activeClockStyle
-        localMd3eShape = activeMd3eShape
         localUseThemeTextColor = activeUseThemeTextColor
         localTextColorArgb = activeTextColorArgb
-        localMd3eAutoColors = activeMd3eAutoColors
-        localMd3eTextColorArgb = activeMd3eTextColorArgb
-        localMd3eFaceColorArgb = activeMd3eFaceColorArgb
-        localMd3eHourColorArgb = activeMd3eHourColorArgb
-        localMd3eMinuteColorArgb = activeMd3eMinuteColorArgb
-        localMd3eSecondColorArgb = activeMd3eSecondColorArgb
         localShowSeconds = activeShowSeconds
         localCustomText = activeCustomText
         localVideoFillScreen = videoFillScreen
@@ -240,16 +190,8 @@ private fun InternalWatchFaceConfigScreen(
             if (localClockPosition != photoClockPosition) vm.setBuiltInPhotoClockPosition(localClockPosition)
             if (localClockSize.toInt() != photoClockSize) vm.setBuiltInPhotoClockSize(localClockSize.toInt())
             if (localClockBold != photoClockBold) vm.setBuiltInPhotoClockBold(localClockBold)
-            if (localClockStyle != photoClockStyle) vm.setBuiltInPhotoClockStyle(localClockStyle)
-            if (localMd3eShape != photoMd3eShape) vm.setBuiltInPhotoMd3eShape(localMd3eShape)
             if (localUseThemeTextColor != photoUseThemeTextColor) vm.setBuiltInPhotoUseThemeTextColor(localUseThemeTextColor)
             if (localTextColorArgb != photoTextColorArgb) vm.setBuiltInPhotoTextColorArgb(localTextColorArgb)
-            if (localMd3eAutoColors != photoMd3eAutoColors) vm.setBuiltInPhotoMd3eAutoColors(localMd3eAutoColors)
-            if (localMd3eTextColorArgb != photoMd3eTextColorArgb) vm.setBuiltInPhotoMd3eTextColorArgb(localMd3eTextColorArgb)
-            if (localMd3eFaceColorArgb != photoMd3eFaceColorArgb) vm.setBuiltInPhotoMd3eFaceColorArgb(localMd3eFaceColorArgb)
-            if (localMd3eHourColorArgb != photoMd3eHourColorArgb) vm.setBuiltInPhotoMd3eHourColorArgb(localMd3eHourColorArgb)
-            if (localMd3eMinuteColorArgb != photoMd3eMinuteColorArgb) vm.setBuiltInPhotoMd3eMinuteColorArgb(localMd3eMinuteColorArgb)
-            if (localMd3eSecondColorArgb != photoMd3eSecondColorArgb) vm.setBuiltInPhotoMd3eSecondColorArgb(localMd3eSecondColorArgb)
             if (localShowSeconds != photoShowSeconds) vm.setBuiltInPhotoShowSeconds(localShowSeconds)
             if (localCustomText != photoCustomText) vm.setBuiltInPhotoCustomText(localCustomText)
         } else {
@@ -257,16 +199,8 @@ private fun InternalWatchFaceConfigScreen(
             if (localClockPosition != videoClockPosition) vm.setBuiltInVideoClockPosition(localClockPosition)
             if (localClockSize.toInt() != videoClockSize) vm.setBuiltInVideoClockSize(localClockSize.toInt())
             if (localClockBold != videoClockBold) vm.setBuiltInVideoClockBold(localClockBold)
-            if (localClockStyle != videoClockStyle) vm.setBuiltInVideoClockStyle(localClockStyle)
-            if (localMd3eShape != videoMd3eShape) vm.setBuiltInVideoMd3eShape(localMd3eShape)
             if (localUseThemeTextColor != videoUseThemeTextColor) vm.setBuiltInVideoUseThemeTextColor(localUseThemeTextColor)
             if (localTextColorArgb != videoTextColorArgb) vm.setBuiltInVideoTextColorArgb(localTextColorArgb)
-            if (localMd3eAutoColors != videoMd3eAutoColors) vm.setBuiltInVideoMd3eAutoColors(localMd3eAutoColors)
-            if (localMd3eTextColorArgb != videoMd3eTextColorArgb) vm.setBuiltInVideoMd3eTextColorArgb(localMd3eTextColorArgb)
-            if (localMd3eFaceColorArgb != videoMd3eFaceColorArgb) vm.setBuiltInVideoMd3eFaceColorArgb(localMd3eFaceColorArgb)
-            if (localMd3eHourColorArgb != videoMd3eHourColorArgb) vm.setBuiltInVideoMd3eHourColorArgb(localMd3eHourColorArgb)
-            if (localMd3eMinuteColorArgb != videoMd3eMinuteColorArgb) vm.setBuiltInVideoMd3eMinuteColorArgb(localMd3eMinuteColorArgb)
-            if (localMd3eSecondColorArgb != videoMd3eSecondColorArgb) vm.setBuiltInVideoMd3eSecondColorArgb(localMd3eSecondColorArgb)
             if (localShowSeconds != videoShowSeconds) vm.setBuiltInVideoShowSeconds(localShowSeconds)
             if (localCustomText != videoCustomText) vm.setBuiltInVideoCustomText(localCustomText)
             if (localVideoFillScreen != videoFillScreen) vm.setBuiltInVideoFillScreen(localVideoFillScreen)
@@ -392,19 +326,11 @@ private fun InternalWatchFaceConfigScreen(
                     clockPosition = if (isPhoto) localClockPosition else photoClockPosition,
                     clockSizeSp = localClockSize.toInt(),
                     boldClock = if (isPhoto) localClockBold else photoClockBold,
-                    clockStyle = if (isPhoto) localClockStyle else photoClockStyle,
                     showSeconds = if (isPhoto) localShowSeconds else photoShowSeconds,
                     customText = if (isPhoto) localCustomText else photoCustomText,
                     fontPath = watchFaceFontPath,
-                    md3eShape = if (isPhoto) localMd3eShape else photoMd3eShape,
                     useThemeTextColor = if (isPhoto) localUseThemeTextColor else photoUseThemeTextColor,
-                    textColorArgb = if (isPhoto) localTextColorArgb else photoTextColorArgb,
-                    md3eAutoColors = if (isPhoto) localMd3eAutoColors else photoMd3eAutoColors,
-                    md3eTextColorArgb = if (isPhoto) localMd3eTextColorArgb else photoMd3eTextColorArgb,
-                    md3eFaceColorArgb = if (isPhoto) localMd3eFaceColorArgb else photoMd3eFaceColorArgb,
-                    md3eHourHandColorArgb = if (isPhoto) localMd3eHourColorArgb else photoMd3eHourColorArgb,
-                    md3eMinuteHandColorArgb = if (isPhoto) localMd3eMinuteColorArgb else photoMd3eMinuteColorArgb,
-                    md3eSecondHandColorArgb = if (isPhoto) localMd3eSecondColorArgb else photoMd3eSecondColorArgb
+                    textColorArgb = if (isPhoto) localTextColorArgb else photoTextColorArgb
                 ),
                 videoOptions = BuiltInWatchFaceOptions(
                     clockPosition = if (isPhoto) videoClockPosition else localClockPosition,
@@ -412,19 +338,11 @@ private fun InternalWatchFaceConfigScreen(
                     boldClock = if (isPhoto) videoClockBold else localClockBold,
                     cropToFill = if (isPhoto) videoFillScreen else localVideoFillScreen,
                     clockColorMode = if (isPhoto) videoClockColorMode else localVideoClockColorMode,
-                    clockStyle = if (isPhoto) videoClockStyle else localClockStyle,
                     showSeconds = if (isPhoto) videoShowSeconds else localShowSeconds,
                     customText = if (isPhoto) videoCustomText else localCustomText,
                     fontPath = watchFaceFontPath,
-                    md3eShape = if (isPhoto) videoMd3eShape else localMd3eShape,
                     useThemeTextColor = if (isPhoto) videoUseThemeTextColor else localUseThemeTextColor,
-                    textColorArgb = if (isPhoto) videoTextColorArgb else localTextColorArgb,
-                    md3eAutoColors = if (isPhoto) videoMd3eAutoColors else localMd3eAutoColors,
-                    md3eTextColorArgb = if (isPhoto) videoMd3eTextColorArgb else localMd3eTextColorArgb,
-                    md3eFaceColorArgb = if (isPhoto) videoMd3eFaceColorArgb else localMd3eFaceColorArgb,
-                    md3eHourHandColorArgb = if (isPhoto) videoMd3eHourColorArgb else localMd3eHourColorArgb,
-                    md3eMinuteHandColorArgb = if (isPhoto) videoMd3eMinuteColorArgb else localMd3eMinuteColorArgb,
-                    md3eSecondHandColorArgb = if (isPhoto) videoMd3eSecondColorArgb else localMd3eSecondColorArgb
+                    textColorArgb = if (isPhoto) videoTextColorArgb else localTextColorArgb
                 ),
                 clockOverride = FIXED_PREVIEW_CLOCK,
                 showClock = true,
@@ -436,131 +354,32 @@ private fun InternalWatchFaceConfigScreen(
 
         Spacer(modifier = Modifier.height(22.dp))
 
+        ToggleRow(
+            label = stringResource(R.string.internal_watchface_use_theme_color),
+            enabled = localUseThemeTextColor,
+            onToggle = {
+                localUseThemeTextColor = !localUseThemeTextColor
+                if (isPhoto) {
+                    vm.setBuiltInPhotoUseThemeTextColor(localUseThemeTextColor)
+                } else {
+                    vm.setBuiltInVideoUseThemeTextColor(localUseThemeTextColor)
+                }
+            }
+        )
+        if (!localUseThemeTextColor) {
+            Spacer(modifier = Modifier.height(10.dp))
+            ColorRgbSliderGroup(
+                title = stringResource(R.string.internal_watchface_text_color),
+                argb = localTextColorArgb,
+                onColorChange = {
+                    localTextColorArgb = it
+                    if (isPhoto) vm.setBuiltInPhotoTextColorArgb(it) else vm.setBuiltInVideoTextColorArgb(it)
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = stringResource(R.string.internal_watchface_style),
-            color = launcherStyle.titleColor,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        ClockStylePickerRow(
-            current = localClockStyle,
-            onSelect = {
-                localClockStyle = it
-                if (isPhoto) vm.setBuiltInPhotoClockStyle(it) else vm.setBuiltInVideoClockStyle(it)
-            }
-        )
-
-        if (localClockStyle == WatchFaceClockStyle.MD3E_CLOCK) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.internal_watchface_md3e_shape),
-                color = launcherStyle.titleColor,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Md3eShapePickerRow(
-                current = localMd3eShape,
-                onSelect = {
-                    localMd3eShape = it
-                    if (isPhoto) vm.setBuiltInPhotoMd3eShape(it) else vm.setBuiltInVideoMd3eShape(it)
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-        if (localClockStyle == WatchFaceClockStyle.MD3E_CLOCK) {
-            ToggleRow(
-                label = stringResource(R.string.internal_watchface_auto_colors),
-                enabled = localMd3eAutoColors,
-                onToggle = {
-                    localMd3eAutoColors = !localMd3eAutoColors
-                    if (isPhoto) {
-                        vm.setBuiltInPhotoMd3eAutoColors(localMd3eAutoColors)
-                    } else {
-                        vm.setBuiltInVideoMd3eAutoColors(localMd3eAutoColors)
-                    }
-                }
-            )
-            if (!localMd3eAutoColors) {
-                Spacer(modifier = Modifier.height(10.dp))
-                ColorRgbSliderGroup(
-                    title = stringResource(R.string.internal_watchface_text_color),
-                    argb = localMd3eTextColorArgb,
-                    onColorChange = {
-                        localMd3eTextColorArgb = it
-                        if (isPhoto) vm.setBuiltInPhotoMd3eTextColorArgb(it) else vm.setBuiltInVideoMd3eTextColorArgb(it)
-                    }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                ColorRgbSliderGroup(
-                    title = stringResource(R.string.internal_watchface_face_color),
-                    argb = localMd3eFaceColorArgb,
-                    onColorChange = {
-                        localMd3eFaceColorArgb = it
-                        if (isPhoto) vm.setBuiltInPhotoMd3eFaceColorArgb(it) else vm.setBuiltInVideoMd3eFaceColorArgb(it)
-                    }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                ColorRgbSliderGroup(
-                    title = stringResource(R.string.internal_watchface_hour_hand_color),
-                    argb = localMd3eHourColorArgb,
-                    onColorChange = {
-                        localMd3eHourColorArgb = it
-                        if (isPhoto) vm.setBuiltInPhotoMd3eHourColorArgb(it) else vm.setBuiltInVideoMd3eHourColorArgb(it)
-                    }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                ColorRgbSliderGroup(
-                    title = stringResource(R.string.internal_watchface_minute_hand_color),
-                    argb = localMd3eMinuteColorArgb,
-                    onColorChange = {
-                        localMd3eMinuteColorArgb = it
-                        if (isPhoto) vm.setBuiltInPhotoMd3eMinuteColorArgb(it) else vm.setBuiltInVideoMd3eMinuteColorArgb(it)
-                    }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                ColorRgbSliderGroup(
-                    title = stringResource(R.string.internal_watchface_second_hand_color),
-                    argb = localMd3eSecondColorArgb,
-                    onColorChange = {
-                        localMd3eSecondColorArgb = it
-                        if (isPhoto) vm.setBuiltInPhotoMd3eSecondColorArgb(it) else vm.setBuiltInVideoMd3eSecondColorArgb(it)
-                    }
-                )
-            }
-        } else {
-            ToggleRow(
-                label = stringResource(R.string.internal_watchface_use_theme_color),
-                enabled = localUseThemeTextColor,
-                onToggle = {
-                    localUseThemeTextColor = !localUseThemeTextColor
-                    if (isPhoto) {
-                        vm.setBuiltInPhotoUseThemeTextColor(localUseThemeTextColor)
-                    } else {
-                        vm.setBuiltInVideoUseThemeTextColor(localUseThemeTextColor)
-                    }
-                }
-            )
-            if (!localUseThemeTextColor) {
-                Spacer(modifier = Modifier.height(10.dp))
-                ColorRgbSliderGroup(
-                    title = stringResource(R.string.internal_watchface_text_color),
-                    argb = localTextColorArgb,
-                    onColorChange = {
-                        localTextColorArgb = it
-                        if (isPhoto) vm.setBuiltInPhotoTextColorArgb(it) else vm.setBuiltInVideoTextColorArgb(it)
-                    }
-                )
-            }
-        }
-
-        if (localClockStyle == WatchFaceClockStyle.DIGITAL) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
             text = stringResource(R.string.internal_watchface_clock_position),
             color = launcherStyle.titleColor,
             fontSize = 15.sp,
@@ -580,9 +399,9 @@ private fun InternalWatchFaceConfigScreen(
             }
         )
 
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
+        Text(
             text = stringResource(
                 R.string.internal_watchface_clock_size_fmt,
                 localClockSize.toInt(),
@@ -592,7 +411,7 @@ private fun InternalWatchFaceConfigScreen(
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.fillMaxWidth()
         )
-            FlueSlider(
+        FlueSlider(
             value = localClockSize,
             onValueChange = {
                 localClockSize = it
@@ -605,8 +424,8 @@ private fun InternalWatchFaceConfigScreen(
             steps = 15,
         )
 
-            Spacer(modifier = Modifier.height(8.dp))
-            ToggleRow(
+        Spacer(modifier = Modifier.height(8.dp))
+        ToggleRow(
             label = stringResource(R.string.internal_watchface_bold_clock),
             enabled = localClockBold,
             onToggle = {
@@ -618,7 +437,6 @@ private fun InternalWatchFaceConfigScreen(
                 }
             }
         )
-        }
 
         Spacer(modifier = Modifier.height(8.dp))
         ToggleRow(
@@ -823,73 +641,6 @@ private fun handlePickedMedia(
     onMessage(context.getString(R.string.internal_watchface_media_updated))
     return savedPath
 }
-@Composable
-private fun ClockStylePickerRow(
-    current: WatchFaceClockStyle,
-    onSelect: (WatchFaceClockStyle) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
-        ) {
-            SmallChoiceChip(
-                label = stringResource(R.string.internal_watchface_style_digital),
-                selected = current == WatchFaceClockStyle.DIGITAL,
-                modifier = Modifier.weight(1f)
-            ) { onSelect(WatchFaceClockStyle.DIGITAL) }
-            SmallChoiceChip(
-                label = stringResource(R.string.internal_watchface_style_apple),
-                selected = current == WatchFaceClockStyle.APPLE_WATCH,
-                modifier = Modifier.weight(1f)
-            ) { onSelect(WatchFaceClockStyle.APPLE_WATCH) }
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
-        ) {
-            SmallChoiceChip(
-                label = stringResource(R.string.internal_watchface_style_md3),
-                selected = current == WatchFaceClockStyle.MD3_ANALOG,
-                modifier = Modifier.weight(1f)
-            ) { onSelect(WatchFaceClockStyle.MD3_ANALOG) }
-            SmallChoiceChip(
-                label = stringResource(R.string.internal_watchface_style_md3e),
-                selected = current == WatchFaceClockStyle.MD3E_CLOCK,
-                modifier = Modifier.weight(1f)
-            ) { onSelect(WatchFaceClockStyle.MD3E_CLOCK) }
-        }
-    }
-}
-
-@Composable
-private fun Md3eShapePickerRow(
-    current: WatchFaceMd3eShape,
-    onSelect: (WatchFaceMd3eShape) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
-    ) {
-        SmallChoiceChip(
-            label = stringResource(R.string.internal_watchface_shape_cookie),
-            selected = current == WatchFaceMd3eShape.COOKIE,
-            modifier = Modifier.weight(1f)
-        ) { onSelect(WatchFaceMd3eShape.COOKIE) }
-        SmallChoiceChip(
-            label = stringResource(R.string.internal_watchface_shape_soft_star),
-            selected = current == WatchFaceMd3eShape.SOFT_STAR,
-            modifier = Modifier.weight(1f)
-        ) { onSelect(WatchFaceMd3eShape.SOFT_STAR) }
-        SmallChoiceChip(
-            label = stringResource(R.string.internal_watchface_shape_circle),
-            selected = current == WatchFaceMd3eShape.CIRCLE,
-            modifier = Modifier.weight(1f)
-        ) { onSelect(WatchFaceMd3eShape.CIRCLE) }
-    }
-}
-
 @Composable
 private fun CustomTextField(
     value: String,

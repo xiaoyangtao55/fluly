@@ -26,7 +26,7 @@ import com.flue.launcher.ui.theme.UiStyle
 /**
  * Material 3 档加载指示器：M3 1.5 的真 `LoadingIndicator`。
  *
- * 它用 `androidx.graphics.shapes.RoundedPolygon`（`graphics-shapes` 已是依赖）在
+ * 它用 `androidx.graphics.shapes.RoundedPolygon` 在
  * `MaterialShapes` 之间形变，是 Expressive 的招牌读法 —— 与 Apple 档的匀速细环、
  * MIUIX 档的 miuix 环三者一眼能分辨，这正是分档的目的。
  *

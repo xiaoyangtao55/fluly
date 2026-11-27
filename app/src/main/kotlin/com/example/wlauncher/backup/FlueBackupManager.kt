@@ -163,16 +163,8 @@ object FlueBackupManager {
         LauncherViewModel.KEY_PHOTO_CLOCK_POSITION.name,
         LauncherViewModel.KEY_PHOTO_CLOCK_SIZE.name,
         LauncherViewModel.KEY_PHOTO_CLOCK_BOLD.name,
-        LauncherViewModel.KEY_PHOTO_CLOCK_STYLE.name,
-        LauncherViewModel.KEY_PHOTO_MD3E_SHAPE.name,
         LauncherViewModel.KEY_PHOTO_USE_THEME_TEXT_COLOR.name,
         LauncherViewModel.KEY_PHOTO_TEXT_COLOR.name,
-        LauncherViewModel.KEY_PHOTO_MD3E_AUTO_COLORS.name,
-        LauncherViewModel.KEY_PHOTO_MD3E_TEXT_COLOR.name,
-        LauncherViewModel.KEY_PHOTO_MD3E_FACE_COLOR.name,
-        LauncherViewModel.KEY_PHOTO_MD3E_HOUR_COLOR.name,
-        LauncherViewModel.KEY_PHOTO_MD3E_MINUTE_COLOR.name,
-        LauncherViewModel.KEY_PHOTO_MD3E_SECOND_COLOR.name,
         LauncherViewModel.KEY_PHOTO_SHOW_SECONDS.name,
         LauncherViewModel.KEY_PHOTO_CUSTOM_TEXT.name
     )
@@ -184,16 +176,8 @@ object FlueBackupManager {
         LauncherViewModel.KEY_VIDEO_CLOCK_BOLD.name,
         LauncherViewModel.KEY_VIDEO_FILL_SCREEN.name,
         LauncherViewModel.KEY_VIDEO_CLOCK_COLOR_MODE.name,
-        LauncherViewModel.KEY_VIDEO_CLOCK_STYLE.name,
-        LauncherViewModel.KEY_VIDEO_MD3E_SHAPE.name,
         LauncherViewModel.KEY_VIDEO_USE_THEME_TEXT_COLOR.name,
         LauncherViewModel.KEY_VIDEO_TEXT_COLOR.name,
-        LauncherViewModel.KEY_VIDEO_MD3E_AUTO_COLORS.name,
-        LauncherViewModel.KEY_VIDEO_MD3E_TEXT_COLOR.name,
-        LauncherViewModel.KEY_VIDEO_MD3E_FACE_COLOR.name,
-        LauncherViewModel.KEY_VIDEO_MD3E_HOUR_COLOR.name,
-        LauncherViewModel.KEY_VIDEO_MD3E_MINUTE_COLOR.name,
-        LauncherViewModel.KEY_VIDEO_MD3E_SECOND_COLOR.name,
         LauncherViewModel.KEY_VIDEO_SHOW_SECONDS.name,
         LauncherViewModel.KEY_VIDEO_CUSTOM_TEXT.name
     )
@@ -602,6 +586,8 @@ object FlueBackupManager {
         val keys = json.keys()
         while (keys.hasNext()) {
             val name = keys.next()
+            // 旧备份可能带着已移除的表盘样式键（AW / MD3 / MD3E），跳过、不写回 DataStore。
+            if (name in LauncherViewModel.LEGACY_WATCHFACE_STYLE_PREFERENCE_NAMES) continue
             if (name in excludeNames) continue
             val entry = json.optJSONObject(name) ?: continue
             val type = entry.optString("type")

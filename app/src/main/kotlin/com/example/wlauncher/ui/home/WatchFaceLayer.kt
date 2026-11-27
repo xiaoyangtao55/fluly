@@ -39,7 +39,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -49,24 +48,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -92,25 +85,16 @@ import com.flue.launcher.ui.theme.isMaterial
 import com.flue.launcher.ui.anim.platformBlur
 import com.flue.launcher.watchface.WatchClockColorMode
 import com.flue.launcher.watchface.WatchClockPosition
-import com.flue.launcher.watchface.WatchFaceClockStyle
-import com.flue.launcher.watchface.WatchFaceMd3eShape
-import androidx.graphics.shapes.CornerRounding
-import androidx.graphics.shapes.RoundedPolygon
-import androidx.graphics.shapes.circle
-import androidx.graphics.shapes.star
-import androidx.graphics.shapes.toPath
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
-import kotlin.math.cos
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.min
-import kotlin.math.sin
 import kotlin.math.roundToInt
 
 data class ClockSnapshot(
@@ -137,14 +121,6 @@ data class ClockPalette(
     val timeColor: Color,
     val dateColor: Color,
     val seedColor: Color = timeColor
-)
-
-private data class Md3eColorPalette(
-    val faceColor: Color,
-    val textColor: Color,
-    val hourColor: Color,
-    val minuteColor: Color,
-    val secondColor: Color
 )
 
 private object WatchFaceVideoThumbnailCache {
@@ -769,42 +745,6 @@ private fun ClockOverlay(
 ) {
     val effectivePalette = resolveClockTextPalette(options, palette)
     val chargingTextSnapshot = if (showChargingPowerText) chargingSnapshot else ChargingSnapshot()
-    if (options.clockStyle == WatchFaceClockStyle.MD3E_CLOCK && !compact) {
-        Md3eClockOverlay(
-            clock = clock,
-            options = options,
-            palette = effectivePalette,
-            typeface = typeface,
-            chargingSnapshot = chargingTextSnapshot,
-            fallbackTitle = fallbackTitle,
-            fallbackSubtitle = fallbackSubtitle
-        )
-        return
-    }
-    if (options.clockStyle == WatchFaceClockStyle.MD3_ANALOG && !compact) {
-        Md3AnalogClockOverlay(
-            clock = clock,
-            options = options,
-            palette = effectivePalette,
-            typeface = typeface,
-            chargingSnapshot = chargingTextSnapshot,
-            fallbackTitle = fallbackTitle,
-            fallbackSubtitle = fallbackSubtitle
-        )
-        return
-    }
-    if (options.clockStyle == WatchFaceClockStyle.APPLE_WATCH && !compact) {
-        AppleWatchClockOverlay(
-            clock = clock,
-            options = options,
-            palette = effectivePalette,
-            typeface = typeface,
-            chargingSnapshot = chargingTextSnapshot,
-            fallbackTitle = fallbackTitle,
-            fallbackSubtitle = fallbackSubtitle
-        )
-        return
-    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -887,455 +827,6 @@ private fun extractVideoThumbnail(path: String): ImageBitmap? {
             runCatching { retriever.release() }
         }
     }.getOrNull()
-}
-
-@Composable
-private fun Md3AnalogClockOverlay(
-    clock: ClockSnapshot,
-    options: BuiltInWatchFaceOptions,
-    palette: ClockPalette,
-    typeface: WatchFaceTypeface,
-    chargingSnapshot: ChargingSnapshot,
-    fallbackTitle: String?,
-    fallbackSubtitle: String?
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 18.dp, vertical = 18.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(14.dp)
-        ) {
-            val side = min(size.width, size.height)
-            val radius = side * 0.41f
-            val center = Offset(size.width / 2f, size.height / 2f - side * 0.02f)
-            val primary = palette.timeColor
-            val secondary = palette.dateColor
-            val strokeWidth = 2.dp.toPx()
-
-            drawCircle(
-                color = Color.White.copy(alpha = 0.06f),
-                radius = radius + 16.dp.toPx(),
-                center = center
-            )
-            drawCircle(
-                color = primary.copy(alpha = 0.26f),
-                radius = radius,
-                center = center,
-                style = Stroke(width = strokeWidth)
-            )
-
-            repeat(60) { index ->
-                val angle = Math.toRadians(index * 6.0 - 90.0)
-                val tickLength = if (index % 5 == 0) 12.dp.toPx() else 5.dp.toPx()
-                val start = Offset(
-                    x = center.x + cos(angle).toFloat() * (radius - tickLength),
-                    y = center.y + sin(angle).toFloat() * (radius - tickLength)
-                )
-                val end = Offset(
-                    x = center.x + cos(angle).toFloat() * radius,
-                    y = center.y + sin(angle).toFloat() * radius
-                )
-                drawLine(
-                    color = if (index % 5 == 0) primary.copy(alpha = 0.78f) else secondary.copy(alpha = 0.30f),
-                    start = start,
-                    end = end,
-                    strokeWidth = if (index % 5 == 0) 2.2.dp.toPx() else 1.dp.toPx()
-                )
-            }
-
-            drawIntoCanvas { canvas ->
-                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                    color = primary.toArgb()
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    textSize = side * 0.075f
-                    this.typeface = typeface.platformTypeface(false)
-                        ?: AndroidTypeface.create(AndroidTypeface.DEFAULT, AndroidTypeface.NORMAL)
-                }
-                val textRadius = radius - 34.dp.toPx()
-                for (number in 1..12) {
-                    val angle = Math.toRadians(number * 30.0 - 90.0)
-                    val x = center.x + cos(angle).toFloat() * textRadius
-                    val y = center.y + sin(angle).toFloat() * textRadius - (paint.descent() + paint.ascent()) / 2f
-                    canvas.nativeCanvas.drawText(number.toString(), x, y, paint)
-                }
-            }
-
-            val minuteAngle = clock.minute * 6f + clock.second * 0.1f - 90f
-            val hourAngle = ((clock.hour % 12) + clock.minute / 60f) * 30f - 90f
-            drawHand(center, hourAngle, radius * 0.48f, 7.dp.toPx(), primary)
-            drawHand(center, minuteAngle, radius * 0.68f, 4.dp.toPx(), primary)
-            if (options.showSeconds) {
-                val secondAngle = clock.second * 6f - 90f
-                drawHand(center, secondAngle, radius * 0.76f, 2.dp.toPx(), Color(0xFFFFD54A))
-            }
-            drawCircle(color = primary, radius = 6.dp.toPx(), center = center)
-            drawCircle(color = Color.Black.copy(alpha = 0.52f), radius = 2.5.dp.toPx(), center = center)
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = clock.date,
-                color = palette.dateColor,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = typeface.fontFamily
-            )
-            options.customText.takeIf { it.isNotBlank() }?.let {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = it,
-                    color = palette.timeColor,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = typeface.fontFamily
-                )
-            }
-            chargingSpeedLabel(chargingSnapshot)?.let {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = it,
-                    color = Color(0xFFFFD54A),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = typeface.fontFamily
-                )
-            }
-            if (fallbackTitle != null) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = fallbackTitle,
-                    color = palette.timeColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = typeface.fontFamily
-                )
-                fallbackSubtitle?.let {
-                    Text(
-                        text = it,
-                        color = palette.timeColor.copy(alpha = 0.78f),
-                        fontSize = 10.sp,
-                        fontFamily = typeface.fontFamily
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppleWatchClockOverlay(
-    clock: ClockSnapshot,
-    options: BuiltInWatchFaceOptions,
-    palette: ClockPalette,
-    typeface: WatchFaceTypeface,
-    chargingSnapshot: ChargingSnapshot,
-    fallbackTitle: String?,
-    fallbackSubtitle: String?
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 18.dp, vertical = 18.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val side = min(size.width, size.height)
-            val inset = side * 0.075f
-            val panelRadius = side * 0.075f
-            val accent = palette.seedColor
-            val quietText = palette.dateColor
-            val ringStroke = side * 0.018f
-            val ringSize = side * 0.38f
-            val left = inset
-            val right = size.width - inset - side * 0.28f
-            val top = inset
-            val bottom = size.height - inset - side * 0.16f
-
-            drawRoundRect(
-                color = Color.White.copy(alpha = 0.10f),
-                topLeft = Offset(left, top),
-                size = Size(side * 0.30f, side * 0.16f),
-                cornerRadius = CornerRadius(panelRadius, panelRadius)
-            )
-            drawRoundRect(
-                color = accent.copy(alpha = 0.24f),
-                topLeft = Offset(right, top),
-                size = Size(side * 0.28f, side * 0.16f),
-                cornerRadius = CornerRadius(panelRadius, panelRadius)
-            )
-            drawRoundRect(
-                color = quietText.copy(alpha = 0.18f),
-                topLeft = Offset(left, bottom),
-                size = Size(side * 0.36f, side * 0.15f),
-                cornerRadius = CornerRadius(panelRadius, panelRadius)
-            )
-            drawRoundRect(
-                color = Color.White.copy(alpha = 0.08f),
-                topLeft = Offset(size.width - inset - side * 0.34f, bottom),
-                size = Size(side * 0.34f, side * 0.15f),
-                cornerRadius = CornerRadius(panelRadius, panelRadius)
-            )
-
-            val ringTopLeft = Offset(size.width / 2f - ringSize / 2f, size.height / 2f - ringSize / 2f)
-            drawArc(
-                color = Color.White.copy(alpha = 0.14f),
-                startAngle = -90f,
-                sweepAngle = 360f,
-                useCenter = false,
-                topLeft = ringTopLeft,
-                size = Size(ringSize, ringSize),
-                style = Stroke(width = ringStroke)
-            )
-            drawArc(
-                color = accent,
-                startAngle = -90f,
-                sweepAngle = ((clock.minute + clock.second / 60f) / 60f) * 360f,
-                useCenter = false,
-                topLeft = ringTopLeft,
-                size = Size(ringSize, ringSize),
-                style = Stroke(width = ringStroke, cap = StrokeCap.Round)
-            )
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = clock.time,
-                color = palette.timeColor,
-                fontSize = (options.clockSizeSp * 0.94f).sp,
-                fontWeight = FontWeight.W300,
-                fontFamily = typeface.fontFamily,
-                letterSpacing = 0.sp
-            )
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(
-                text = clock.date,
-                color = palette.dateColor,
-                fontSize = (options.clockSizeSp * 0.20f).sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = typeface.fontFamily
-            )
-            options.customText.takeIf { it.isNotBlank() }?.let {
-                Spacer(modifier = Modifier.height(7.dp))
-                Text(
-                    text = it,
-                    color = palette.timeColor,
-                    fontSize = (options.clockSizeSp * 0.20f).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = typeface.fontFamily
-                )
-            }
-            chargingSpeedLabel(chargingSnapshot)?.let {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = it,
-                    color = Color(0xFF9BE15D),
-                    fontSize = (options.clockSizeSp * 0.18f).sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = typeface.fontFamily
-                )
-            }
-            fallbackTitle?.let {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = it,
-                    color = palette.timeColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = typeface.fontFamily
-                )
-                fallbackSubtitle?.let { subtitle ->
-                    Text(
-                        text = subtitle,
-                        color = palette.timeColor.copy(alpha = 0.78f),
-                        fontSize = 10.sp,
-                        fontFamily = typeface.fontFamily
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Md3eClockOverlay(
-    clock: ClockSnapshot,
-    options: BuiltInWatchFaceOptions,
-    palette: ClockPalette,
-    typeface: WatchFaceTypeface,
-    chargingSnapshot: ChargingSnapshot,
-    fallbackTitle: String?,
-    fallbackSubtitle: String?
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val side = min(size.width, size.height)
-            val radius = side * 0.42f
-            val center = Offset(size.width / 2f, size.height / 2f + side * 0.015f)
-            val blobPath = md3eShapePath(center, radius, options.md3eShape)
-            val colors = resolveMd3ePalette(options, palette)
-
-            drawPath(path = blobPath, color = colors.faceColor)
-
-            drawIntoCanvas { canvas ->
-                val selectedTypeface = typeface.platformTypeface(true)
-                    ?: AndroidTypeface.create(AndroidTypeface.DEFAULT, AndroidTypeface.BOLD)
-                val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-                    color = colors.textColor.toArgb()
-                    textSize = side * 0.076f
-                    textAlign = android.graphics.Paint.Align.CENTER
-                    this.typeface = selectedTypeface
-                }
-                val dateText = "${clock.weekdayShort.ifBlank { "\u5468\u4E00" }} ${clock.dayOfMonth}"
-                val x = center.x
-                val y = center.y - radius * 0.70f - (paint.descent() + paint.ascent()) / 2f
-                canvas.nativeCanvas.drawText(dateText, x, y, paint)
-            }
-
-            val hourAngle = ((clock.hour % 12) + clock.minute / 60f) * 30f - 90f
-            val minuteAngle = (clock.minute + clock.second / 60f) * 6f - 90f
-            drawMd3eHand(center, hourAngle, radius * 0.43f, radius * 0.145f, colors.hourColor)
-            drawMd3eHand(center, minuteAngle, radius * 0.58f, radius * 0.145f, colors.minuteColor)
-
-            val dotAngle = Math.toRadians((clock.second * 6f - 90f).toDouble())
-            drawCircle(
-                color = colors.secondColor,
-                radius = radius * 0.095f,
-                center = Offset(
-                    x = center.x + cos(dotAngle).toFloat() * radius * 0.78f,
-                    y = center.y + sin(dotAngle).toFloat() * radius * 0.78f
-                )
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            options.customText.takeIf { it.isNotBlank() }?.let {
-                Text(
-                    text = it,
-                    color = palette.timeColor,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = typeface.fontFamily
-                )
-            }
-            chargingSpeedLabel(chargingSnapshot)?.let {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = it,
-                    color = Color(0xFFFFD54A),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = typeface.fontFamily
-                )
-            }
-            fallbackTitle?.let {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = it,
-                    color = palette.timeColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = typeface.fontFamily
-                )
-                fallbackSubtitle?.let { subtitle ->
-                    Text(
-                        text = subtitle,
-                        color = palette.timeColor.copy(alpha = 0.78f),
-                        fontSize = 10.sp,
-                        fontFamily = typeface.fontFamily
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawHand(
-    center: Offset,
-    angleDegrees: Float,
-    length: Float,
-    strokeWidth: Float,
-    color: Color
-) {
-    val angle = Math.toRadians(angleDegrees.toDouble())
-    drawLine(
-        color = color,
-        start = center,
-        end = Offset(
-            x = center.x + cos(angle).toFloat() * length,
-            y = center.y + sin(angle).toFloat() * length
-        ),
-        strokeWidth = strokeWidth
-    )
-}
-
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawMd3eHand(
-    center: Offset,
-    angleDegrees: Float,
-    length: Float,
-    strokeWidth: Float,
-    color: Color
-) {
-    val angle = Math.toRadians(angleDegrees.toDouble())
-    drawLine(
-        color = color,
-        start = center,
-        end = Offset(
-            x = center.x + cos(angle).toFloat() * length,
-            y = center.y + sin(angle).toFloat() * length
-        ),
-        strokeWidth = strokeWidth,
-        cap = StrokeCap.Round
-    )
-}
-
-private fun md3eShapePath(center: Offset, radius: Float, shape: WatchFaceMd3eShape): Path {
-    val polygon = when (shape) {
-        WatchFaceMd3eShape.COOKIE -> RoundedPolygon.star(
-            numVerticesPerRadius = 12,
-            radius = radius,
-            innerRadius = radius * 0.92f,
-            rounding = CornerRounding(radius * 0.18f, smoothing = 0.45f),
-            innerRounding = CornerRounding(radius * 0.18f, smoothing = 0.45f),
-            centerX = center.x,
-            centerY = center.y
-        )
-        WatchFaceMd3eShape.SOFT_STAR -> RoundedPolygon.star(
-            numVerticesPerRadius = 8,
-            radius = radius,
-            innerRadius = radius * 0.74f,
-            rounding = CornerRounding(radius * 0.22f, smoothing = 0.55f),
-            innerRounding = CornerRounding(radius * 0.18f, smoothing = 0.55f),
-            centerX = center.x,
-            centerY = center.y
-        )
-        WatchFaceMd3eShape.CIRCLE -> RoundedPolygon.circle(
-            numVertices = 18,
-            radius = radius,
-            centerX = center.x,
-            centerY = center.y
-        )
-    }
-    return polygon.toPath().asComposePath()
 }
 
 @Composable
@@ -1480,21 +971,10 @@ fun rememberClockPaletteForPreview(
 )
 
 fun appListSeedColorFromOptions(options: BuiltInWatchFaceOptions): Color {
-    return when (options.clockStyle) {
-        WatchFaceClockStyle.MD3E_CLOCK -> {
-            if (options.md3eAutoColors) {
-                Color(0xFF806EA4)
-            } else {
-                Color(options.md3eFaceColorArgb)
-            }
-        }
-        else -> {
-            if (options.useThemeTextColor) {
-                Color(0xFF7BE8FF)
-            } else {
-                Color(options.textColorArgb)
-            }
-        }
+    return if (options.useThemeTextColor) {
+        Color(0xFF7BE8FF)
+    } else {
+        Color(options.textColorArgb)
     }
 }
 
@@ -1535,11 +1015,7 @@ fun rememberAppListSeedColor(
         BUILT_IN_VIDEO_WATCHFACE_ID -> videoOptions
         else -> BuiltInWatchFaceOptions()
     }
-    val needsPalette = when {
-        activeOptions.clockStyle == WatchFaceClockStyle.MD3E_CLOCK -> activeOptions.md3eAutoColors
-        else -> activeOptions.useThemeTextColor
-    }
-    if (!needsPalette) return appListSeedColorFromOptions(activeOptions)
+    if (!activeOptions.useThemeTextColor) return appListSeedColorFromOptions(activeOptions)
     val palette = rememberClockPalette(
         watchFaceId = watchFaceId,
         photoPath = photoPath,
@@ -1547,11 +1023,7 @@ fun rememberAppListSeedColor(
         clockPosition = activeOptions.clockPosition,
         videoClockColorMode = videoOptions.clockColorMode
     )
-    return when {
-        activeOptions.clockStyle == WatchFaceClockStyle.MD3E_CLOCK && activeOptions.md3eAutoColors -> palette.seedColor
-        activeOptions.clockStyle != WatchFaceClockStyle.MD3E_CLOCK && activeOptions.useThemeTextColor -> palette.seedColor
-        else -> appListSeedColorFromOptions(activeOptions)
-    }
+    return palette.seedColor
 }
 
 private fun externalWatchFaceDefaultPalette(): ClockPalette {
@@ -1607,7 +1079,7 @@ private fun resolveClockTextPalette(
     options: BuiltInWatchFaceOptions,
     palette: ClockPalette
 ): ClockPalette {
-    if (options.useThemeTextColor || options.clockStyle == WatchFaceClockStyle.MD3E_CLOCK) {
+    if (options.useThemeTextColor) {
         return palette
     }
     val textColor = Color(options.textColorArgb)
@@ -1615,31 +1087,6 @@ private fun resolveClockTextPalette(
         timeColor = textColor,
         dateColor = textColor.copy(alpha = 0.82f),
         seedColor = textColor
-    )
-}
-
-private fun resolveMd3ePalette(
-    options: BuiltInWatchFaceOptions,
-    palette: ClockPalette
-): Md3eColorPalette {
-    if (!options.md3eAutoColors) {
-        return Md3eColorPalette(
-            faceColor = Color(options.md3eFaceColorArgb),
-            textColor = Color(options.md3eTextColorArgb),
-            hourColor = Color(options.md3eHourHandColorArgb),
-            minuteColor = Color(options.md3eMinuteHandColorArgb),
-            secondColor = Color(options.md3eSecondHandColorArgb)
-        )
-    }
-    val seed = palette.seedColor
-    val lightFace = mixColors(seed, Color.White, 0.78f)
-    val darkText = mixColors(seed, Color(0xFF101318), 0.72f)
-    return Md3eColorPalette(
-        faceColor = lightFace,
-        textColor = darkText,
-        hourColor = mixColors(seed, Color(0xFF1F2937), 0.58f),
-        minuteColor = mixColors(seed, Color.White, 0.18f),
-        secondColor = seed
     )
 }
 
@@ -1738,16 +1185,6 @@ private fun luminanceOf(color: Int): Double {
     val green = android.graphics.Color.green(color) / 255.0
     val blue = android.graphics.Color.blue(color) / 255.0
     return 0.2126 * red + 0.7152 * green + 0.0722 * blue
-}
-
-private fun mixColors(from: Color, to: Color, toFraction: Float): Color {
-    val t = toFraction.coerceIn(0f, 1f)
-    return Color(
-        red = from.red + (to.red - from.red) * t,
-        green = from.green + (to.green - from.green) * t,
-        blue = from.blue + (to.blue - from.blue) * t,
-        alpha = from.alpha + (to.alpha - from.alpha) * t
-    )
 }
 
 private suspend fun sampleClockPalette(

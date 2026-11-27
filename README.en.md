@@ -27,7 +27,7 @@ periodically but its releases are not kept in lockstep.
 
 ## Features
 
-- **Watch face home** — built-in digital / analog / MD3E clock faces, image and video faces with
+- **Watch face home** — built-in digital clock face, image and video faces with
   automatic color extraction, plus scanning and switching of installed third-party faces.
 - **Watch face runtimes (interoperability)** — `.watch` (WatchMaker-compatible) with Lua scripts
   executed inside a Flue-owned whitelist sandbox, JB watch faces, ClockSkin faces. XML and zip

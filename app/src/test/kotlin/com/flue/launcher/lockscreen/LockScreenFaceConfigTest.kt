@@ -5,7 +5,6 @@ import com.flue.launcher.ui.theme.ThemeMode
 import com.flue.launcher.viewmodel.LauncherViewModel
 import com.flue.launcher.watchface.BUILT_IN_WATCHFACE_ID
 import com.flue.launcher.watchface.WatchClockPosition
-import com.flue.launcher.watchface.WatchFaceClockStyle
 import com.flue.launcher.watchface.standard.WatchCanvasSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -26,10 +25,9 @@ class LockScreenFaceConfigTest {
         assertNull(config.photoPath)
         assertNull(config.videoPath)
         assertEquals(WatchClockPosition.CENTER, config.photoOptions.clockPosition)
-        assertEquals(WatchFaceClockStyle.DIGITAL, config.photoOptions.clockStyle)
         assertEquals(64, config.photoOptions.clockSizeSp)
         assertEquals(0xFFFFFFFF.toInt(), config.photoOptions.textColorArgb)
-        assertEquals(0xFF5F84B6.toInt(), config.photoOptions.md3eMinuteHandColorArgb)
+        assertEquals(true, config.photoOptions.useThemeTextColor)
         assertEquals(ThemeMode.DARK, config.themeMode)
         assertEquals(100, config.globalUiScalePercent)
     }

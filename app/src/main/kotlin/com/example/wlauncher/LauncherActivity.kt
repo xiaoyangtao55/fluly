@@ -472,26 +472,10 @@ fun LauncherScreen(vm: LauncherViewModel) {
     val builtInVideoFillScreen by vm.builtInVideoFillScreen.collectAsStateWithLifecycle()
     val builtInVideoClockColorMode by vm.builtInVideoClockColorMode.collectAsStateWithLifecycle()
     val builtInWatchFaceFontPath by vm.builtInWatchFaceFontPath.collectAsStateWithLifecycle()
-    val builtInPhotoClockStyle by vm.builtInPhotoClockStyle.collectAsStateWithLifecycle()
-    val builtInVideoClockStyle by vm.builtInVideoClockStyle.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eShape by vm.builtInPhotoMd3eShape.collectAsStateWithLifecycle()
-    val builtInVideoMd3eShape by vm.builtInVideoMd3eShape.collectAsStateWithLifecycle()
     val builtInPhotoUseThemeTextColor by vm.builtInPhotoUseThemeTextColor.collectAsStateWithLifecycle()
     val builtInVideoUseThemeTextColor by vm.builtInVideoUseThemeTextColor.collectAsStateWithLifecycle()
     val builtInPhotoTextColorArgb by vm.builtInPhotoTextColorArgb.collectAsStateWithLifecycle()
     val builtInVideoTextColorArgb by vm.builtInVideoTextColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eAutoColors by vm.builtInPhotoMd3eAutoColors.collectAsStateWithLifecycle()
-    val builtInVideoMd3eAutoColors by vm.builtInVideoMd3eAutoColors.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eTextColorArgb by vm.builtInPhotoMd3eTextColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eTextColorArgb by vm.builtInVideoMd3eTextColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eFaceColorArgb by vm.builtInPhotoMd3eFaceColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eFaceColorArgb by vm.builtInVideoMd3eFaceColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eHourColorArgb by vm.builtInPhotoMd3eHourColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eHourColorArgb by vm.builtInVideoMd3eHourColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eMinuteColorArgb by vm.builtInPhotoMd3eMinuteColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eMinuteColorArgb by vm.builtInVideoMd3eMinuteColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eSecondColorArgb by vm.builtInPhotoMd3eSecondColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eSecondColorArgb by vm.builtInVideoMd3eSecondColorArgb.collectAsStateWithLifecycle()
     val builtInPhotoShowSeconds by vm.builtInPhotoShowSeconds.collectAsStateWithLifecycle()
     val builtInVideoShowSeconds by vm.builtInVideoShowSeconds.collectAsStateWithLifecycle()
     val builtInPhotoCustomText by vm.builtInPhotoCustomText.collectAsStateWithLifecycle()
@@ -506,19 +490,11 @@ fun LauncherScreen(vm: LauncherViewModel) {
         clockPosition = builtInPhotoClockPosition,
         clockSizeSp = builtInPhotoClockSize,
         boldClock = builtInPhotoClockBold,
-        clockStyle = builtInPhotoClockStyle,
         showSeconds = builtInPhotoShowSeconds,
         customText = builtInPhotoCustomText,
         fontPath = builtInWatchFaceFontPath,
-        md3eShape = builtInPhotoMd3eShape,
         useThemeTextColor = builtInPhotoUseThemeTextColor,
-        textColorArgb = builtInPhotoTextColorArgb,
-        md3eAutoColors = builtInPhotoMd3eAutoColors,
-        md3eTextColorArgb = builtInPhotoMd3eTextColorArgb,
-        md3eFaceColorArgb = builtInPhotoMd3eFaceColorArgb,
-        md3eHourHandColorArgb = builtInPhotoMd3eHourColorArgb,
-        md3eMinuteHandColorArgb = builtInPhotoMd3eMinuteColorArgb,
-        md3eSecondHandColorArgb = builtInPhotoMd3eSecondColorArgb
+        textColorArgb = builtInPhotoTextColorArgb
     )
     val videoWatchOptions = BuiltInWatchFaceOptions(
         clockPosition = builtInVideoClockPosition,
@@ -526,19 +502,11 @@ fun LauncherScreen(vm: LauncherViewModel) {
         boldClock = builtInVideoClockBold,
         cropToFill = builtInVideoFillScreen,
         clockColorMode = builtInVideoClockColorMode,
-        clockStyle = builtInVideoClockStyle,
         showSeconds = builtInVideoShowSeconds,
         customText = builtInVideoCustomText,
         fontPath = builtInWatchFaceFontPath,
-        md3eShape = builtInVideoMd3eShape,
         useThemeTextColor = builtInVideoUseThemeTextColor,
-        textColorArgb = builtInVideoTextColorArgb,
-        md3eAutoColors = builtInVideoMd3eAutoColors,
-        md3eTextColorArgb = builtInVideoMd3eTextColorArgb,
-        md3eFaceColorArgb = builtInVideoMd3eFaceColorArgb,
-        md3eHourHandColorArgb = builtInVideoMd3eHourColorArgb,
-        md3eMinuteHandColorArgb = builtInVideoMd3eMinuteColorArgb,
-        md3eSecondHandColorArgb = builtInVideoMd3eSecondColorArgb
+        textColorArgb = builtInVideoTextColorArgb
     )
     // PixelCopy 的缓存身份必须包含所有会改变桌面实际合成帧的设置。只使用
     // descriptor/refreshToken 会让内置表盘选项变化后仍沿用上一张预制模糊。
