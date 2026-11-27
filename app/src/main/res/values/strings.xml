@@ -730,6 +730,12 @@
     <string name="settings_diagnostic_logging_on">已开启，5 分钟后自动关闭</string>
     <string name="settings_diagnostic_logging_off">默认关闭，开启后临时允许 release 输出诊断日志</string>
     <string name="settings_reset_defaults">恢复默认设置</string>
+    <string name="settings_default_home_app">主屏幕应用</string>
+    <string name="settings_default_home_app_sub">设为系统默认主屏幕应用</string>
+    <string name="settings_default_home_app_sub_current">当前已是默认主屏幕应用</string>
+    <string name="settings_default_home_app_sub_other">当前不是默认，点按可设为默认</string>
+    <string name="settings_default_home_app_unavailable">系统未提供默认应用设置页</string>
+    <string name="search_d_default_home_app">设为系统默认主屏幕应用</string>
     <string name="settings_reset_defaults_sub">重置桌面外观与性能选项</string>
 
     <!-- 备份与恢复 -->

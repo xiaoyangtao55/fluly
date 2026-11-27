@@ -701,6 +701,12 @@
     <string name="settings_diagnostic_logging_on">有効。5 分後に自動的にオフになります</string>
     <string name="settings_diagnostic_logging_off">通常はオフ。有効にするとリリース版でも一時的に診断ログを出力します</string>
     <string name="settings_reset_defaults">初期設定に戻す</string>
+    <string name="settings_default_home_app">ホームアプリ</string>
+    <string name="settings_default_home_app_sub">システムの既定ホームアプリに設定</string>
+    <string name="settings_default_home_app_sub_current">既定のホームアプリです</string>
+    <string name="settings_default_home_app_sub_other">既定ではないため、タップで設定できます</string>
+    <string name="settings_default_home_app_unavailable">既定アプリの設定画面がありません</string>
+    <string name="search_d_default_home_app">既定のホームアプリに設定します</string>
     <string name="settings_reset_defaults_sub">外観とパフォーマンスの設定をリセット</string>
 
     <!-- バックアップと復元 -->

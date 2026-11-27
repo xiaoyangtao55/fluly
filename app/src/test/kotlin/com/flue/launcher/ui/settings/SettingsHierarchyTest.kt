@@ -513,7 +513,7 @@ class SettingsHierarchyTest {
     @Test
     fun toolsAndBackupScreensKeepHistoricalRowKeys() {
         assertEquals(
-            listOf("backup_menu", "export_log", "diagnostic_logging", "reset_defaults"),
+            listOf("backup_menu", "export_log", "diagnostic_logging", "default_home_app", "reset_defaults"),
             SettingsHierarchy.renderedGroup("tools").map { it.id },
         )
         assertEquals(
@@ -552,7 +552,7 @@ class SettingsHierarchyTest {
     @Test
     fun toolsAndBackupKeepHistoricalCardBoundaries() {
         assertEquals(
-            listOf(listOf("backup_menu", "export_log", "diagnostic_logging", "reset_defaults")),
+            listOf(listOf("backup_menu", "export_log", "diagnostic_logging", "default_home_app", "reset_defaults")),
             cardBoundaries(SettingsHierarchy.renderedGroup("tools")),
         )
         assertEquals(

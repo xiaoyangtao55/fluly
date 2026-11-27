@@ -150,7 +150,9 @@ import com.flue.launcher.ui.settings.WatchTapActionCatalog
 import com.flue.launcher.ui.settings.WatchTapActionDefinition
 import com.flue.launcher.ui.settings.backupSummaryText
 import com.flue.launcher.ui.settings.buildSettingsSearchIndex
+import com.flue.launcher.ui.settings.defaultHomeAppRequestIntent
 import com.flue.launcher.ui.settings.exportDoneDetailText
+import com.flue.launcher.ui.settings.isDefaultHomeApp
 import com.flue.launcher.ui.settings.itemFisheye
 import com.flue.launcher.ui.settings.miuix.MiuixIcons
 import com.flue.launcher.ui.settings.miuix.SettingsIcon
@@ -2653,6 +2655,16 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.TOOLS).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.TOOLS, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
+            // 主屏幕应用行回显「是否已是默认」。从系统确认框回来时没有重组信号，
+            // 靠 ON_RESUME 重读一次，否则确认完回来副标题还是旧状态。
+            var homeAppIsDefault by remember { mutableStateOf(isDefaultHomeApp(context)) }
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_RESUME) homeAppIsDefault = isDefaultHomeApp(context)
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+            }
             settingsEntryGroup(
                 entries = SettingsHierarchy.renderedGroup("tools"),
                 binding = object : SettingsEntryBinding {
@@ -2670,6 +2682,14 @@ private fun SettingsRootScreen(
                         )
                     }
 
+                    override fun subtitle(entry: SettingsEntry): String? {
+                        if (entry.id != "default_home_app") return null
+                        return stringResource(
+                            if (homeAppIsDefault) R.string.settings_default_home_app_sub_current
+                            else R.string.settings_default_home_app_sub_other
+                        )
+                    }
+
                     override fun onOpen(entry: SettingsEntry) {
                         when (entry) {
                             is SettingsEntry.Navigation -> {
@@ -2680,6 +2700,18 @@ private fun SettingsRootScreen(
                             is SettingsEntry.Action -> when (entry.action) {
                                 "export_log" -> settingsScope.launch { exportLog(context) }
                                 "reset_settings" -> vm.resetSettings()
+                                // Android 10+ 直接弹系统「设为默认主屏幕应用」确认框；
+                                // 更旧或 ROM 未注册 ROLE_HOME 时退到系统「默认应用」页。
+                                // 两个都没有的精简 ROM 只能提示，不能让点击没反应。
+                                "default_home_app" -> runCatching {
+                                    context.startActivity(defaultHomeAppRequestIntent(context))
+                                }.onFailure {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.settings_default_home_app_unavailable,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
                             }
                             else -> Unit
                         }

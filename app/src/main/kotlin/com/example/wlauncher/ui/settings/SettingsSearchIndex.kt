@@ -168,6 +168,7 @@ internal fun buildSettingsSearchIndex(context: Context): List<SettingsSearchEntr
     SettingsSearchEntry("MUSIC_TEXT_ANIMATION", null, s(R.string.search_t_music_text_anim), s(R.string.search_d_music_text), listOf("yywz", "music text")),
     SettingsSearchEntry("TOOLS", null, s(R.string.settings_tools), s(R.string.search_d_tools), listOf("gj", "tools", "beifen")),
     SettingsSearchEntry("TOOLS", "export_log", s(R.string.settings_export_log), s(R.string.search_d_export_log), listOf("dcrz", "export log", "rizhi")),
+    SettingsSearchEntry("TOOLS", "default_home_app", s(R.string.settings_default_home_app), s(R.string.search_d_default_home_app), listOf("zpmyy", "home app", "launcher", "zhupingmu", "moren", "default")),
     SettingsSearchEntry("TOOLS", "watch_store_preview_cache", s(R.string.settings_clear_watch_store_cache), s(R.string.settings_clear_watch_store_cache_sub), listOf("qlhc", "cache", "fengmian", "biaopan shichang")),
     SettingsSearchEntry("TOOLS", "watch_store_market_url", s(R.string.settings_watch_store_market_url), s(R.string.search_d_watchface_store), listOf("zdysc", "market url", "wangzhi", "shichang")),
     SettingsSearchEntry("WATCH_FACE_MORE", "tap_actions", s(R.string.settings_tap_actions), s(R.string.settings_tap_actions_sub), listOf("bpdj", "tap action", "dianji dongzuo", "yinle", "music")),
