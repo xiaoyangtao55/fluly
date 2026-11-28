@@ -39,6 +39,15 @@ private const val UNLOCK_SELF_CHECK_DELAY_MS = 2_000L
  */
 class LockScreenWatchFaceActivity : ComponentActivity() {
 
+    companion object {
+        /**
+         * 表盘 Activity 是否存活。FSI 触发器用它判断「通知发射后系统有没有真把
+         * Activity 拉起来」——部分 ROM（Phh-Treble GSI 实测）会把 full-screen
+         * intent 降级成普通 heads-up 而不拉起，触发器据此重试。
+         */
+        @Volatile var isAlive: Boolean = false
+    }
+
     private var config by mutableStateOf<LockScreenFaceConfig?>(null)
     private var descriptor by mutableStateOf<WatchFaceDescriptor?>(null)
     private var faceVisible by mutableStateOf(false)
@@ -164,9 +173,12 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isAlive = true
 
-        // FSI 通知已把本 Activity 拉起，通知本身随之取消，不在通知栏残留。
-        NotificationManagerCompat.from(this).cancel(LOCK_SCREEN_FSI_NOTIFICATION_ID)
+        // FSI 通知已把本 Activity 拉起，全部（含重试的多条）随之取消，不在通知栏残留。
+        for (id in LOCK_SCREEN_FSI_NOTIFICATION_ID until LOCK_SCREEN_FSI_NOTIFICATION_ID + MAX_FSI_ATTEMPTS) {
+            NotificationManagerCompat.from(this).cancel(id)
+        }
 
         // 盖在 Keyguard 之上。刻意不调 setTurnScreenOn —— 见类注释。
         setShowWhenLocked(true)
@@ -226,6 +238,7 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        isAlive = false
         window.decorView.removeCallbacks(unlockSelfCheck)
         runCatching { unregisterReceiver(userPresentReceiver) }
         runCatching { unregisterReceiver(screenReceiver) }
