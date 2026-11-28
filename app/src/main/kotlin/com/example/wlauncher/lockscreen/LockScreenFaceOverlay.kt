@@ -90,8 +90,13 @@ object LockScreenFaceOverlay {
             PixelFormat.OPAQUE,
         )
         return try {
+            // Compose 在窗口 attach 时会用 SavedStateRegistry 恢复 Recomposer，
+            // 组件必须先到 CREATED（performRestore + ON_CREATE），否则
+            // consumeRestoredStateForKey 会抛 IllegalStateException（与 Activity
+            // 的 onCreate 先于窗口 attach 同构）。
+            view.moveToCreated()
             windowManager.addView(view, params)
-            view.attachLifecycle()
+            view.startLifecycle()
             shown = OverlayHost(appContext, view, windowManager)
             Log.i(TAG, "overlay added")
             loadConfiguration()
@@ -228,8 +233,14 @@ private class LockScreenFaceOverlayView(context: Context) : AbstractComposeView(
         savedStateRegistryController.performAttach()
     }
 
-    fun attachLifecycle() {
+    /** 窗口 attach **之前**调用：进 CREATED 态，SavedStateRegistry 才可用。 */
+    fun moveToCreated() {
+        savedStateRegistryController.performRestore(null)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+    }
+
+    /** 窗口 attach 之后调用，对应 Activity 的 onStart。 */
+    fun startLifecycle() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
     }
 
