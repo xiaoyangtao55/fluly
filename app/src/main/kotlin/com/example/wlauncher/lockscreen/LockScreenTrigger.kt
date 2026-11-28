@@ -25,7 +25,7 @@ private const val FSI_POST_DELAY_MS = 400L
 private const val FSI_RETRY_DELAY_MS = 2_000L
 
 /** FSI 最多贴几次（3 次共约 6s，覆盖解锁前的观察窗口）。 */
-private const val MAX_FSI_ATTEMPTS = 3
+internal const val MAX_FSI_ATTEMPTS = 3
 
 /**
  * Tracks the launcher, not the process: a registered receiver also hears broadcasts in other apps.
@@ -94,9 +94,12 @@ internal const val LOCK_SCREEN_FSI_NOTIFICATION_ID = 2
  *
  * 通知通道必须 IMPORTANCE_HIGH（低于它 full-screen intent 不会立即弹出），
  * 但要无声无振动无灯光——屏幕正在熄灭，表盘只该静静等在 Keyguard 后面。
- * Activity 在 onCreate 里把这条通知取消掉。
+ * Activity 在 onCreate 里把发出的通知（含重试的多条）全部取消掉。
+ *
+ * [notificationId] 每次重试都要换新 ID：同 ID 的 notify() 是「更新已有通知」，
+ * 系统不会重新做「要不要立即拉起 FSI」的判定——重试就白贴了（装机实测）。
  */
-internal fun notifyLockScreenFace(context: Context) {
+internal fun notifyLockScreenFace(context: Context, notificationId: Int) {
     val manager = context.getSystemService(NotificationManager::class.java)
     manager?.createNotificationChannel(
         NotificationChannel(
@@ -127,9 +130,9 @@ internal fun notifyLockScreenFace(context: Context) {
             true,
         )
         .build()
-    runCatching { NotificationManagerCompat.from(context).notify(LOCK_SCREEN_FSI_NOTIFICATION_ID, notification) }
+    runCatching { NotificationManagerCompat.from(context).notify(notificationId, notification) }
         .onFailure { Log.w(LOG_TAG, "全屏意图通知发送失败", it) }
-    Log.i(LOG_TAG, "full-screen intent notification posted")
+    Log.i(LOG_TAG, "full-screen intent notification posted (id=$notificationId)")
 }
 
 /** FSI 路径是否可用：通知能发且全屏意图权限有效（Android 12 上安装即授）。 */
@@ -200,8 +203,13 @@ object LockScreenFaceTrigger {
                 val power = context.getSystemService(PowerManager::class.java)
                 if (power?.isInteractive == true) return
                 attempt++
-                Log.i(LOG_TAG, "posting full-screen intent (attempt $attempt/$MAX_FSI_ATTEMPTS)")
-                notifyLockScreenFace(context)
+                val notificationId = LOCK_SCREEN_FSI_NOTIFICATION_ID + attempt - 1
+                Log.i(LOG_TAG, "posting full-screen intent (attempt $attempt/$MAX_FSI_ATTEMPTS id=$notificationId)")
+                if (attempt > 1) {
+                    // 撤旧条再插新条：新 ID 的插入才会让系统重新判定 FSI。
+                    NotificationManagerCompat.from(context).cancel(notificationId - 1)
+                }
+                notifyLockScreenFace(context, notificationId)
                 if (attempt < MAX_FSI_ATTEMPTS) handler.postDelayed(this, FSI_RETRY_DELAY_MS)
             }
         }

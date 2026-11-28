@@ -175,8 +175,10 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         isAlive = true
 
-        // FSI 通知已把本 Activity 拉起，通知本身随之取消，不在通知栏残留。
-        NotificationManagerCompat.from(this).cancel(LOCK_SCREEN_FSI_NOTIFICATION_ID)
+        // FSI 通知已把本 Activity 拉起，全部（含重试的多条）随之取消，不在通知栏残留。
+        for (id in LOCK_SCREEN_FSI_NOTIFICATION_ID until LOCK_SCREEN_FSI_NOTIFICATION_ID + MAX_FSI_ATTEMPTS) {
+            NotificationManagerCompat.from(this).cancel(id)
+        }
 
         // 盖在 Keyguard 之上。刻意不调 setTurnScreenOn —— 见类注释。
         setShowWhenLocked(true)
