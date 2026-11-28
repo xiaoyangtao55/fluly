@@ -16,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.flue.launcher.i18n.FlueLocaleManager
@@ -135,6 +136,9 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // FSI 通知已把本 Activity 拉起，通知本身随之取消，不在通知栏残留。
+        NotificationManagerCompat.from(this).cancel(LOCK_SCREEN_FSI_NOTIFICATION_ID)
 
         // 盖在 Keyguard 之上。刻意不调 setTurnScreenOn —— 见类注释。
         setShowWhenLocked(true)

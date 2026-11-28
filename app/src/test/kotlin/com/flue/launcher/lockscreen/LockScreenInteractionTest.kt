@@ -53,38 +53,83 @@ class LockScreenInteractionTest {
         }
     }
 
-    @Test fun `overlay permission granted takes the overlay path regardless of the gate`() {
+    @Test fun `full screen intent is the primary path regardless of gate and overlay`() {
+        // FSI 是官方许可的后台拉起机制（来电全屏同款），且锁屏 Activity 带
+        // setShowWhenLocked，能盖在安全锁屏上——悬浮窗在安全锁屏期间会被系统
+        // 强制隐藏（mForceHideNonSystemOverlayWindow），所以 FSI 排第一。
+        assertEquals(
+            LockScreenAction.NOTIFY_FULL_SCREEN,
+            lockScreenAction(
+                fullScreenIntentUsable = true,
+                overlayPermitted = true,
+                enabled = true,
+                gateEligible = false,
+            ),
+        )
+    }
+
+    @Test fun `overlay permission granted takes the overlay path when fsi unusable`() {
         // 悬浮窗不经过 startActivity，不受后台启动限制约束，因此不依赖门禁：
         // 从其他 App 里熄屏（令牌已被交互式 pause 撤销）同样走悬浮窗。
         assertEquals(
             LockScreenAction.SHOW_OVERLAY,
-            lockScreenAction(overlayPermitted = true, enabled = true, gateEligible = false),
+            lockScreenAction(
+                fullScreenIntentUsable = false,
+                overlayPermitted = true,
+                enabled = true,
+                gateEligible = false,
+            ),
         )
         assertEquals(
             LockScreenAction.SHOW_OVERLAY,
-            lockScreenAction(overlayPermitted = true, enabled = true, gateEligible = true),
+            lockScreenAction(
+                fullScreenIntentUsable = false,
+                overlayPermitted = true,
+                enabled = true,
+                gateEligible = true,
+            ),
         )
     }
 
-    @Test fun `without overlay permission the legacy gate path is kept`() {
+    @Test fun `without fsi and overlay the legacy gate path is kept`() {
         assertEquals(
             LockScreenAction.START_ACTIVITY,
-            lockScreenAction(overlayPermitted = false, enabled = true, gateEligible = true),
+            lockScreenAction(
+                fullScreenIntentUsable = false,
+                overlayPermitted = false,
+                enabled = true,
+                gateEligible = true,
+            ),
         )
         assertEquals(
             LockScreenAction.NONE,
-            lockScreenAction(overlayPermitted = false, enabled = true, gateEligible = false),
+            lockScreenAction(
+                fullScreenIntentUsable = false,
+                overlayPermitted = false,
+                enabled = true,
+                gateEligible = false,
+            ),
         )
     }
 
     @Test fun `feature toggle off wins over every path`() {
         assertEquals(
             LockScreenAction.NONE,
-            lockScreenAction(overlayPermitted = true, enabled = false, gateEligible = true),
+            lockScreenAction(
+                fullScreenIntentUsable = true,
+                overlayPermitted = true,
+                enabled = false,
+                gateEligible = true,
+            ),
         )
         assertEquals(
             LockScreenAction.NONE,
-            lockScreenAction(overlayPermitted = false, enabled = false, gateEligible = true),
+            lockScreenAction(
+                fullScreenIntentUsable = false,
+                overlayPermitted = false,
+                enabled = false,
+                gateEligible = true,
+            ),
         )
     }
 }

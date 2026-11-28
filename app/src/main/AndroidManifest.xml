@@ -58,6 +58,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <!-- 锁屏表盘主路径：安全锁屏期间系统会强制隐藏第三方悬浮窗（防锁屏覆盖攻击，
+         装机实测 mForceHideNonSystemOverlayWindow=true），悬浮窗压不到 Keyguard 上。
+         改用全屏意图通知（full-screen intent）从后台拉起 setShowWhenLocked 的锁屏
+         Activity——来电全屏界面同款机制，Android 12 上是安装即授的 normal 权限。 -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- 接收旧式「添加到主屏幕」广播。同是 normal 级权限，安装即授予，用户无感。
          这一条不声明，receiver 写得再对也收不到：绝大多数仍在用旧路径的应用是这样投递的 ——
              sendBroadcast(intent, "com.android.launcher.permission.INSTALL_SHORTCUT")

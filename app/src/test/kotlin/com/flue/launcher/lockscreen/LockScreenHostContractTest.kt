@@ -48,6 +48,22 @@ class LockScreenHostContractTest {
         assertTrue(manifest.contains("PROPERTY_SPECIAL_USE_FGS_SUBTYPE"))
     }
 
+    @Test fun lockScreenFaceUsesFullScreenIntentAsPrimaryPath() {
+        // 安全锁屏期间第三方悬浮窗被系统强制隐藏，FSI 通知拉起 setShowWhenLocked
+        // 的 Activity 是唯一能盖在 Keyguard 上的官方途径。
+        val manifest = File(root, "app/src/main/AndroidManifest.xml").readText()
+        assertTrue(manifest.contains("USE_FULL_SCREEN_INTENT"))
+        val trigger = File(root, "app/src/main/kotlin/com/example/wlauncher/lockscreen/LockScreenTrigger.kt").readText()
+        assertTrue(trigger.contains("setFullScreenIntent"))
+        // FSI 只在 IMPORTANCE_HIGH 通道下立即弹出，但必须无声无振动。
+        assertTrue(trigger.contains("IMPORTANCE_HIGH"))
+        assertTrue(trigger.contains("setSound(null, null)"))
+        assertTrue(trigger.contains("enableVibration(false)"))
+        assertTrue(trigger.contains("NOTIFY_FULL_SCREEN"))
+        val activity = File(root, "app/src/main/kotlin/com/example/wlauncher/lockscreen/LockScreenWatchFaceActivity.kt").readText()
+        assertTrue(activity.contains("LOCK_SCREEN_FSI_NOTIFICATION_ID"))
+    }
+
     /** 剥掉块注释与行注释（够用于源码契约检查，不追求词法级精确）。 */
     private fun stripComments(source: String): String = source
         .replace(Regex("/\\*[\\s\\S]*?\\*/"), "")
