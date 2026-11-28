@@ -13,11 +13,18 @@ import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.OnBackPressedDispatcherOwner
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.navigationevent.NavigationEventDispatcher
+import androidx.navigationevent.NavigationEventDispatcherOwner
+import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -220,16 +227,28 @@ object LockScreenFaceOverlay {
  * ViewTree owner 挂给 Compose（官方模式：LifecycleRegistry +
  * SavedStateRegistryController），attach 后推 ON_CREATE/ON_START，
  * 移除前推 ON_DESTROY，Compose 的 Recomposer 随之创建与销毁。
+ *
+ * 另外要自己当 `OnBackPressedDispatcherOwner` / `NavigationEventDispatcherOwner`
+ * 并用 CompositionLocal 显式提供：宿主渲染的表盘组合树里有 `BackHandler`
+ * （WatchMaker/JB 宿主、WatchFaceLayer 都带），没有 Owner 会在组合时直接
+ * IllegalStateException 崩掉进程、窗口陪葬。悬浮窗不消费返回键——
+ * dispatcher 只是占位满足组合树，事件层由 FLAG_NOT_TOUCHABLE 保证收不到。
  */
 private class LockScreenFaceOverlayView(context: Context) : AbstractComposeView(context),
     LifecycleOwner,
-    SavedStateRegistryOwner {
+    SavedStateRegistryOwner,
+    OnBackPressedDispatcherOwner,
+    NavigationEventDispatcherOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val lifecycle: Lifecycle get() = lifecycleRegistry
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
+
+    private val backDispatcher = OnBackPressedDispatcher(Runnable {})
+    override val onBackPressedDispatcher: OnBackPressedDispatcher get() = backDispatcher
+    override val navigationEventDispatcher: NavigationEventDispatcher = NavigationEventDispatcher()
 
     var snapshot by mutableStateOf<LockScreenFaceConfig?>(null)
     var descriptor by mutableStateOf<WatchFaceDescriptor?>(null)
@@ -259,14 +278,19 @@ private class LockScreenFaceOverlayView(context: Context) : AbstractComposeView(
 
     @Composable
     override fun Content() {
-        val currentSnapshot = snapshot
-        if (currentSnapshot != null) {
-            LockScreenFaceContent(
-                snapshot = currentSnapshot,
-                descriptor = descriptor,
-                faceVisible = faceVisible,
-                onFaceLoadFailure = { descriptor = null },
-            )
+        CompositionLocalProvider(
+            LocalOnBackPressedDispatcherOwner provides this,
+            LocalNavigationEventDispatcherOwner provides this,
+        ) {
+            val currentSnapshot = snapshot
+            if (currentSnapshot != null) {
+                LockScreenFaceContent(
+                    snapshot = currentSnapshot,
+                    descriptor = descriptor,
+                    faceVisible = faceVisible,
+                    onFaceLoadFailure = { descriptor = null },
+                )
+            }
         }
     }
 }
