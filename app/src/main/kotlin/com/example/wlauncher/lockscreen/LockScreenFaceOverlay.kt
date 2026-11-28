@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
@@ -32,6 +34,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 private const val TAG = "LockScreenFaceOverlay"
+private const val UNLOCK_SELF_CHECK_DELAY_MS = 2_000L
 
 /**
  * 锁屏表盘的悬浮窗路径：拥有 `SYSTEM_ALERT_WINDOW` 权限时，用
@@ -56,6 +59,8 @@ object LockScreenFaceOverlay {
 
     private var shown: OverlayHost? = null
     private var loadJob: Job? = null
+    private var unlockSelfCheck: Runnable? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     /** 是否具备悬浮窗路径的资格（权限授予与否由用户在系统设置里控制）。 */
@@ -106,6 +111,7 @@ object LockScreenFaceOverlay {
         shown = null
         loadJob?.cancel()
         loadJob = null
+        cancelSelfCheck()
         runCatching { host.context.unregisterReceiver(receiver) }
         try {
             host.windowManager.removeView(host.view)
@@ -117,25 +123,47 @@ object LockScreenFaceOverlay {
         Log.i(TAG, "overlay removed")
     }
 
-    private val receiver = object : BroadcastReceiver() {        override fun onReceive(context: Context?, intent: Intent?) {
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
             val host = shown ?: return
             when (intent?.action) {
                 Intent.ACTION_SCREEN_OFF -> host.view.faceVisible = false
                 Intent.ACTION_SCREEN_ON -> {
-                    val power = host.context.getSystemService(PowerManager::class.java)
-                    val keyguard = host.context.getSystemService(KeyguardManager::class.java)
-                    // OEM 裁剪 ROM 上 USER_PRESENT 有几率不来：亮屏且已不在锁屏时
-                    // 直接收摊（等价于 Activity 的 2s 自查，只是时机换成亮屏广播）。
-                    if (power?.isInteractive == true && keyguard?.isKeyguardLocked == false) {
-                        hide()
-                    } else {
-                        host.view.faceVisible =
-                            power?.isInteractive == true && keyguard?.isKeyguardLocked == true
+                    // 可见性只看 interactive（与 Activity 的 isLockScreenFaceVisible 同
+                    // 语义），**不**用 isKeyguardLocked 决定收不收——部分 ROM 在锁屏
+                    // 期间把它误报成 false，会让表盘在亮屏瞬间被自己收掉。
+                    if (host.context.getSystemService(PowerManager::class.java)?.isInteractive == true) {
+                        host.view.faceVisible = true
+                        scheduleUnlockSelfCheck(host)
                     }
                 }
                 Intent.ACTION_USER_PRESENT -> hide()
             }
         }
+    }
+
+    /**
+     * 解锁广播的兜底，与锁屏 Activity 的 2s 自查同款：厂商裁过 SystemUI 的 ROM 上
+     * `ACTION_USER_PRESENT` 有几率不来，那时靠「亮屏且已不在锁屏」的一次性自查收摊。
+     * 只查一次而不是轮询，正常路径由广播负责。
+     */
+    private fun scheduleUnlockSelfCheck(host: OverlayHost) {
+        cancelSelfCheck()
+        val check = Runnable {
+            val power = host.context.getSystemService(PowerManager::class.java)
+            val keyguard = host.context.getSystemService(KeyguardManager::class.java)
+            if (power?.isInteractive == true && keyguard?.isKeyguardLocked == false) {
+                Log.i(TAG, "self-check: unlocked, removing overlay")
+                hide()
+            }
+        }
+        unlockSelfCheck = check
+        mainHandler.postDelayed(check, UNLOCK_SELF_CHECK_DELAY_MS)
+    }
+
+    private fun cancelSelfCheck() {
+        unlockSelfCheck?.let(mainHandler::removeCallbacks)
+        unlockSelfCheck = null
     }
 
     private fun registerReceivers(context: Context) {
