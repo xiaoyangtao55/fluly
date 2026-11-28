@@ -7,6 +7,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Handler
+import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -14,6 +17,15 @@ import androidx.core.content.ContextCompat
 import com.flue.launcher.R
 
 private const val LOG_TAG = "LockScreenWatchFace"
+
+/** 熄屏后延迟贴第一条 FSI 通知：避开熄屏过渡态，别和系统的 interactive 翻转抢跑。 */
+private const val FSI_POST_DELAY_MS = 400L
+
+/** 表盘 Activity 没被拉起时的重试间隔。 */
+private const val FSI_RETRY_DELAY_MS = 2_000L
+
+/** FSI 最多贴几次（3 次共约 6s，覆盖解锁前的观察窗口）。 */
+private const val MAX_FSI_ATTEMPTS = 3
 
 /**
  * Tracks the launcher, not the process: a registered receiver also hears broadcasts in other apps.
@@ -167,6 +179,41 @@ object LockScreenFaceTrigger {
     fun onLauncherPaused(isInteractive: Boolean) { gate.onPause(isInteractive) }
     fun onLauncherStopped(isInteractive: Boolean) { gate.onStop(isInteractive) }
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var pendingFullScreenIntent: Runnable? = null
+
+    /**
+     * FSI 发射带重试。部分 ROM（Phh-Treble GSI 实测）会把 full-screen intent
+     * 降级成普通 heads-up 而不拉起 Activity——跟熄屏过渡期的系统状态竞态有关，
+     * 同样的通知有的周期发射、有的周期不发射。所以不赌那一次：延迟 400ms 贴
+     * 第一条（避开熄屏过渡态），之后每 2s 检查一次表盘 Activity 是否被拉起，
+     * 没起来就再贴，最多 3 次。Activity 起来了（isAlive）、屏幕亮了或开关关了
+     * 都会停止重试。
+     */
+    private fun scheduleFullScreenIntent(context: Context) {
+        cancelFullScreenIntentRetry()
+        var attempt = 0
+        val retry = object : Runnable {
+            override fun run() {
+                if (!featureEnabled) return
+                if (LockScreenWatchFaceActivity.isAlive) return
+                val power = context.getSystemService(PowerManager::class.java)
+                if (power?.isInteractive == true) return
+                attempt++
+                Log.i(LOG_TAG, "posting full-screen intent (attempt $attempt/$MAX_FSI_ATTEMPTS)")
+                notifyLockScreenFace(context)
+                if (attempt < MAX_FSI_ATTEMPTS) handler.postDelayed(this, FSI_RETRY_DELAY_MS)
+            }
+        }
+        pendingFullScreenIntent = retry
+        handler.postDelayed(retry, FSI_POST_DELAY_MS)
+    }
+
+    private fun cancelFullScreenIntentRetry() {
+        pendingFullScreenIntent?.let(handler::removeCallbacks)
+        pendingFullScreenIntent = null
+    }
+
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(receiverContext: Context?, intent: Intent?) {
             if (intent?.action != Intent.ACTION_SCREEN_OFF) return
@@ -182,7 +229,7 @@ object LockScreenFaceTrigger {
                     "overlay=$overlayPermitted action=$action",
             )
             when (action) {
-                LockScreenAction.NOTIFY_FULL_SCREEN -> notifyLockScreenFace(context)
+                LockScreenAction.NOTIFY_FULL_SCREEN -> scheduleFullScreenIntent(context)
                 LockScreenAction.SHOW_OVERLAY ->
                     // 添加失败（OEM 拦截 addView 等）回退 Activity 路径；回退只在令牌
                     // 原本合格时有效——没有权限的用户行为与历史版本完全一致。
