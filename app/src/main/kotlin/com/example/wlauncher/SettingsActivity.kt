@@ -562,6 +562,11 @@ private fun SettingsRootScreen(
     var deviceAdminEnabled by remember {
         mutableStateOf(FlueDeviceAdminController.isActive(context))
     }
+    // 主屏幕应用行回显「是否已是默认」。TOOLS 页的 content lambda 是 LazyListScope
+    // （非 Composable 上下文），状态只能记在根上，由下面的 ON_RESUME 观察器刷新。
+    var homeAppIsDefault by remember {
+        mutableStateOf(isDefaultHomeApp(context))
+    }
     // The current settings header no longer renders a clock. Keeping a ticking
     // state here used to invalidate the whole active page every 30 seconds.
     val headerTime = ""
@@ -1206,6 +1211,8 @@ private fun SettingsRootScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 accessibilityServiceEnabled = FlueAccessibilityService.isEnabled(context) || accessibilityServiceConnected
                 deviceAdminEnabled = FlueDeviceAdminController.isActive(context)
+                // 从系统「设为默认主屏幕应用」确认框回到设置时重读 role 状态。
+                homeAppIsDefault = isDefaultHomeApp(context)
                 bodySensorsPermissionGranted = hasBodySensorsPermission(context)
                 locationPermissionGranted = WatchLocationPermissionPolicy.isGranted(context)
                 weatherLocationLabel = weatherRepository.activeLocationLabel().orEmpty()
@@ -2655,16 +2662,6 @@ private fun SettingsRootScreen(
             initialFirstVisibleItemScrollOffset = scrollFor(SettingsDestination.TOOLS).offset,
             onScrollChanged = { index, offset -> updateScroll(SettingsDestination.TOOLS, index, offset) }
         ) { listState, screenCenterY, screenHeightPx, _ ->
-            // 主屏幕应用行回显「是否已是默认」。从系统确认框回来时没有重组信号，
-            // 靠 ON_RESUME 重读一次，否则确认完回来副标题还是旧状态。
-            var homeAppIsDefault by remember { mutableStateOf(isDefaultHomeApp(context)) }
-            DisposableEffect(lifecycleOwner) {
-                val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_RESUME) homeAppIsDefault = isDefaultHomeApp(context)
-                }
-                lifecycleOwner.lifecycle.addObserver(observer)
-                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-            }
             settingsEntryGroup(
                 entries = SettingsHierarchy.renderedGroup("tools"),
                 binding = object : SettingsEntryBinding {
@@ -2682,6 +2679,7 @@ private fun SettingsRootScreen(
                         )
                     }
 
+                    @Composable
                     override fun subtitle(entry: SettingsEntry): String? {
                         if (entry.id != "default_home_app") return null
                         return stringResource(

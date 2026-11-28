@@ -3,7 +3,7 @@ package com.flue.launcher.ui.settings
 import android.content.Context
 import android.provider.Settings
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -29,11 +29,12 @@ class DefaultHomeAppTest {
     }
 
     @Test
-    fun `default detection is false when no home activity resolves`() {
+    fun `default detection resolves the app's own home activity on the fallback path`() {
         val context = RuntimeEnvironment.getApplication() as Context
 
-        // Robolectric 环境没有注册 CATEGORY_HOME 的解析目标：拿不到默认归属时
-        // 必须如实返回 false（宁可信「不是默认」，让用户多按一次确认）。
-        assertFalse(isDefaultHomeApp(context))
+        // 27/28 退化到解析 CATEGORY_HOME 的归属。Robolectric 按真实 manifest 注册
+        // 组件：本项目自己就带 CATEGORY_HOME 的 LauncherActivity，测试进程里它是
+        // 解析到的唯一桌面 —— 此时理应判定「已是默认」。
+        assertTrue(isDefaultHomeApp(context))
     }
 }

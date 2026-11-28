@@ -49,11 +49,13 @@ class LegacyWatchFaceStylePreferenceTest {
     fun `stale style preferences are removed once the view model loads preferences`() = runBlocking {
         val app = RuntimeEnvironment.getApplication()
         // 老版本遗留的死键三种类型都有：样式键是 string，配色键是 int，自动取色是 boolean。
+        // 再混入一个正常键：清理只许删死键，不能碰别的。
         app.dataStore.edit {
             it[stringPreferencesKey("photo_clock_style")] = "MD3E_CLOCK"
             it[stringPreferencesKey("video_clock_style")] = "APPLE_WATCH"
             it[intPreferencesKey("photo_md3e_second_color")] = 0xFF806EA4.toInt()
             it[booleanPreferencesKey("video_md3e_auto_colors")] = false
+            it[LauncherViewModel.KEY_PHOTO_USE_THEME_TEXT_COLOR] = false
         }
 
         val store = ViewModelStore()
@@ -64,10 +66,16 @@ class LegacyWatchFaceStylePreferenceTest {
 
             val prefs = app.dataStore.data.first()
             LauncherViewModel.LEGACY_WATCHFACE_STYLE_PREFERENCE_NAMES.forEach { name ->
-                assertNull("legacy key should be removed: $name", prefs.asMap().keys.firstOrNull { it.name == name })
+                val key = prefs.asMap().keys.firstOrNull { it.name == name }
+                assertNull(
+                    "legacy key should be removed: $name (value=${key?.let { prefs[it] }}, " +
+                        "allKeys=${prefs.asMap().keys.joinToString { k -> k.name }})",
+                    key,
+                )
             }
-            // 数字样式自己的键不受清理影响，偏好收集器仍按默认值加载。
-            assertTrue(prefs[LauncherViewModel.KEY_PHOTO_USE_THEME_TEXT_COLOR] == true)
+            // 清理只动了旧样式键：种子里的正常键原样保留（默认值不落盘、收集器只读，
+            // 所以这里比的是种进去的值，不是 StateFlow）。
+            assertTrue(prefs[LauncherViewModel.KEY_PHOTO_USE_THEME_TEXT_COLOR] == false)
         } finally {
             store.clear()
             shadowOf(Looper.getMainLooper()).idle()
