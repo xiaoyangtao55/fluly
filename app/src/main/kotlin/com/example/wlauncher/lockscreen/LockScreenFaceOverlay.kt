@@ -41,7 +41,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 private const val TAG = "LockScreenFaceOverlay"
-private const val UNLOCK_SELF_CHECK_DELAY_MS = 2_000L
+private const val UNLOCK_POLL_INTERVAL_MS = 1_000L
 
 /**
  * 锁屏表盘的悬浮窗路径：拥有 `SYSTEM_ALERT_WINDOW` 权限时，用
@@ -66,7 +66,7 @@ object LockScreenFaceOverlay {
 
     private var shown: OverlayHost? = null
     private var loadJob: Job? = null
-    private var unlockSelfCheck: Runnable? = null
+    private var unlockPolling: Runnable? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -108,10 +108,12 @@ object LockScreenFaceOverlay {
             view.moveToCreated()
             windowManager.addView(view, params)
             view.startLifecycle()
-            shown = OverlayHost(appContext, view, windowManager)
+            val host = OverlayHost(appContext, view, windowManager)
+            shown = host
             Log.i(TAG, "overlay added")
             loadConfiguration()
             registerReceivers(appContext)
+            startUnlockPolling(host)
             true
         } catch (t: Throwable) {
             Log.w(TAG, "无法添加锁屏表盘悬浮窗", t)
@@ -129,7 +131,7 @@ object LockScreenFaceOverlay {
         shown = null
         loadJob?.cancel()
         loadJob = null
-        cancelSelfCheck()
+        cancelUnlockPolling()
         runCatching { host.context.unregisterReceiver(receiver) }
         try {
             host.windowManager.removeView(host.view)
@@ -154,7 +156,6 @@ object LockScreenFaceOverlay {
                     // 期间把它误报成 false，会让表盘在亮屏瞬间被自己收掉。
                     if (host.context.getSystemService(PowerManager::class.java)?.isInteractive == true) {
                         host.view.faceVisible = true
-                        scheduleUnlockSelfCheck(host)
                     }
                 }
                 Intent.ACTION_USER_PRESENT -> hide()
@@ -163,27 +164,33 @@ object LockScreenFaceOverlay {
     }
 
     /**
-     * 解锁广播的兜底，与锁屏 Activity 的 2s 自查同款：厂商裁过 SystemUI 的 ROM 上
-     * `ACTION_USER_PRESENT` 有几率不来，那时靠「亮屏且已不在锁屏」的一次性自查收摊。
-     * 只查一次而不是轮询，正常路径由广播负责。
+     * 解锁兜底：正常路径靠 USER_PRESENT，但厂商裁过 SystemUI 的 ROM 上它有几率
+     * 不来（装机实测），那时悬浮窗会一直盖在解锁后的应用上。所以显示期间每秒
+     * 查一次「亮屏且已不在锁屏」——是就收摊。1Hz 的 KeyguardManager binder 调用
+     * 只在悬浮窗显示期间存在，熄屏时窗口本来就不可见，代价可忽略。
      */
-    private fun scheduleUnlockSelfCheck(host: OverlayHost) {
-        cancelSelfCheck()
-        val check = Runnable {
-            val power = host.context.getSystemService(PowerManager::class.java)
-            val keyguard = host.context.getSystemService(KeyguardManager::class.java)
-            if (power?.isInteractive == true && keyguard?.isKeyguardLocked == false) {
-                Log.i(TAG, "self-check: unlocked, removing overlay")
-                hide()
+    private fun startUnlockPolling(host: OverlayHost) {
+        cancelUnlockPolling()
+        val poll = object : Runnable {
+            override fun run() {
+                if (shown?.view !== host.view) return
+                val power = host.context.getSystemService(PowerManager::class.java)
+                val keyguard = host.context.getSystemService(KeyguardManager::class.java)
+                if (power?.isInteractive == true && keyguard?.isKeyguardLocked == false) {
+                    Log.i(TAG, "poll: unlocked, removing overlay")
+                    hide()
+                    return
+                }
+                mainHandler.postDelayed(this, UNLOCK_POLL_INTERVAL_MS)
             }
         }
-        unlockSelfCheck = check
-        mainHandler.postDelayed(check, UNLOCK_SELF_CHECK_DELAY_MS)
+        unlockPolling = poll
+        mainHandler.postDelayed(poll, UNLOCK_POLL_INTERVAL_MS)
     }
 
-    private fun cancelSelfCheck() {
-        unlockSelfCheck?.let(mainHandler::removeCallbacks)
-        unlockSelfCheck = null
+    private fun cancelUnlockPolling() {
+        unlockPolling?.let(mainHandler::removeCallbacks)
+        unlockPolling = null
     }
 
     private fun registerReceivers(context: Context) {
