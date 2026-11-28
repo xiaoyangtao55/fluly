@@ -730,6 +730,12 @@
     <string name="settings_diagnostic_logging_on">已开启，5 分钟后自动关闭</string>
     <string name="settings_diagnostic_logging_off">默认关闭，开启后临时允许 release 输出诊断日志</string>
     <string name="settings_reset_defaults">恢复默认设置</string>
+    <string name="settings_default_home_app">主屏幕应用</string>
+    <string name="settings_default_home_app_sub">设为系统默认主屏幕应用</string>
+    <string name="settings_default_home_app_sub_current">当前已是默认主屏幕应用</string>
+    <string name="settings_default_home_app_sub_other">当前不是默认，点按可设为默认</string>
+    <string name="settings_default_home_app_unavailable">系统未提供默认应用设置页</string>
+    <string name="search_d_default_home_app">设为系统默认主屏幕应用</string>
     <string name="settings_reset_defaults_sub">重置桌面外观与性能选项</string>
 
     <!-- 备份与恢复 -->
@@ -1573,14 +1579,7 @@
     <string name="internal_watchface_video_title">视频表盘设置</string>
     <string name="internal_watchface_photo_subtitle">选择一张图片作为表盘背景</string>
     <string name="internal_watchface_video_subtitle">选择一个视频作为表盘背景</string>
-    <string name="internal_watchface_style">表盘样式</string>
-    <string name="internal_watchface_md3e_shape">MD3E 表盘形状</string>
-    <string name="internal_watchface_auto_colors">从表盘自动取色</string>
     <string name="internal_watchface_text_color">文字颜色</string>
-    <string name="internal_watchface_face_color">表盘颜色</string>
-    <string name="internal_watchface_hour_hand_color">时针颜色</string>
-    <string name="internal_watchface_minute_hand_color">分针颜色</string>
-    <string name="internal_watchface_second_hand_color">秒针颜色</string>
     <string name="internal_watchface_use_theme_color">使用表盘主题色</string>
     <string name="internal_watchface_clock_position">时间位置</string>
     <string name="internal_watchface_clock_size_fmt">时间大小  %1$dsp</string>
@@ -1599,13 +1598,6 @@
     <string name="internal_watchface_clear_video">清除视频</string>
     <string name="internal_watchface_media_save_failed">保存媒体失败</string>
     <string name="internal_watchface_media_updated">表盘媒体已更新</string>
-    <string name="internal_watchface_style_digital">数字</string>
-    <string name="internal_watchface_style_apple">AW 风格</string>
-    <string name="internal_watchface_style_md3">MD3 风格</string>
-    <string name="internal_watchface_style_md3e">MD3E 图形</string>
-    <string name="internal_watchface_shape_cookie">曲奇</string>
-    <string name="internal_watchface_shape_soft_star">柔星</string>
-    <string name="internal_watchface_shape_circle">圆形</string>
     <string name="internal_watchface_custom_text">自定义文字</string>
     <string name="internal_watchface_custom_text_hint">显示在表盘上</string>
     <string name="internal_watchface_position_top_left">左上</string>

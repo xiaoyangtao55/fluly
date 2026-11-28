@@ -91,8 +91,6 @@ import com.flue.launcher.watchface.BUILT_IN_PHOTO_WATCHFACE_ID
 import com.flue.launcher.watchface.BUILT_IN_VIDEO_WATCHFACE_ID
 import com.flue.launcher.watchface.WatchClockPosition
 import com.flue.launcher.watchface.WatchClockColorMode
-import com.flue.launcher.watchface.WatchFaceClockStyle
-import com.flue.launcher.watchface.WatchFaceMd3eShape
 import com.flue.launcher.watchface.InternalWatchFaceStorage
 import com.flue.launcher.watchface.WatchFacePhotoCache
 import com.flue.launcher.watchface.WatchFaceDescriptor
@@ -277,30 +275,36 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         val KEY_VIDEO_FILL_SCREEN = booleanPreferencesKey("video_fill_screen")
         val KEY_VIDEO_CLOCK_COLOR_MODE = stringPreferencesKey("video_clock_color_mode")
         val KEY_WATCHFACE_FONT_PATH = stringPreferencesKey("watchface_font_path")
-        val KEY_PHOTO_CLOCK_STYLE = stringPreferencesKey("photo_clock_style")
-        val KEY_VIDEO_CLOCK_STYLE = stringPreferencesKey("video_clock_style")
-        val KEY_PHOTO_MD3E_SHAPE = stringPreferencesKey("photo_md3e_shape")
-        val KEY_VIDEO_MD3E_SHAPE = stringPreferencesKey("video_md3e_shape")
         val KEY_PHOTO_USE_THEME_TEXT_COLOR = booleanPreferencesKey("photo_use_theme_text_color")
         val KEY_VIDEO_USE_THEME_TEXT_COLOR = booleanPreferencesKey("video_use_theme_text_color")
         val KEY_PHOTO_TEXT_COLOR = intPreferencesKey("photo_text_color")
         val KEY_VIDEO_TEXT_COLOR = intPreferencesKey("video_text_color")
-        val KEY_PHOTO_MD3E_AUTO_COLORS = booleanPreferencesKey("photo_md3e_auto_colors")
-        val KEY_VIDEO_MD3E_AUTO_COLORS = booleanPreferencesKey("video_md3e_auto_colors")
-        val KEY_PHOTO_MD3E_TEXT_COLOR = intPreferencesKey("photo_md3e_text_color")
-        val KEY_VIDEO_MD3E_TEXT_COLOR = intPreferencesKey("video_md3e_text_color")
-        val KEY_PHOTO_MD3E_FACE_COLOR = intPreferencesKey("photo_md3e_face_color")
-        val KEY_VIDEO_MD3E_FACE_COLOR = intPreferencesKey("video_md3e_face_color")
-        val KEY_PHOTO_MD3E_HOUR_COLOR = intPreferencesKey("photo_md3e_hour_color")
-        val KEY_VIDEO_MD3E_HOUR_COLOR = intPreferencesKey("video_md3e_hour_color")
-        val KEY_PHOTO_MD3E_MINUTE_COLOR = intPreferencesKey("photo_md3e_minute_color")
-        val KEY_VIDEO_MD3E_MINUTE_COLOR = intPreferencesKey("video_md3e_minute_color")
-        val KEY_PHOTO_MD3E_SECOND_COLOR = intPreferencesKey("photo_md3e_second_color")
-        val KEY_VIDEO_MD3E_SECOND_COLOR = intPreferencesKey("video_md3e_second_color")
         val KEY_PHOTO_SHOW_SECONDS = booleanPreferencesKey("photo_show_seconds")
         val KEY_VIDEO_SHOW_SECONDS = booleanPreferencesKey("video_show_seconds")
         val KEY_PHOTO_CUSTOM_TEXT = stringPreferencesKey("photo_custom_text")
         val KEY_VIDEO_CUSTOM_TEXT = stringPreferencesKey("video_custom_text")
+
+        // 内置表盘此前还有 AW / MD3 指针 / MD3E 图形三种样式及 MD3E 专属配置，现已移除、
+        // 只保留数字样式。这些旧键不再读写；加载偏好时顺手清掉（见偏好收集器），
+        // 老版本升级或还原旧备份后不会残留死键。
+        val LEGACY_WATCHFACE_STYLE_PREFERENCE_NAMES = setOf(
+            "photo_clock_style",
+            "video_clock_style",
+            "photo_md3e_shape",
+            "video_md3e_shape",
+            "photo_md3e_auto_colors",
+            "video_md3e_auto_colors",
+            "photo_md3e_text_color",
+            "video_md3e_text_color",
+            "photo_md3e_face_color",
+            "video_md3e_face_color",
+            "photo_md3e_hour_color",
+            "video_md3e_hour_color",
+            "photo_md3e_minute_color",
+            "video_md3e_minute_color",
+            "photo_md3e_second_color",
+            "video_md3e_second_color",
+        )
         val KEY_BUILTIN_MANAGER_THUMBNAILS = booleanPreferencesKey("builtin_manager_thumbnails")
         val KEY_HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
         val KEY_APP_LANGUAGE = stringPreferencesKey("app_language")
@@ -748,18 +752,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     private val _builtInWatchFaceFontPath = MutableStateFlow<String?>(null)
     val builtInWatchFaceFontPath: StateFlow<String?> = _builtInWatchFaceFontPath.asStateFlow()
 
-    private val _builtInPhotoClockStyle = MutableStateFlow(WatchFaceClockStyle.DIGITAL)
-    val builtInPhotoClockStyle: StateFlow<WatchFaceClockStyle> = _builtInPhotoClockStyle.asStateFlow()
-
-    private val _builtInVideoClockStyle = MutableStateFlow(WatchFaceClockStyle.DIGITAL)
-    val builtInVideoClockStyle: StateFlow<WatchFaceClockStyle> = _builtInVideoClockStyle.asStateFlow()
-
-    private val _builtInPhotoMd3eShape = MutableStateFlow(WatchFaceMd3eShape.COOKIE)
-    val builtInPhotoMd3eShape: StateFlow<WatchFaceMd3eShape> = _builtInPhotoMd3eShape.asStateFlow()
-
-    private val _builtInVideoMd3eShape = MutableStateFlow(WatchFaceMd3eShape.COOKIE)
-    val builtInVideoMd3eShape: StateFlow<WatchFaceMd3eShape> = _builtInVideoMd3eShape.asStateFlow()
-
     private val _builtInPhotoUseThemeTextColor = MutableStateFlow(true)
     val builtInPhotoUseThemeTextColor: StateFlow<Boolean> = _builtInPhotoUseThemeTextColor.asStateFlow()
 
@@ -771,42 +763,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     private val _builtInVideoTextColorArgb = MutableStateFlow(0xFFFFFFFF.toInt())
     val builtInVideoTextColorArgb: StateFlow<Int> = _builtInVideoTextColorArgb.asStateFlow()
-
-    private val _builtInPhotoMd3eAutoColors = MutableStateFlow(true)
-    val builtInPhotoMd3eAutoColors: StateFlow<Boolean> = _builtInPhotoMd3eAutoColors.asStateFlow()
-
-    private val _builtInVideoMd3eAutoColors = MutableStateFlow(true)
-    val builtInVideoMd3eAutoColors: StateFlow<Boolean> = _builtInVideoMd3eAutoColors.asStateFlow()
-
-    private val _builtInPhotoMd3eTextColorArgb = MutableStateFlow(0xFF202938.toInt())
-    val builtInPhotoMd3eTextColorArgb: StateFlow<Int> = _builtInPhotoMd3eTextColorArgb.asStateFlow()
-
-    private val _builtInVideoMd3eTextColorArgb = MutableStateFlow(0xFF202938.toInt())
-    val builtInVideoMd3eTextColorArgb: StateFlow<Int> = _builtInVideoMd3eTextColorArgb.asStateFlow()
-
-    private val _builtInPhotoMd3eFaceColorArgb = MutableStateFlow(0xFFEAF1FF.toInt())
-    val builtInPhotoMd3eFaceColorArgb: StateFlow<Int> = _builtInPhotoMd3eFaceColorArgb.asStateFlow()
-
-    private val _builtInVideoMd3eFaceColorArgb = MutableStateFlow(0xFFEAF1FF.toInt())
-    val builtInVideoMd3eFaceColorArgb: StateFlow<Int> = _builtInVideoMd3eFaceColorArgb.asStateFlow()
-
-    private val _builtInPhotoMd3eHourColorArgb = MutableStateFlow(0xFF334155.toInt())
-    val builtInPhotoMd3eHourColorArgb: StateFlow<Int> = _builtInPhotoMd3eHourColorArgb.asStateFlow()
-
-    private val _builtInVideoMd3eHourColorArgb = MutableStateFlow(0xFF334155.toInt())
-    val builtInVideoMd3eHourColorArgb: StateFlow<Int> = _builtInVideoMd3eHourColorArgb.asStateFlow()
-
-    private val _builtInPhotoMd3eMinuteColorArgb = MutableStateFlow(0xFF5F84B6.toInt())
-    val builtInPhotoMd3eMinuteColorArgb: StateFlow<Int> = _builtInPhotoMd3eMinuteColorArgb.asStateFlow()
-
-    private val _builtInVideoMd3eMinuteColorArgb = MutableStateFlow(0xFF5F84B6.toInt())
-    val builtInVideoMd3eMinuteColorArgb: StateFlow<Int> = _builtInVideoMd3eMinuteColorArgb.asStateFlow()
-
-    private val _builtInPhotoMd3eSecondColorArgb = MutableStateFlow(0xFF806EA4.toInt())
-    val builtInPhotoMd3eSecondColorArgb: StateFlow<Int> = _builtInPhotoMd3eSecondColorArgb.asStateFlow()
-
-    private val _builtInVideoMd3eSecondColorArgb = MutableStateFlow(0xFF806EA4.toInt())
-    val builtInVideoMd3eSecondColorArgb: StateFlow<Int> = _builtInVideoMd3eSecondColorArgb.asStateFlow()
 
     private val _builtInPhotoShowSeconds = MutableStateFlow(false)
     val builtInPhotoShowSeconds: StateFlow<Boolean> = _builtInPhotoShowSeconds.asStateFlow()
@@ -1402,6 +1358,18 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 val loadedVideoPath = prefs[KEY_BUILTIN_VIDEO_PATH]
                 if (_builtInVideoPath.value != loadedVideoPath) _builtInVideoPath.value = loadedVideoPath
 
+                // 旧样式键的清理：只有键真的存在时才动 DataStore，之后的收集循环里是纯读。
+                // 按名字匹配实际键对象而不是用具体类型的 Key 去取值 —— 历史遗留键可能是
+                // Int/Boolean 类型，拿 stringPreferencesKey 读会抛类型转换异常。
+                val legacyStyleKeys = LEGACY_WATCHFACE_STYLE_PREFERENCE_NAMES.flatMap { name ->
+                    prefs.asMap().keys.filter { it.name == name }
+                }
+                if (legacyStyleKeys.isNotEmpty()) {
+                    store.edit { legacyKeys ->
+                        legacyStyleKeys.forEach { legacyKeys.remove(it) }
+                    }
+                }
+
                 val loadedPhotoClockPosition = prefs[KEY_PHOTO_CLOCK_POSITION]
                     ?.let(::parseClockPosition)
                     ?: WatchClockPosition.CENTER
@@ -1442,34 +1410,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                     _builtInWatchFaceFontPath.value = loadedWatchFaceFontPath
                 }
 
-                val loadedPhotoClockStyle = prefs[KEY_PHOTO_CLOCK_STYLE]
-                    ?.let(::parseClockStyle)
-                    ?: WatchFaceClockStyle.DIGITAL
-                if (_builtInPhotoClockStyle.value != loadedPhotoClockStyle) {
-                    _builtInPhotoClockStyle.value = loadedPhotoClockStyle
-                }
-
-                val loadedVideoClockStyle = prefs[KEY_VIDEO_CLOCK_STYLE]
-                    ?.let(::parseClockStyle)
-                    ?: WatchFaceClockStyle.DIGITAL
-                if (_builtInVideoClockStyle.value != loadedVideoClockStyle) {
-                    _builtInVideoClockStyle.value = loadedVideoClockStyle
-                }
-
-                val loadedPhotoMd3eShape = prefs[KEY_PHOTO_MD3E_SHAPE]
-                    ?.let(::parseMd3eShape)
-                    ?: WatchFaceMd3eShape.COOKIE
-                if (_builtInPhotoMd3eShape.value != loadedPhotoMd3eShape) {
-                    _builtInPhotoMd3eShape.value = loadedPhotoMd3eShape
-                }
-
-                val loadedVideoMd3eShape = prefs[KEY_VIDEO_MD3E_SHAPE]
-                    ?.let(::parseMd3eShape)
-                    ?: WatchFaceMd3eShape.COOKIE
-                if (_builtInVideoMd3eShape.value != loadedVideoMd3eShape) {
-                    _builtInVideoMd3eShape.value = loadedVideoMd3eShape
-                }
-
                 val loadedPhotoUseThemeTextColor = prefs[KEY_PHOTO_USE_THEME_TEXT_COLOR] ?: true
                 if (_builtInPhotoUseThemeTextColor.value != loadedPhotoUseThemeTextColor) {
                     _builtInPhotoUseThemeTextColor.value = loadedPhotoUseThemeTextColor
@@ -1488,66 +1428,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 val loadedVideoTextColor = prefs[KEY_VIDEO_TEXT_COLOR] ?: 0xFFFFFFFF.toInt()
                 if (_builtInVideoTextColorArgb.value != loadedVideoTextColor) {
                     _builtInVideoTextColorArgb.value = loadedVideoTextColor
-                }
-
-                val loadedPhotoMd3eAutoColors = prefs[KEY_PHOTO_MD3E_AUTO_COLORS] ?: true
-                if (_builtInPhotoMd3eAutoColors.value != loadedPhotoMd3eAutoColors) {
-                    _builtInPhotoMd3eAutoColors.value = loadedPhotoMd3eAutoColors
-                }
-
-                val loadedVideoMd3eAutoColors = prefs[KEY_VIDEO_MD3E_AUTO_COLORS] ?: true
-                if (_builtInVideoMd3eAutoColors.value != loadedVideoMd3eAutoColors) {
-                    _builtInVideoMd3eAutoColors.value = loadedVideoMd3eAutoColors
-                }
-
-                val loadedPhotoMd3eTextColor = prefs[KEY_PHOTO_MD3E_TEXT_COLOR] ?: 0xFF202938.toInt()
-                if (_builtInPhotoMd3eTextColorArgb.value != loadedPhotoMd3eTextColor) {
-                    _builtInPhotoMd3eTextColorArgb.value = loadedPhotoMd3eTextColor
-                }
-
-                val loadedVideoMd3eTextColor = prefs[KEY_VIDEO_MD3E_TEXT_COLOR] ?: 0xFF202938.toInt()
-                if (_builtInVideoMd3eTextColorArgb.value != loadedVideoMd3eTextColor) {
-                    _builtInVideoMd3eTextColorArgb.value = loadedVideoMd3eTextColor
-                }
-
-                val loadedPhotoMd3eFaceColor = prefs[KEY_PHOTO_MD3E_FACE_COLOR] ?: 0xFFEAF1FF.toInt()
-                if (_builtInPhotoMd3eFaceColorArgb.value != loadedPhotoMd3eFaceColor) {
-                    _builtInPhotoMd3eFaceColorArgb.value = loadedPhotoMd3eFaceColor
-                }
-
-                val loadedVideoMd3eFaceColor = prefs[KEY_VIDEO_MD3E_FACE_COLOR] ?: 0xFFEAF1FF.toInt()
-                if (_builtInVideoMd3eFaceColorArgb.value != loadedVideoMd3eFaceColor) {
-                    _builtInVideoMd3eFaceColorArgb.value = loadedVideoMd3eFaceColor
-                }
-
-                val loadedPhotoMd3eHourColor = prefs[KEY_PHOTO_MD3E_HOUR_COLOR] ?: 0xFF334155.toInt()
-                if (_builtInPhotoMd3eHourColorArgb.value != loadedPhotoMd3eHourColor) {
-                    _builtInPhotoMd3eHourColorArgb.value = loadedPhotoMd3eHourColor
-                }
-
-                val loadedVideoMd3eHourColor = prefs[KEY_VIDEO_MD3E_HOUR_COLOR] ?: 0xFF334155.toInt()
-                if (_builtInVideoMd3eHourColorArgb.value != loadedVideoMd3eHourColor) {
-                    _builtInVideoMd3eHourColorArgb.value = loadedVideoMd3eHourColor
-                }
-
-                val loadedPhotoMd3eMinuteColor = prefs[KEY_PHOTO_MD3E_MINUTE_COLOR] ?: 0xFF5F84B6.toInt()
-                if (_builtInPhotoMd3eMinuteColorArgb.value != loadedPhotoMd3eMinuteColor) {
-                    _builtInPhotoMd3eMinuteColorArgb.value = loadedPhotoMd3eMinuteColor
-                }
-
-                val loadedVideoMd3eMinuteColor = prefs[KEY_VIDEO_MD3E_MINUTE_COLOR] ?: 0xFF5F84B6.toInt()
-                if (_builtInVideoMd3eMinuteColorArgb.value != loadedVideoMd3eMinuteColor) {
-                    _builtInVideoMd3eMinuteColorArgb.value = loadedVideoMd3eMinuteColor
-                }
-
-                val loadedPhotoMd3eSecondColor = prefs[KEY_PHOTO_MD3E_SECOND_COLOR] ?: 0xFF806EA4.toInt()
-                if (_builtInPhotoMd3eSecondColorArgb.value != loadedPhotoMd3eSecondColor) {
-                    _builtInPhotoMd3eSecondColorArgb.value = loadedPhotoMd3eSecondColor
-                }
-
-                val loadedVideoMd3eSecondColor = prefs[KEY_VIDEO_MD3E_SECOND_COLOR] ?: 0xFF806EA4.toInt()
-                if (_builtInVideoMd3eSecondColorArgb.value != loadedVideoMd3eSecondColor) {
-                    _builtInVideoMd3eSecondColorArgb.value = loadedVideoMd3eSecondColor
                 }
 
                 val loadedPhotoShowSeconds = prefs[KEY_PHOTO_SHOW_SECONDS] ?: false
@@ -3522,26 +3402,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun setBuiltInPhotoClockStyle(style: WatchFaceClockStyle) {
-        _builtInPhotoClockStyle.value = style
-        persist { store.edit { it[KEY_PHOTO_CLOCK_STYLE] = style.name } }
-    }
-
-    fun setBuiltInVideoClockStyle(style: WatchFaceClockStyle) {
-        _builtInVideoClockStyle.value = style
-        persist { store.edit { it[KEY_VIDEO_CLOCK_STYLE] = style.name } }
-    }
-
-    fun setBuiltInPhotoMd3eShape(shape: WatchFaceMd3eShape) {
-        _builtInPhotoMd3eShape.value = shape
-        persist { store.edit { it[KEY_PHOTO_MD3E_SHAPE] = shape.name } }
-    }
-
-    fun setBuiltInVideoMd3eShape(shape: WatchFaceMd3eShape) {
-        _builtInVideoMd3eShape.value = shape
-        persist { store.edit { it[KEY_VIDEO_MD3E_SHAPE] = shape.name } }
-    }
-
     fun setBuiltInPhotoUseThemeTextColor(enabled: Boolean) {
         _builtInPhotoUseThemeTextColor.value = enabled
         persist { store.edit { it[KEY_PHOTO_USE_THEME_TEXT_COLOR] = enabled } }
@@ -3560,66 +3420,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
     fun setBuiltInVideoTextColorArgb(argb: Int) {
         _builtInVideoTextColorArgb.value = argb
         persistDebounced("video_text_color") { store.edit { it[KEY_VIDEO_TEXT_COLOR] = argb } }
-    }
-
-    fun setBuiltInPhotoMd3eAutoColors(enabled: Boolean) {
-        _builtInPhotoMd3eAutoColors.value = enabled
-        persist { store.edit { it[KEY_PHOTO_MD3E_AUTO_COLORS] = enabled } }
-    }
-
-    fun setBuiltInVideoMd3eAutoColors(enabled: Boolean) {
-        _builtInVideoMd3eAutoColors.value = enabled
-        persist { store.edit { it[KEY_VIDEO_MD3E_AUTO_COLORS] = enabled } }
-    }
-
-    fun setBuiltInPhotoMd3eTextColorArgb(argb: Int) {
-        _builtInPhotoMd3eTextColorArgb.value = argb
-        persistDebounced("photo_md3e_text_color") { store.edit { it[KEY_PHOTO_MD3E_TEXT_COLOR] = argb } }
-    }
-
-    fun setBuiltInVideoMd3eTextColorArgb(argb: Int) {
-        _builtInVideoMd3eTextColorArgb.value = argb
-        persistDebounced("video_md3e_text_color") { store.edit { it[KEY_VIDEO_MD3E_TEXT_COLOR] = argb } }
-    }
-
-    fun setBuiltInPhotoMd3eFaceColorArgb(argb: Int) {
-        _builtInPhotoMd3eFaceColorArgb.value = argb
-        persistDebounced("photo_md3e_face_color") { store.edit { it[KEY_PHOTO_MD3E_FACE_COLOR] = argb } }
-    }
-
-    fun setBuiltInVideoMd3eFaceColorArgb(argb: Int) {
-        _builtInVideoMd3eFaceColorArgb.value = argb
-        persistDebounced("video_md3e_face_color") { store.edit { it[KEY_VIDEO_MD3E_FACE_COLOR] = argb } }
-    }
-
-    fun setBuiltInPhotoMd3eHourColorArgb(argb: Int) {
-        _builtInPhotoMd3eHourColorArgb.value = argb
-        persistDebounced("photo_md3e_hour_color") { store.edit { it[KEY_PHOTO_MD3E_HOUR_COLOR] = argb } }
-    }
-
-    fun setBuiltInVideoMd3eHourColorArgb(argb: Int) {
-        _builtInVideoMd3eHourColorArgb.value = argb
-        persistDebounced("video_md3e_hour_color") { store.edit { it[KEY_VIDEO_MD3E_HOUR_COLOR] = argb } }
-    }
-
-    fun setBuiltInPhotoMd3eMinuteColorArgb(argb: Int) {
-        _builtInPhotoMd3eMinuteColorArgb.value = argb
-        persistDebounced("photo_md3e_minute_color") { store.edit { it[KEY_PHOTO_MD3E_MINUTE_COLOR] = argb } }
-    }
-
-    fun setBuiltInVideoMd3eMinuteColorArgb(argb: Int) {
-        _builtInVideoMd3eMinuteColorArgb.value = argb
-        persistDebounced("video_md3e_minute_color") { store.edit { it[KEY_VIDEO_MD3E_MINUTE_COLOR] = argb } }
-    }
-
-    fun setBuiltInPhotoMd3eSecondColorArgb(argb: Int) {
-        _builtInPhotoMd3eSecondColorArgb.value = argb
-        persistDebounced("photo_md3e_second_color") { store.edit { it[KEY_PHOTO_MD3E_SECOND_COLOR] = argb } }
-    }
-
-    fun setBuiltInVideoMd3eSecondColorArgb(argb: Int) {
-        _builtInVideoMd3eSecondColorArgb.value = argb
-        persistDebounced("video_md3e_second_color") { store.edit { it[KEY_VIDEO_MD3E_SECOND_COLOR] = argb } }
     }
 
     fun setBuiltInPhotoShowSeconds(enabled: Boolean) {
@@ -3956,26 +3756,10 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
         _builtInVideoFillScreen.value = true
         _builtInVideoClockColorMode.value = WatchClockColorMode.AUTO
         _builtInWatchFaceFontPath.value = null
-        _builtInPhotoClockStyle.value = WatchFaceClockStyle.DIGITAL
-        _builtInVideoClockStyle.value = WatchFaceClockStyle.DIGITAL
-        _builtInPhotoMd3eShape.value = WatchFaceMd3eShape.COOKIE
-        _builtInVideoMd3eShape.value = WatchFaceMd3eShape.COOKIE
         _builtInPhotoUseThemeTextColor.value = true
         _builtInVideoUseThemeTextColor.value = true
         _builtInPhotoTextColorArgb.value = 0xFFFFFFFF.toInt()
         _builtInVideoTextColorArgb.value = 0xFFFFFFFF.toInt()
-        _builtInPhotoMd3eAutoColors.value = true
-        _builtInVideoMd3eAutoColors.value = true
-        _builtInPhotoMd3eTextColorArgb.value = 0xFF202938.toInt()
-        _builtInVideoMd3eTextColorArgb.value = 0xFF202938.toInt()
-        _builtInPhotoMd3eFaceColorArgb.value = 0xFFEAF1FF.toInt()
-        _builtInVideoMd3eFaceColorArgb.value = 0xFFEAF1FF.toInt()
-        _builtInPhotoMd3eHourColorArgb.value = 0xFF334155.toInt()
-        _builtInVideoMd3eHourColorArgb.value = 0xFF334155.toInt()
-        _builtInPhotoMd3eMinuteColorArgb.value = 0xFF5F84B6.toInt()
-        _builtInVideoMd3eMinuteColorArgb.value = 0xFF5F84B6.toInt()
-        _builtInPhotoMd3eSecondColorArgb.value = 0xFF806EA4.toInt()
-        _builtInVideoMd3eSecondColorArgb.value = 0xFF806EA4.toInt()
         _builtInPhotoShowSeconds.value = false
         _builtInVideoShowSeconds.value = false
         _builtInPhotoCustomText.value = ""
@@ -4090,26 +3874,14 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 it[KEY_VIDEO_FILL_SCREEN] = true
                 it[KEY_VIDEO_CLOCK_COLOR_MODE] = WatchClockColorMode.AUTO.name
                 it.remove(KEY_WATCHFACE_FONT_PATH)
-                it[KEY_PHOTO_CLOCK_STYLE] = WatchFaceClockStyle.DIGITAL.name
-                it[KEY_VIDEO_CLOCK_STYLE] = WatchFaceClockStyle.DIGITAL.name
-                it[KEY_PHOTO_MD3E_SHAPE] = WatchFaceMd3eShape.COOKIE.name
-                it[KEY_VIDEO_MD3E_SHAPE] = WatchFaceMd3eShape.COOKIE.name
+                // 样式只剩数字后，旧样式键一并清掉，重置后不会残留。
+                LEGACY_WATCHFACE_STYLE_PREFERENCE_NAMES.forEach { name ->
+                    it.remove(stringPreferencesKey(name))
+                }
                 it[KEY_PHOTO_USE_THEME_TEXT_COLOR] = true
                 it[KEY_VIDEO_USE_THEME_TEXT_COLOR] = true
                 it[KEY_PHOTO_TEXT_COLOR] = 0xFFFFFFFF.toInt()
                 it[KEY_VIDEO_TEXT_COLOR] = 0xFFFFFFFF.toInt()
-                it[KEY_PHOTO_MD3E_AUTO_COLORS] = true
-                it[KEY_VIDEO_MD3E_AUTO_COLORS] = true
-                it[KEY_PHOTO_MD3E_TEXT_COLOR] = 0xFF202938.toInt()
-                it[KEY_VIDEO_MD3E_TEXT_COLOR] = 0xFF202938.toInt()
-                it[KEY_PHOTO_MD3E_FACE_COLOR] = 0xFFEAF1FF.toInt()
-                it[KEY_VIDEO_MD3E_FACE_COLOR] = 0xFFEAF1FF.toInt()
-                it[KEY_PHOTO_MD3E_HOUR_COLOR] = 0xFF334155.toInt()
-                it[KEY_VIDEO_MD3E_HOUR_COLOR] = 0xFF334155.toInt()
-                it[KEY_PHOTO_MD3E_MINUTE_COLOR] = 0xFF5F84B6.toInt()
-                it[KEY_VIDEO_MD3E_MINUTE_COLOR] = 0xFF5F84B6.toInt()
-                it[KEY_PHOTO_MD3E_SECOND_COLOR] = 0xFF806EA4.toInt()
-                it[KEY_VIDEO_MD3E_SECOND_COLOR] = 0xFF806EA4.toInt()
                 it[KEY_PHOTO_SHOW_SECONDS] = false
                 it[KEY_VIDEO_SHOW_SECONDS] = false
                 it.remove(KEY_PHOTO_CUSTOM_TEXT)
@@ -4123,14 +3895,6 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     private fun parseClockColorMode(raw: String): WatchClockColorMode {
         return runCatching { WatchClockColorMode.valueOf(raw) }.getOrDefault(WatchClockColorMode.AUTO)
-    }
-
-    private fun parseClockStyle(raw: String): WatchFaceClockStyle {
-        return runCatching { WatchFaceClockStyle.valueOf(raw) }.getOrDefault(WatchFaceClockStyle.DIGITAL)
-    }
-
-    private fun parseMd3eShape(raw: String): WatchFaceMd3eShape {
-        return runCatching { WatchFaceMd3eShape.valueOf(raw) }.getOrDefault(WatchFaceMd3eShape.COOKIE)
     }
 
     private fun persist(block: suspend () -> Unit) {

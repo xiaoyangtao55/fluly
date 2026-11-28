@@ -104,6 +104,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <!-- 系统设置在「应用信息页齿轮 / 默认应用当前选中项」等位置展示入口时
+                 解析这个 action，点过去就是 Flue 的设置页。声明本身无副作用：
+                 ROM 没实现就只是不显示入口；SettingsActivity 本就 exported=true
+                 （LAUNCHER 入口），不存在新增暴露。 -->
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <activity

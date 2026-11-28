@@ -712,6 +712,12 @@
     <string name="settings_diagnostic_logging_on">On, turns off automatically after 5 minutes</string>
     <string name="settings_diagnostic_logging_off">Off by default; temporarily allows diagnostic logs in release builds</string>
     <string name="settings_reset_defaults">Reset to defaults</string>
+    <string name="settings_default_home_app">Home app</string>
+    <string name="settings_default_home_app_sub">Set as the system’s default home app</string>
+    <string name="settings_default_home_app_sub_current">Already the default home app</string>
+    <string name="settings_default_home_app_sub_other">Not the default yet; tap to set</string>
+    <string name="settings_default_home_app_unavailable">This system has no default-apps page</string>
+    <string name="search_d_default_home_app">Set the system’s default home app</string>
     <string name="settings_reset_defaults_sub">Reset appearance and performance options</string>
 
     <!-- Backup and restore -->
@@ -1529,14 +1535,7 @@
     <string name="internal_watchface_video_title">Video watch-face settings</string>
     <string name="internal_watchface_photo_subtitle">Choose an image for the watch-face background</string>
     <string name="internal_watchface_video_subtitle">Choose a video for the watch-face background</string>
-    <string name="internal_watchface_style">Watch-face style</string>
-    <string name="internal_watchface_md3e_shape">MD3E face shape</string>
-    <string name="internal_watchface_auto_colors">Pick colors from the watch face</string>
     <string name="internal_watchface_text_color">Text color</string>
-    <string name="internal_watchface_face_color">Face color</string>
-    <string name="internal_watchface_hour_hand_color">Hour-hand color</string>
-    <string name="internal_watchface_minute_hand_color">Minute-hand color</string>
-    <string name="internal_watchface_second_hand_color">Second-hand color</string>
     <string name="internal_watchface_use_theme_color">Use watch-face theme color</string>
     <string name="internal_watchface_clock_position">Time position</string>
     <string name="internal_watchface_clock_size_fmt">Time size  %1$dsp</string>
@@ -1555,13 +1554,6 @@
     <string name="internal_watchface_clear_video">Clear video</string>
     <string name="internal_watchface_media_save_failed">Couldn’t save the media</string>
     <string name="internal_watchface_media_updated">Watch-face media updated</string>
-    <string name="internal_watchface_style_digital">Digital</string>
-    <string name="internal_watchface_style_apple">AW style</string>
-    <string name="internal_watchface_style_md3">MD3 style</string>
-    <string name="internal_watchface_style_md3e">MD3E shape</string>
-    <string name="internal_watchface_shape_cookie">Cookie</string>
-    <string name="internal_watchface_shape_soft_star">Soft star</string>
-    <string name="internal_watchface_shape_circle">Circle</string>
     <string name="internal_watchface_custom_text">Custom text</string>
     <string name="internal_watchface_custom_text_hint">Shown on the watch face</string>
     <string name="internal_watchface_position_top_left">Top left</string>

@@ -1061,6 +1061,14 @@ object SettingsHierarchy {
                 placement = CardPlacement.INLINE
             ),
             SettingsEntry.Action(
+                id = "default_home_app",
+                titleRes = R.string.settings_default_home_app,
+                // 副标题是动态的（是否已是默认，见 TOOLS 页 binding），这是渲染/搜索的兜底文案。
+                subtitleRes = R.string.settings_default_home_app_sub,
+                action = "default_home_app",
+                placement = CardPlacement.INLINE
+            ),
+            SettingsEntry.Action(
                 id = "reset_defaults",
                 titleRes = R.string.settings_reset_defaults,
                 subtitleRes = R.string.settings_reset_defaults_sub,

@@ -11,8 +11,6 @@ import com.flue.launcher.watchface.BUILT_IN_WATCHFACE_ID
 import com.flue.launcher.watchface.BuiltInWatchFaceOptions
 import com.flue.launcher.watchface.WatchClockColorMode
 import com.flue.launcher.watchface.WatchClockPosition
-import com.flue.launcher.watchface.WatchFaceClockStyle
-import com.flue.launcher.watchface.WatchFaceMd3eShape
 import kotlinx.coroutines.flow.first
 import com.flue.launcher.watchface.WatchFaceDescriptor
 import com.flue.launcher.watchface.standard.WatchCanvasSettings
@@ -56,19 +54,11 @@ internal fun Preferences.toLockScreenFaceConfig(): LockScreenFaceConfig {
         clockPosition = parseClockPosition(this[LauncherViewModel.KEY_PHOTO_CLOCK_POSITION]),
         clockSizeSp = (this[LauncherViewModel.KEY_PHOTO_CLOCK_SIZE] ?: 64).coerceIn(28, 92),
         boldClock = this[LauncherViewModel.KEY_PHOTO_CLOCK_BOLD] ?: false,
-        clockStyle = parseClockStyle(this[LauncherViewModel.KEY_PHOTO_CLOCK_STYLE]),
         showSeconds = this[LauncherViewModel.KEY_PHOTO_SHOW_SECONDS] ?: false,
         customText = this[LauncherViewModel.KEY_PHOTO_CUSTOM_TEXT].orEmpty(),
         fontPath = fontPath,
-        md3eShape = parseMd3eShape(this[LauncherViewModel.KEY_PHOTO_MD3E_SHAPE]),
         useThemeTextColor = this[LauncherViewModel.KEY_PHOTO_USE_THEME_TEXT_COLOR] ?: true,
         textColorArgb = this[LauncherViewModel.KEY_PHOTO_TEXT_COLOR] ?: 0xFFFFFFFF.toInt(),
-        md3eAutoColors = this[LauncherViewModel.KEY_PHOTO_MD3E_AUTO_COLORS] ?: true,
-        md3eTextColorArgb = this[LauncherViewModel.KEY_PHOTO_MD3E_TEXT_COLOR] ?: 0xFF202938.toInt(),
-        md3eFaceColorArgb = this[LauncherViewModel.KEY_PHOTO_MD3E_FACE_COLOR] ?: 0xFFEAF1FF.toInt(),
-        md3eHourHandColorArgb = this[LauncherViewModel.KEY_PHOTO_MD3E_HOUR_COLOR] ?: 0xFF334155.toInt(),
-        md3eMinuteHandColorArgb = this[LauncherViewModel.KEY_PHOTO_MD3E_MINUTE_COLOR] ?: 0xFF5F84B6.toInt(),
-        md3eSecondHandColorArgb = this[LauncherViewModel.KEY_PHOTO_MD3E_SECOND_COLOR] ?: 0xFF806EA4.toInt(),
     )
 
     val videoOptions = BuiltInWatchFaceOptions(
@@ -77,19 +67,11 @@ internal fun Preferences.toLockScreenFaceConfig(): LockScreenFaceConfig {
         boldClock = this[LauncherViewModel.KEY_VIDEO_CLOCK_BOLD] ?: false,
         cropToFill = this[LauncherViewModel.KEY_VIDEO_FILL_SCREEN] ?: true,
         clockColorMode = parseClockColorMode(this[LauncherViewModel.KEY_VIDEO_CLOCK_COLOR_MODE]),
-        clockStyle = parseClockStyle(this[LauncherViewModel.KEY_VIDEO_CLOCK_STYLE]),
         showSeconds = this[LauncherViewModel.KEY_VIDEO_SHOW_SECONDS] ?: false,
         customText = this[LauncherViewModel.KEY_VIDEO_CUSTOM_TEXT].orEmpty(),
         fontPath = fontPath,
-        md3eShape = parseMd3eShape(this[LauncherViewModel.KEY_VIDEO_MD3E_SHAPE]),
         useThemeTextColor = this[LauncherViewModel.KEY_VIDEO_USE_THEME_TEXT_COLOR] ?: true,
         textColorArgb = this[LauncherViewModel.KEY_VIDEO_TEXT_COLOR] ?: 0xFFFFFFFF.toInt(),
-        md3eAutoColors = this[LauncherViewModel.KEY_VIDEO_MD3E_AUTO_COLORS] ?: true,
-        md3eTextColorArgb = this[LauncherViewModel.KEY_VIDEO_MD3E_TEXT_COLOR] ?: 0xFF202938.toInt(),
-        md3eFaceColorArgb = this[LauncherViewModel.KEY_VIDEO_MD3E_FACE_COLOR] ?: 0xFFEAF1FF.toInt(),
-        md3eHourHandColorArgb = this[LauncherViewModel.KEY_VIDEO_MD3E_HOUR_COLOR] ?: 0xFF334155.toInt(),
-        md3eMinuteHandColorArgb = this[LauncherViewModel.KEY_VIDEO_MD3E_MINUTE_COLOR] ?: 0xFF5F84B6.toInt(),
-        md3eSecondHandColorArgb = this[LauncherViewModel.KEY_VIDEO_MD3E_SECOND_COLOR] ?: 0xFF806EA4.toInt(),
     )
 
     val selectedId = this[LauncherViewModel.KEY_SELECTED_WATCHFACE_ID]
@@ -126,9 +108,3 @@ private fun parseClockPosition(raw: String?): WatchClockPosition =
 
 private fun parseClockColorMode(raw: String?): WatchClockColorMode =
     runCatching { WatchClockColorMode.valueOf(raw.orEmpty()) }.getOrDefault(WatchClockColorMode.AUTO)
-
-private fun parseClockStyle(raw: String?): WatchFaceClockStyle =
-    runCatching { WatchFaceClockStyle.valueOf(raw.orEmpty()) }.getOrDefault(WatchFaceClockStyle.DIGITAL)
-
-private fun parseMd3eShape(raw: String?): WatchFaceMd3eShape =
-    runCatching { WatchFaceMd3eShape.valueOf(raw.orEmpty()) }.getOrDefault(WatchFaceMd3eShape.COOKIE)

@@ -150,7 +150,9 @@ import com.flue.launcher.ui.settings.WatchTapActionCatalog
 import com.flue.launcher.ui.settings.WatchTapActionDefinition
 import com.flue.launcher.ui.settings.backupSummaryText
 import com.flue.launcher.ui.settings.buildSettingsSearchIndex
+import com.flue.launcher.ui.settings.defaultHomeAppRequestIntent
 import com.flue.launcher.ui.settings.exportDoneDetailText
+import com.flue.launcher.ui.settings.isDefaultHomeApp
 import com.flue.launcher.ui.settings.itemFisheye
 import com.flue.launcher.ui.settings.miuix.MiuixIcons
 import com.flue.launcher.ui.settings.miuix.SettingsIcon
@@ -507,26 +509,10 @@ private fun SettingsRootScreen(
     val builtInVideoFillScreen by vm.builtInVideoFillScreen.collectAsStateWithLifecycle()
     val builtInVideoClockColorMode by vm.builtInVideoClockColorMode.collectAsStateWithLifecycle()
     val builtInWatchFaceFontPath by vm.builtInWatchFaceFontPath.collectAsStateWithLifecycle()
-    val builtInPhotoClockStyle by vm.builtInPhotoClockStyle.collectAsStateWithLifecycle()
-    val builtInVideoClockStyle by vm.builtInVideoClockStyle.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eShape by vm.builtInPhotoMd3eShape.collectAsStateWithLifecycle()
-    val builtInVideoMd3eShape by vm.builtInVideoMd3eShape.collectAsStateWithLifecycle()
     val builtInPhotoUseThemeTextColor by vm.builtInPhotoUseThemeTextColor.collectAsStateWithLifecycle()
     val builtInVideoUseThemeTextColor by vm.builtInVideoUseThemeTextColor.collectAsStateWithLifecycle()
     val builtInPhotoTextColorArgb by vm.builtInPhotoTextColorArgb.collectAsStateWithLifecycle()
     val builtInVideoTextColorArgb by vm.builtInVideoTextColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eAutoColors by vm.builtInPhotoMd3eAutoColors.collectAsStateWithLifecycle()
-    val builtInVideoMd3eAutoColors by vm.builtInVideoMd3eAutoColors.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eTextColorArgb by vm.builtInPhotoMd3eTextColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eTextColorArgb by vm.builtInVideoMd3eTextColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eFaceColorArgb by vm.builtInPhotoMd3eFaceColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eFaceColorArgb by vm.builtInVideoMd3eFaceColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eHourColorArgb by vm.builtInPhotoMd3eHourColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eHourColorArgb by vm.builtInVideoMd3eHourColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eMinuteColorArgb by vm.builtInPhotoMd3eMinuteColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eMinuteColorArgb by vm.builtInVideoMd3eMinuteColorArgb.collectAsStateWithLifecycle()
-    val builtInPhotoMd3eSecondColorArgb by vm.builtInPhotoMd3eSecondColorArgb.collectAsStateWithLifecycle()
-    val builtInVideoMd3eSecondColorArgb by vm.builtInVideoMd3eSecondColorArgb.collectAsStateWithLifecycle()
     val builtInPhotoShowSeconds by vm.builtInPhotoShowSeconds.collectAsStateWithLifecycle()
     val builtInVideoShowSeconds by vm.builtInVideoShowSeconds.collectAsStateWithLifecycle()
     val builtInPhotoCustomText by vm.builtInPhotoCustomText.collectAsStateWithLifecycle()
@@ -575,6 +561,11 @@ private fun SettingsRootScreen(
     val doubleTapUsesDeviceAdmin = doubleTapLockMode == ScreenLockControlMode.DEVICE_ADMIN
     var deviceAdminEnabled by remember {
         mutableStateOf(FlueDeviceAdminController.isActive(context))
+    }
+    // 主屏幕应用行回显「是否已是默认」。TOOLS 页的 content lambda 是 LazyListScope
+    // （非 Composable 上下文），状态只能记在根上，由下面的 ON_RESUME 观察器刷新。
+    var homeAppIsDefault by remember {
+        mutableStateOf(isDefaultHomeApp(context))
     }
     // The current settings header no longer renders a clock. Keeping a ticking
     // state here used to invalidate the whole active page every 30 seconds.
@@ -1220,6 +1211,8 @@ private fun SettingsRootScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 accessibilityServiceEnabled = FlueAccessibilityService.isEnabled(context) || accessibilityServiceConnected
                 deviceAdminEnabled = FlueDeviceAdminController.isActive(context)
+                // 从系统「设为默认主屏幕应用」确认框回到设置时重读 role 状态。
+                homeAppIsDefault = isDefaultHomeApp(context)
                 bodySensorsPermissionGranted = hasBodySensorsPermission(context)
                 locationPermissionGranted = WatchLocationPermissionPolicy.isGranted(context)
                 weatherLocationLabel = weatherRepository.activeLocationLabel().orEmpty()
@@ -1685,19 +1678,11 @@ private fun SettingsRootScreen(
                         clockPosition = builtInPhotoClockPosition,
                         clockSizeSp = builtInPhotoClockSize,
                         boldClock = builtInPhotoClockBold,
-                        clockStyle = builtInPhotoClockStyle,
                         showSeconds = builtInPhotoShowSeconds,
                         customText = builtInPhotoCustomText,
                         fontPath = builtInWatchFaceFontPath,
-                        md3eShape = builtInPhotoMd3eShape,
                         useThemeTextColor = builtInPhotoUseThemeTextColor,
-                        textColorArgb = builtInPhotoTextColorArgb,
-                        md3eAutoColors = builtInPhotoMd3eAutoColors,
-                        md3eTextColorArgb = builtInPhotoMd3eTextColorArgb,
-                        md3eFaceColorArgb = builtInPhotoMd3eFaceColorArgb,
-                        md3eHourHandColorArgb = builtInPhotoMd3eHourColorArgb,
-                        md3eMinuteHandColorArgb = builtInPhotoMd3eMinuteColorArgb,
-                        md3eSecondHandColorArgb = builtInPhotoMd3eSecondColorArgb
+                        textColorArgb = builtInPhotoTextColorArgb
                     ),
                     videoOptions = BuiltInWatchFaceOptions(
                         clockPosition = builtInVideoClockPosition,
@@ -1705,19 +1690,11 @@ private fun SettingsRootScreen(
                         boldClock = builtInVideoClockBold,
                         cropToFill = builtInVideoFillScreen,
                         clockColorMode = builtInVideoClockColorMode,
-                        clockStyle = builtInVideoClockStyle,
                         showSeconds = builtInVideoShowSeconds,
                         customText = builtInVideoCustomText,
                         fontPath = builtInWatchFaceFontPath,
-                        md3eShape = builtInVideoMd3eShape,
                         useThemeTextColor = builtInVideoUseThemeTextColor,
-                        textColorArgb = builtInVideoTextColorArgb,
-                        md3eAutoColors = builtInVideoMd3eAutoColors,
-                        md3eTextColorArgb = builtInVideoMd3eTextColorArgb,
-                        md3eFaceColorArgb = builtInVideoMd3eFaceColorArgb,
-                        md3eHourHandColorArgb = builtInVideoMd3eHourColorArgb,
-                        md3eMinuteHandColorArgb = builtInVideoMd3eMinuteColorArgb,
-                        md3eSecondHandColorArgb = builtInVideoMd3eSecondColorArgb
+                        textColorArgb = builtInVideoTextColorArgb
                     ),
                     onSelect = { vm.selectWatchFace(descriptor.id) },
                     onDelete = if (descriptor.isJbWatch || descriptor.isWatchmaker) {
@@ -2702,6 +2679,15 @@ private fun SettingsRootScreen(
                         )
                     }
 
+                    @Composable
+                    override fun subtitle(entry: SettingsEntry): String? {
+                        if (entry.id != "default_home_app") return null
+                        return stringResource(
+                            if (homeAppIsDefault) R.string.settings_default_home_app_sub_current
+                            else R.string.settings_default_home_app_sub_other
+                        )
+                    }
+
                     override fun onOpen(entry: SettingsEntry) {
                         when (entry) {
                             is SettingsEntry.Navigation -> {
@@ -2712,6 +2698,18 @@ private fun SettingsRootScreen(
                             is SettingsEntry.Action -> when (entry.action) {
                                 "export_log" -> settingsScope.launch { exportLog(context) }
                                 "reset_settings" -> vm.resetSettings()
+                                // Android 10+ 直接弹系统「设为默认主屏幕应用」确认框；
+                                // 更旧或 ROM 未注册 ROLE_HOME 时退到系统「默认应用」页。
+                                // 两个都没有的精简 ROM 只能提示，不能让点击没反应。
+                                "default_home_app" -> runCatching {
+                                    context.startActivity(defaultHomeAppRequestIntent(context))
+                                }.onFailure {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.settings_default_home_app_unavailable,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
                             }
                             else -> Unit
                         }
