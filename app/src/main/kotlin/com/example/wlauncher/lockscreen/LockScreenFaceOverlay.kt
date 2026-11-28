@@ -90,6 +90,10 @@ object LockScreenFaceOverlay {
             PixelFormat.OPAQUE,
         )
         return try {
+            // 先把进程抬到前台服务优先级再挂窗口：持窗的缓存进程会被 LMK 秒杀
+            // （装机实测 pid 一秒一换），窗口跟着陪葬。startForegroundService
+            // 从后台启动依赖的正是已授予的 SYSTEM_ALERT_WINDOW 豁免。
+            LockScreenFaceOverlayService.acquire(appContext)
             // Compose 在窗口 attach 时会用 SavedStateRegistry 恢复 Recomposer，
             // 组件必须先到 CREATED（performRestore + ON_CREATE），否则
             // consumeRestoredStateForKey 会抛 IllegalStateException（与 Activity
@@ -104,6 +108,8 @@ object LockScreenFaceOverlay {
             true
         } catch (t: Throwable) {
             Log.w(TAG, "无法添加锁屏表盘悬浮窗", t)
+            // 别留孤儿前台服务：窗口没挂成，通知也不该常驻。
+            LockScreenFaceOverlayService.release(appContext)
             runCatching { windowManager.removeView(view) }
             view.disposeLifecycle()
             false
@@ -125,6 +131,8 @@ object LockScreenFaceOverlay {
         } finally {
             host.view.disposeLifecycle()
         }
+        // 解锁了，保活服务和通知一并撤走。
+        LockScreenFaceOverlayService.release(host.context)
         Log.i(TAG, "overlay removed")
     }
 

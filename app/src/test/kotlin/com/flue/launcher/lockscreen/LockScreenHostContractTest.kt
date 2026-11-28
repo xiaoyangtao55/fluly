@@ -39,6 +39,13 @@ class LockScreenHostContractTest {
         // 移除前必须走完生命周期，Compose 的 Recomposer 才会随之销毁。
         assertTrue(overlay.contains("handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)"))
         assertTrue(overlay.contains("ACTION_USER_PRESENT"))
+        // 持窗进程只有缓存优先级，LMK 会秒杀并带走窗口——保活 FGS 必须先于 addView。
+        assertTrue(overlay.contains("LockScreenFaceOverlayService.acquire(appContext)"))
+        assertTrue(overlay.contains("LockScreenFaceOverlayService.release(appContext)"))
+        val manifest = File(root, "app/src/main/AndroidManifest.xml").readText()
+        assertTrue(manifest.contains("SYSTEM_ALERT_WINDOW"))
+        assertTrue(manifest.contains("FOREGROUND_SERVICE_SPECIAL_USE"))
+        assertTrue(manifest.contains("PROPERTY_SPECIAL_USE_FGS_SUBTYPE"))
     }
 
     /** 剥掉块注释与行注释（够用于源码契约检查，不追求词法级精确）。 */

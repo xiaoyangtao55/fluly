@@ -391,6 +391,7 @@
     <string name="toast_deleted_fmt">Deleted %s</string>
     <string name="toast_grant_accessibility">Grant Flue accessibility access in system settings</string>
     <string name="toast_grant_overlay">Allow Flue to draw over other apps to cover their lock screens</string>
+    <string name="lock_screen_overlay_channel">Lock-screen watch face</string>
     <string name="toast_accessibility_connecting">Flue accessibility is connecting. Try again shortly.</string>
     <string name="toast_grant_device_admin">Grant Flue device administrator access for double-tap screen lock</string>
     <string name="toast_open_device_admin_failed">Unable to open device administrator settings</string>

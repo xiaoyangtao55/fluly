@@ -390,6 +390,7 @@
     <string name="toast_deleted_fmt">%s を削除しました</string>
     <string name="toast_grant_accessibility">システム設定で Flue のユーザー補助を許可してください</string>
     <string name="toast_grant_overlay">他アプリのロック画面に表示するため、Flue のオーバーレイを許可してください</string>
+    <string name="lock_screen_overlay_channel">ロック画面の文字盤</string>
     <string name="toast_accessibility_connecting">Flue のユーザー補助サービスに接続中です。少し待ってから再試行してください。</string>
     <string name="toast_grant_device_admin">ダブルタップ画面ロックのため Flue のデバイス管理者を許可してください</string>
     <string name="toast_open_device_admin_failed">デバイス管理者の設定画面を開けません</string>
