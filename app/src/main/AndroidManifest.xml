@@ -43,6 +43,14 @@
          类名 StatusBarManager 带 @hide 不代表权限受限 —— 见 service/SystemStatusBar.kt。 -->
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 
+    <!-- 锁屏表盘的悬浮窗路径（lockscreen/LockScreenFaceOverlay）：拥有本权限时，
+         从任意 App 熄屏也能用 TYPE_APPLICATION_OVERLAY 把表盘盖在 Keyguard 上，
+         绕开「其他应用前台时 startActivity 撞后台启动限制」的问题。2.4.0 曾作为
+         「未使用权限」清理过，现在有了真实用途。special 级权限：设置里的锁屏表盘
+         开关开启时引导用户去系统设置授予（Settings.canDrawOverlays 判定），不授予则
+         维持原有的 HOME 前台门禁 + Activity 路径，行为不变。 -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- 接收旧式「添加到主屏幕」广播。同是 normal 级权限，安装即授予，用户无感。
          这一条不声明，receiver 写得再对也收不到：绝大多数仍在用旧路径的应用是这样投递的 ——
              sendBroadcast(intent, "com.android.launcher.permission.INSTALL_SHORTCUT")

@@ -9,33 +9,16 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.view.WindowManager
 import android.view.MotionEvent
-import com.flue.launcher.watchface.BUILT_IN_WATCHFACE_ID
 import com.flue.launcher.watchface.WatchFaceDescriptor
-import com.flue.launcher.watchface.WatchFaceDescriptors
-import com.flue.launcher.watchface.jbwatch.JbWatchFaceHost
-import com.flue.launcher.watchface.jbwatch.JbWatchFaceStorage
-import com.flue.launcher.watchface.standard.WatchmakerWatchFaceHost
-import com.flue.launcher.watchface.standard.WatchmakerWatchFaceStorage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.flue.launcher.i18n.FlueLocaleManager
-import com.flue.launcher.ui.home.WatchFaceLayer
-import com.flue.launcher.ui.common.isFlueScreenRound
-import com.flue.launcher.ui.theme.ProvideGlobalUiScale
-import com.flue.launcher.ui.theme.WatchLauncherTheme
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import android.util.Log
@@ -65,14 +48,7 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
         configurationJob?.cancel()
         configurationJob = lifecycleScope.launch {
             val snapshot = readLockScreenFaceConfig()
-            val resolved = withContext(Dispatchers.IO) {
-                resolveLockScreenFace(
-                    snapshot.watchFaceId,
-                    WatchFaceDescriptors.builtInDescriptors(this@LockScreenWatchFaceActivity) +
-                        runCatching { JbWatchFaceStorage.scan(this@LockScreenWatchFaceActivity) }.getOrDefault(emptyList()) +
-                        runCatching { WatchmakerWatchFaceStorage.scan(this@LockScreenWatchFaceActivity) }.getOrDefault(emptyList()),
-                )
-            }
+            val resolved = resolveLockScreenFaceDescriptor(this@LockScreenWatchFaceActivity, snapshot)
             descriptor = resolved
             config = snapshot
             Log.i("LockScreenWatchFace", "configuration loaded type=${resolved?.type}")
@@ -191,59 +167,14 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
         reloadConfiguration()
 
         setContent {
-            val snapshot = config
-            if (snapshot != null) {
-                WatchLauncherTheme(themeMode = snapshot.themeMode, uiStyle = snapshot.uiStyle) {
-                    ProvideGlobalUiScale(snapshot.globalUiScalePercent) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black),
-                        ) {
-                            val selected = descriptor
-                            when {
-                                selected?.isWatchmaker == true -> WatchmakerWatchFaceHost(
-                                    descriptor = selected,
-                                    isFaceVisible = faceVisible,
-                                    refreshToken = 0,
-                                    onLongPress = null,
-                                    onDoubleTap = null,
-                                    onTapAction = {},
-                                    tapHapticsEnabled = false,
-                                    allowPermissionRequests = false,
-                                    canvasSettings = snapshot.canvasSettings,
-                                    roundScreen = isFlueScreenRound(),
-                                    gravityParallaxEnabled = snapshot.gravityParallaxEnabled,
-                                    gravityBackdropBlurEnabled = snapshot.gravityBackdropBlurEnabled,
-                                    onLoadFailure = { _, _ -> descriptor = null },
-                                )
-                                selected?.isJbWatch == true -> JbWatchFaceHost(
-                                    descriptor = selected,
-                                    isFaceVisible = faceVisible,
-                                    refreshToken = 0,
-                                    onLoadFailure = { _, _ -> descriptor = null },
-                                )
-                                else -> WatchFaceLayer(
-                                    watchFaceId = selected?.id ?: BUILT_IN_WATCHFACE_ID,
-                                    photoPath = snapshot.photoPath,
-                                    videoPath = snapshot.videoPath,
-                                    isFaceVisible = faceVisible,
-                                    uiStyle = snapshot.uiStyle,
-                                    photoOptions = snapshot.photoOptions,
-                                    videoOptions = snapshot.videoOptions,
-                                    // 锁屏在认证之前：通知角标、状态指示都不该出现。
-                                    showStatusIndicators = false,
-                                    showBottomFade = false,
-                                    hasNotifications = false,
-                                    // 锁屏上不接长按/双击：那两个动作属于桌面。
-                                    onLongPress = null,
-                                    onDoubleTap = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            }
-                        }
-                    }
-                }
+            val currentSnapshot = config
+            if (currentSnapshot != null) {
+                LockScreenFaceContent(
+                    snapshot = currentSnapshot,
+                    descriptor = descriptor,
+                    faceVisible = faceVisible,
+                    onFaceLoadFailure = { descriptor = null },
+                )
             }
         }
     }

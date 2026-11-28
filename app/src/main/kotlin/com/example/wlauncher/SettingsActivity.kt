@@ -2264,7 +2264,27 @@ private fun SettingsRootScreen(
                     override fun onToggle(entry: SettingsEntry.Toggle, checked: Boolean) {
                         when (entry.id) {
                             "glass_highlight_toggle" -> vm.setGlassHighlightEnabled(checked)
-                            "lock_screen_watch_face_toggle" -> vm.setLockScreenWatchFaceEnabled(checked)
+                            "lock_screen_watch_face_toggle" -> {
+                                vm.setLockScreenWatchFaceEnabled(checked)
+                                // 悬浮窗路径能覆盖「从其他 App 熄屏」的场景，需要
+                                // special 级的悬浮窗权限；不授予不阻塞——开关照常
+                                // 生效，只是维持 HOME 前台门禁的老路径（零权限基线）。
+                                if (checked && !AndroidSettings.canDrawOverlays(context)) {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.toast_grant_overlay,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                    runCatching {
+                                        context.startActivity(
+                                            Intent(
+                                                AndroidSettings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                                Uri.parse("package:${context.packageName}"),
+                                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                        )
+                                    }
+                                }
+                            }
                             "pull_down_control_center_toggle" -> vm.setPullDownControlCenterEnabled(checked)
                             else -> Unit
                         }
