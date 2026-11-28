@@ -52,4 +52,39 @@ class LockScreenInteractionTest {
             assertSame(builtin, resolveLockScreenFace("missing", listOf(builtin, imported)))
         }
     }
+
+    @Test fun `overlay permission granted takes the overlay path regardless of the gate`() {
+        // 悬浮窗不经过 startActivity，不受后台启动限制约束，因此不依赖门禁：
+        // 从其他 App 里熄屏（令牌已被交互式 pause 撤销）同样走悬浮窗。
+        assertEquals(
+            LockScreenAction.SHOW_OVERLAY,
+            lockScreenAction(overlayPermitted = true, enabled = true, gateEligible = false),
+        )
+        assertEquals(
+            LockScreenAction.SHOW_OVERLAY,
+            lockScreenAction(overlayPermitted = true, enabled = true, gateEligible = true),
+        )
+    }
+
+    @Test fun `without overlay permission the legacy gate path is kept`() {
+        assertEquals(
+            LockScreenAction.START_ACTIVITY,
+            lockScreenAction(overlayPermitted = false, enabled = true, gateEligible = true),
+        )
+        assertEquals(
+            LockScreenAction.NONE,
+            lockScreenAction(overlayPermitted = false, enabled = true, gateEligible = false),
+        )
+    }
+
+    @Test fun `feature toggle off wins over every path`() {
+        assertEquals(
+            LockScreenAction.NONE,
+            lockScreenAction(overlayPermitted = true, enabled = false, gateEligible = true),
+        )
+        assertEquals(
+            LockScreenAction.NONE,
+            lockScreenAction(overlayPermitted = false, enabled = false, gateEligible = true),
+        )
+    }
 }
