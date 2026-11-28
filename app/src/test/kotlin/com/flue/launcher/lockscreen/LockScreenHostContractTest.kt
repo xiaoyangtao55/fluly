@@ -62,6 +62,11 @@ class LockScreenHostContractTest {
         assertTrue(trigger.contains("NOTIFY_FULL_SCREEN"))
         val activity = File(root, "app/src/main/kotlin/com/example/wlauncher/lockscreen/LockScreenWatchFaceActivity.kt").readText()
         assertTrue(activity.contains("LOCK_SCREEN_FSI_NOTIFICATION_ID"))
+        // 上滑走 requestDismissKeyguard：PIN 弹层盖在表盘之上；成功/失败都收尾，
+        // 取消认证保留表盘；ROM 裁掉 USER_PRESENT 时靠 +2s 自查兜底。
+        assertTrue(activity.contains("requestDismissKeyguard(this"))
+        assertTrue(activity.contains("onDismissSucceeded"))
+        assertTrue(activity.contains("UNLOCK_SELF_CHECK_DELAY_MS"))
     }
 
     /** 剥掉块注释与行注释（够用于源码契约检查，不追求词法级精确）。 */
