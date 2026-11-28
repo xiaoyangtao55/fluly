@@ -6,16 +6,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.OnBackPressedDispatcherOwner
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.navigationevent.NavigationEventDispatcher
+import androidx.navigationevent.NavigationEventDispatcherOwner
+import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -32,6 +41,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 private const val TAG = "LockScreenFaceOverlay"
+private const val UNLOCK_POLL_INTERVAL_MS = 1_000L
 
 /**
  * 锁屏表盘的悬浮窗路径：拥有 `SYSTEM_ALERT_WINDOW` 权限时，用
@@ -56,6 +66,8 @@ object LockScreenFaceOverlay {
 
     private var shown: OverlayHost? = null
     private var loadJob: Job? = null
+    private var unlockPolling: Runnable? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     /** 是否具备悬浮窗路径的资格（权限授予与否由用户在系统设置里控制）。 */
@@ -85,15 +97,28 @@ object LockScreenFaceOverlay {
             PixelFormat.OPAQUE,
         )
         return try {
+            // 先把进程抬到前台服务优先级再挂窗口：持窗的缓存进程会被 LMK 秒杀
+            // （装机实测 pid 一秒一换），窗口跟着陪葬。startForegroundService
+            // 从后台启动依赖的正是已授予的 SYSTEM_ALERT_WINDOW 豁免。
+            LockScreenFaceOverlayService.acquire(appContext)
+            // Compose 在窗口 attach 时会用 SavedStateRegistry 恢复 Recomposer，
+            // 组件必须先到 CREATED（performRestore + ON_CREATE），否则
+            // consumeRestoredStateForKey 会抛 IllegalStateException（与 Activity
+            // 的 onCreate 先于窗口 attach 同构）。
+            view.moveToCreated()
             windowManager.addView(view, params)
-            view.attachLifecycle()
-            shown = OverlayHost(appContext, view, windowManager)
+            view.startLifecycle()
+            val host = OverlayHost(appContext, view, windowManager)
+            shown = host
             Log.i(TAG, "overlay added")
             loadConfiguration()
             registerReceivers(appContext)
+            startUnlockPolling(host)
             true
         } catch (t: Throwable) {
             Log.w(TAG, "无法添加锁屏表盘悬浮窗", t)
+            // 别留孤儿前台服务：窗口没挂成，通知也不该常驻。
+            LockScreenFaceOverlayService.release(appContext)
             runCatching { windowManager.removeView(view) }
             view.disposeLifecycle()
             false
@@ -106,6 +131,7 @@ object LockScreenFaceOverlay {
         shown = null
         loadJob?.cancel()
         loadJob = null
+        cancelUnlockPolling()
         runCatching { host.context.unregisterReceiver(receiver) }
         try {
             host.windowManager.removeView(host.view)
@@ -114,28 +140,57 @@ object LockScreenFaceOverlay {
         } finally {
             host.view.disposeLifecycle()
         }
+        // 解锁了，保活服务和通知一并撤走。
+        LockScreenFaceOverlayService.release(host.context)
         Log.i(TAG, "overlay removed")
     }
 
-    private val receiver = object : BroadcastReceiver() {        override fun onReceive(context: Context?, intent: Intent?) {
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
             val host = shown ?: return
             when (intent?.action) {
                 Intent.ACTION_SCREEN_OFF -> host.view.faceVisible = false
                 Intent.ACTION_SCREEN_ON -> {
-                    val power = host.context.getSystemService(PowerManager::class.java)
-                    val keyguard = host.context.getSystemService(KeyguardManager::class.java)
-                    // OEM 裁剪 ROM 上 USER_PRESENT 有几率不来：亮屏且已不在锁屏时
-                    // 直接收摊（等价于 Activity 的 2s 自查，只是时机换成亮屏广播）。
-                    if (power?.isInteractive == true && keyguard?.isKeyguardLocked == false) {
-                        hide()
-                    } else {
-                        host.view.faceVisible =
-                            power?.isInteractive == true && keyguard?.isKeyguardLocked == true
+                    // 可见性只看 interactive（与 Activity 的 isLockScreenFaceVisible 同
+                    // 语义），**不**用 isKeyguardLocked 决定收不收——部分 ROM 在锁屏
+                    // 期间把它误报成 false，会让表盘在亮屏瞬间被自己收掉。
+                    if (host.context.getSystemService(PowerManager::class.java)?.isInteractive == true) {
+                        host.view.faceVisible = true
                     }
                 }
                 Intent.ACTION_USER_PRESENT -> hide()
             }
         }
+    }
+
+    /**
+     * 解锁兜底：正常路径靠 USER_PRESENT，但厂商裁过 SystemUI 的 ROM 上它有几率
+     * 不来（装机实测），那时悬浮窗会一直盖在解锁后的应用上。所以显示期间每秒
+     * 查一次「亮屏且已不在锁屏」——是就收摊。1Hz 的 KeyguardManager binder 调用
+     * 只在悬浮窗显示期间存在，熄屏时窗口本来就不可见，代价可忽略。
+     */
+    private fun startUnlockPolling(host: OverlayHost) {
+        cancelUnlockPolling()
+        val poll = object : Runnable {
+            override fun run() {
+                if (shown?.view !== host.view) return
+                val power = host.context.getSystemService(PowerManager::class.java)
+                val keyguard = host.context.getSystemService(KeyguardManager::class.java)
+                if (power?.isInteractive == true && keyguard?.isKeyguardLocked == false) {
+                    Log.i(TAG, "poll: unlocked, removing overlay")
+                    hide()
+                    return
+                }
+                mainHandler.postDelayed(this, UNLOCK_POLL_INTERVAL_MS)
+            }
+        }
+        unlockPolling = poll
+        mainHandler.postDelayed(poll, UNLOCK_POLL_INTERVAL_MS)
+    }
+
+    private fun cancelUnlockPolling() {
+        unlockPolling?.let(mainHandler::removeCallbacks)
+        unlockPolling = null
     }
 
     private fun registerReceivers(context: Context) {
@@ -179,16 +234,28 @@ object LockScreenFaceOverlay {
  * ViewTree owner 挂给 Compose（官方模式：LifecycleRegistry +
  * SavedStateRegistryController），attach 后推 ON_CREATE/ON_START，
  * 移除前推 ON_DESTROY，Compose 的 Recomposer 随之创建与销毁。
+ *
+ * 另外要自己当 `OnBackPressedDispatcherOwner` / `NavigationEventDispatcherOwner`
+ * 并用 CompositionLocal 显式提供：宿主渲染的表盘组合树里有 `BackHandler`
+ * （WatchMaker/JB 宿主、WatchFaceLayer 都带），没有 Owner 会在组合时直接
+ * IllegalStateException 崩掉进程、窗口陪葬。悬浮窗不消费返回键——
+ * dispatcher 只是占位满足组合树，事件层由 FLAG_NOT_TOUCHABLE 保证收不到。
  */
 private class LockScreenFaceOverlayView(context: Context) : AbstractComposeView(context),
     LifecycleOwner,
-    SavedStateRegistryOwner {
+    SavedStateRegistryOwner,
+    OnBackPressedDispatcherOwner,
+    NavigationEventDispatcherOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val lifecycle: Lifecycle get() = lifecycleRegistry
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
+
+    private val backDispatcher = OnBackPressedDispatcher(Runnable {})
+    override val onBackPressedDispatcher: OnBackPressedDispatcher get() = backDispatcher
+    override val navigationEventDispatcher: NavigationEventDispatcher = NavigationEventDispatcher()
 
     var snapshot by mutableStateOf<LockScreenFaceConfig?>(null)
     var descriptor by mutableStateOf<WatchFaceDescriptor?>(null)
@@ -200,8 +267,14 @@ private class LockScreenFaceOverlayView(context: Context) : AbstractComposeView(
         savedStateRegistryController.performAttach()
     }
 
-    fun attachLifecycle() {
+    /** 窗口 attach **之前**调用：进 CREATED 态，SavedStateRegistry 才可用。 */
+    fun moveToCreated() {
+        savedStateRegistryController.performRestore(null)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+    }
+
+    /** 窗口 attach 之后调用，对应 Activity 的 onStart。 */
+    fun startLifecycle() {
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
     }
 
@@ -212,14 +285,19 @@ private class LockScreenFaceOverlayView(context: Context) : AbstractComposeView(
 
     @Composable
     override fun Content() {
-        val currentSnapshot = snapshot
-        if (currentSnapshot != null) {
-            LockScreenFaceContent(
-                snapshot = currentSnapshot,
-                descriptor = descriptor,
-                faceVisible = faceVisible,
-                onFaceLoadFailure = { descriptor = null },
-            )
+        CompositionLocalProvider(
+            LocalOnBackPressedDispatcherOwner provides this,
+            LocalNavigationEventDispatcherOwner provides this,
+        ) {
+            val currentSnapshot = snapshot
+            if (currentSnapshot != null) {
+                LockScreenFaceContent(
+                    snapshot = currentSnapshot,
+                    descriptor = descriptor,
+                    faceVisible = faceVisible,
+                    onFaceLoadFailure = { descriptor = null },
+                )
+            }
         }
     }
 }

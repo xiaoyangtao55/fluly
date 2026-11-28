@@ -86,6 +86,7 @@ import com.flue.launcher.ui.notification.stabilizeNotificationGroupOrder
 import com.flue.launcher.service.NotifData
 import com.flue.launcher.service.WLauncherNotificationListener
 import com.flue.launcher.ui.smartstack.MusicTextSwitchAnimations
+import com.flue.launcher.lockscreen.LockScreenFaceTrigger
 import com.flue.launcher.watchface.BUILT_IN_WATCHFACE_ID
 import com.flue.launcher.watchface.BUILT_IN_PHOTO_WATCHFACE_ID
 import com.flue.launcher.watchface.BUILT_IN_VIDEO_WATCHFACE_ID
@@ -1473,6 +1474,8 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
                 if (_lockScreenWatchFaceEnabled.value != loadedLockScreenWatchFace) {
                     _lockScreenWatchFaceEnabled.value = loadedLockScreenWatchFace
                 }
+                // 熄屏触发器是进程级的（不挂 Activity），开关状态在这里同步给它。
+                LockScreenFaceTrigger.featureEnabled = loadedLockScreenWatchFace
 
                 val loadedPullDownControlCenter = prefs[KEY_PULL_DOWN_CONTROL_CENTER] ?: true
                 if (_pullDownControlCenterEnabled.value != loadedPullDownControlCenter) {
@@ -3471,6 +3474,7 @@ class LauncherViewModel(application: Application) : AndroidViewModel(application
 
     fun setLockScreenWatchFaceEnabled(enabled: Boolean) {
         _lockScreenWatchFaceEnabled.value = enabled
+        LockScreenFaceTrigger.featureEnabled = enabled
         persist { store.edit { it[KEY_LOCK_SCREEN_WATCH_FACE] = enabled } }
     }
 

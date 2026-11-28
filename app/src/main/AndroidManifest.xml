@@ -51,6 +51,20 @@
          维持原有的 HOME 前台门禁 + Activity 路径，行为不变。 -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <!-- 悬浮窗保活：持窗进程只有「缓存」优先级，LMK 随时收割、窗口跟着陪葬
+         （装机实测 pid 一秒一换）。FGS 把进程抬到前台服务优先级；
+         从后台启动 FGS 依赖的正是上面已授予的 SYSTEM_ALERT_WINDOW 豁免。
+         见 lockscreen/LockScreenFaceOverlayService。 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- 锁屏表盘主路径：安全锁屏期间系统会强制隐藏第三方悬浮窗（防锁屏覆盖攻击，
+         装机实测 mForceHideNonSystemOverlayWindow=true），悬浮窗压不到 Keyguard 上。
+         改用全屏意图通知（full-screen intent）从后台拉起 setShowWhenLocked 的锁屏
+         Activity——来电全屏界面同款机制，Android 12 上是安装即授的 normal 权限。 -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- 接收旧式「添加到主屏幕」广播。同是 normal 级权限，安装即授予，用户无感。
          这一条不声明，receiver 写得再对也收不到：绝大多数仍在用旧路径的应用是这样投递的 ——
              sendBroadcast(intent, "com.android.launcher.permission.INSTALL_SHORTCUT")
@@ -232,6 +246,17 @@
             android:theme="@style/Theme.WatchLauncher"
             android:screenOrientation="portrait"
             android:configChanges="keyboard|keyboardHidden|navigation" />
+
+        <!-- 锁屏表盘悬浮窗的保活前台服务：specialUse 类型需要 subtype 声明（API 34+ 校验），
+             见 lockscreen/LockScreenFaceOverlayService 的类注释。 -->
+        <service
+            android:name=".lockscreen.LockScreenFaceOverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Keeps the lock-screen watch-face overlay window alive while the device is locked" />
+        </service>
 
         <service
             android:name=".service.WLauncherNotificationListener"

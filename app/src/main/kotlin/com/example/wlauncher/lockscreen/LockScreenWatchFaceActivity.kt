@@ -16,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.flue.launcher.i18n.FlueLocaleManager
@@ -95,8 +96,36 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
                         event.y - touchDownY,
                         48f * resources.displayMetrics.density,
                     )) {
-                    // Only remove our overlay. Keyguard retains sole authority over authentication.
-                    finish()
+                    // 上滑 = 请求解锁：requestDismissKeyguard 让 SystemUI 的认证弹层
+                    // （PIN 键盘）盖在本表盘之上——它是系统窗口，层级永远在应用之上；
+                    // 表盘保留为背景，认证成功后 keyguard 消失，USER_PRESENT 收掉本层。
+                    // 安全锁屏走弹层，非安全锁屏会立即解锁（同样由 USER_PRESENT 收尾），
+                    // keyguard 已不在（解锁广播被裁剪）时直接撤掉本层兜底。
+                    // 弹层取消认证也不影响：表盘还在，可以再次上滑。
+                    val keyguard = getSystemService(KeyguardManager::class.java)
+                    if (keyguard?.isKeyguardLocked == true) {
+                        keyguard.requestDismissKeyguard(this, object : KeyguardManager.KeyguardDismissCallback() {
+                            override fun onDismissError() {
+                                Log.w("LockScreenWatchFace", "keyguard dismiss error")
+                                finish()
+                            }
+
+                            override fun onDismissSucceeded() {
+                                // 解锁成功：直接回桌面；USER_PRESENT 若也到达则幂等。
+                                Log.i("LockScreenWatchFace", "keyguard dismissed")
+                                finish()
+                            }
+
+                            override fun onDismissCancelled() {
+                                // 用户取消认证：表盘保留为背景，可以再次上滑。
+                                Log.i("LockScreenWatchFace", "keyguard dismiss cancelled")
+                            }
+                        })
+                        // USER_PRESENT 在部分 ROM 上缺席（装机实测），自查兜底一次。
+                        window.decorView.postDelayed(unlockSelfCheck, UNLOCK_SELF_CHECK_DELAY_MS)
+                    } else {
+                        finish()
+                    }
                 }
                 singlePointerGesture = false
             }
@@ -135,6 +164,9 @@ class LockScreenWatchFaceActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // FSI 通知已把本 Activity 拉起，通知本身随之取消，不在通知栏残留。
+        NotificationManagerCompat.from(this).cancel(LOCK_SCREEN_FSI_NOTIFICATION_ID)
 
         // 盖在 Keyguard 之上。刻意不调 setTurnScreenOn —— 见类注释。
         setShowWhenLocked(true)
