@@ -11,7 +11,7 @@ class FeedbackSurfaceContractTest {
     @Test
     fun widgetPageDoesNotExposeRefreshFailureOrManualRefreshControls() {
         val source = sourceText(
-            "kotlin/com/example/wlauncher/ui/smartstack/SmartStackLayer.kt",
+            "kotlin/com/fluly/launcher/ui/smartstack/SmartStackLayer.kt",
         )
 
         assertFalse(source.contains("widget_refresh_retry"))
@@ -21,7 +21,7 @@ class FeedbackSurfaceContractTest {
     @Test
     fun widgetRefreshUsesTheSystemAppWidgetServiceBeforeTheCompatibilityBroadcast() {
         val source = sourceText(
-            "kotlin/com/example/wlauncher/widget/WidgetRefreshCoordinator.kt",
+            "kotlin/com/fluly/launcher/widget/WidgetRefreshCoordinator.kt",
         )
 
         val systemDispatch = source.indexOf("updateAppWidgetOptions")
@@ -36,7 +36,7 @@ class FeedbackSurfaceContractTest {
     @Test
     fun editorDefaultsToNativeSquarePreviewAndPlacesControlsBelowWatchShape() {
         val source = sourceText(
-            "kotlin/com/example/wlauncher/WatchEditorActivity.kt",
+            "kotlin/com/fluly/launcher/WatchEditorActivity.kt",
         )
 
         assertTrue(

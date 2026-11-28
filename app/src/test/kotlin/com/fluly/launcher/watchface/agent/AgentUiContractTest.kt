@@ -9,7 +9,7 @@ import com.fluly.launcher.TestSourceRoots
 class AgentUiContractTest {
     @Test
     fun `watch face selector delegates vertical scrolling to fullscreen host`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertFalse(selector.contains(".verticalScroll("))
         assertFalse(selector.contains("flulyOverscroll("))
@@ -102,8 +102,8 @@ class AgentUiContractTest {
     @Test
     fun `assistant messages use content flow and agent entry uses a sparkle`() {
         val panel = source("com/fluly/launcher/ui/editor/agent/WatchAgentPanel.kt")
-        val editor = source("com/example/wlauncher/WatchEditorActivity.kt")
-        val icons = source("com/example/wlauncher/ui/settings/miuix/MiuixIcons.kt")
+        val editor = source("com/fluly/launcher/WatchEditorActivity.kt")
+        val icons = source("com/fluly/launcher/ui/settings/miuix/MiuixIcons.kt")
 
         assertTrue(panel.contains("AgentMessageLayout.ASSISTANT_FLOW"))
         assertTrue(panel.contains("AgentMessageLayout.USER_BUBBLE"))
@@ -163,7 +163,7 @@ class AgentUiContractTest {
 
     @Test
     fun `agent sparkle tab inherits the same tint as sibling tabs`() {
-        val editor = source("com/example/wlauncher/WatchEditorActivity.kt")
+        val editor = source("com/fluly/launcher/WatchEditorActivity.kt")
 
         assertTrue(editor.contains("WatchEditorPanel.AGENT -> FlulyMiuixIcons.Sparkle"))
         assertTrue(editor.contains("tint = LocalContentColor.current"))

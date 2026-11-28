@@ -24,8 +24,8 @@ class SideScreenShortcutSelectionPolicyTest {
 
     @Test
     fun `side screen queries only public app shortcuts and pins the selected action`() {
-        val repository = source("com/example/wlauncher/data/repository/AppRepository.kt")
-        val stack = source("com/example/wlauncher/ui/smartstack/SmartStackLayer.kt")
+        val repository = source("com/fluly/launcher/data/repository/AppRepository.kt")
+        val stack = source("com/fluly/launcher/ui/smartstack/SmartStackLayer.kt")
 
         assertTrue(repository.contains("FLAG_MATCH_MANIFEST"))
         assertTrue(repository.contains("FLAG_MATCH_DYNAMIC"))

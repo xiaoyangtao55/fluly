@@ -88,8 +88,8 @@ class WatchStoreModuleBoundaryContractTest {
 
     @Test
     fun homeOnlyEditsBuiltinConfigurationAndOpensStoreDirectly() {
-        val settings = TestSourceRoots.read("com/example/wlauncher/SettingsActivity.kt")
-        val selector = TestSourceRoots.read("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val settings = TestSourceRoots.read("com/fluly/launcher/SettingsActivity.kt")
+        val selector = TestSourceRoots.read("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
         assertFalse("HOME must not offer editing an installed archive", settings.contains("watchface_editor_current"))
         assertTrue(selector.contains("if (focused?.isBuiltin == true && capabilities?.canEdit == true)"))
         assertTrue(selector.contains("InternalWatchFaceConfigActivity::class.java"))

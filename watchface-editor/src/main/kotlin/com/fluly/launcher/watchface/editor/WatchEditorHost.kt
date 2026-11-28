@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
  * 安装归档、删除导入、最近任务隐藏，还有「改完表盘通知桌面刷新」。搬进模块之后
  * 这些都得由宿主提供，模块本身不认识 DataStore，也不认识 `LauncherViewModel`。
  *
- * 实现方是 app（见 `com.example.wlauncher.FlulyApplication`），在 `onCreate` 里
+ * 实现方是 app（见 `com.fluly.launcher.FlulyApplication`），在 `onCreate` 里
  * 通过 [WatchEditorHostProvider.host] 注入。注入时机必须早于任何 Activity 创建。
  */
 interface WatchEditorHost {

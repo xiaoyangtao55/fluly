@@ -27,7 +27,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, "app/src/main/kotlin/com/example/wlauncher")
+SRC = os.path.join(ROOT, "app/src/main/kotlin/com/fluly/launcher")
 ACTIVITY = os.path.join(SRC, "SettingsActivity.kt")
 HIERARCHY = os.path.join(SRC, "ui/settings/SettingsHierarchy.kt")
 

@@ -7,7 +7,7 @@ import org.junit.Test
 class WatchFaceStatusPreferenceContractTest {
     @Test
     fun `view model persists restores and resets the independent dnd moon switch`() {
-        val source = source("com/example/wlauncher/viewmodel/LauncherViewModel.kt")
+        val source = source("com/fluly/launcher/viewmodel/LauncherViewModel.kt")
 
         assertTrue(source.contains("booleanPreferencesKey(\"watchface_dnd_indicator\")"))
         assertTrue(source.contains("MutableStateFlow(true)"))
@@ -18,9 +18,9 @@ class WatchFaceStatusPreferenceContractTest {
 
     @Test
     fun `settings exposes the independent dnd moon switch`() {
-        val settings = source("com/example/wlauncher/SettingsActivity.kt")
+        val settings = source("com/fluly/launcher/SettingsActivity.kt")
         // 条目标题在数据层，值绑定仍在 SettingsActivity 的 binding。
-        val hierarchy = source("com/example/wlauncher/ui/settings/SettingsHierarchy.kt")
+        val hierarchy = source("com/fluly/launcher/ui/settings/SettingsHierarchy.kt")
 
         assertTrue(hierarchy.contains("R.string.settings_watchface_dnd_indicator"))
         assertTrue(settings.contains("watchFaceDndIndicator"))

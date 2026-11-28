@@ -1,4 +1,4 @@
-// 包名是 com.fluly.launcher 而目录是 com/example/wlauncher —— 与被测的
+// 包名是 com.fluly.launcher 而目录是 com/fluly/launcher —— 与被测的
 // WatchEditorActivity.kt 本身完全一致（这个仓里那批 Activity 的路径和包名从来不一致）。
 // 测试跟着被测文件放，比跟着包名放更好找。
 package com.fluly.launcher

@@ -31,11 +31,11 @@ class ShortcutInstallContractTest {
     }
 
     private val handler by lazy {
-        File(root, "com/example/wlauncher/ShortcutReceiverActivity.kt").readText()
+        File(root, "com/fluly/launcher/ShortcutReceiverActivity.kt").readText()
     }
 
     private val repository by lazy {
-        File(root, "com/example/wlauncher/data/repository/AppRepository.kt").readText()
+        File(root, "com/fluly/launcher/data/repository/AppRepository.kt").readText()
     }
 
     @Test

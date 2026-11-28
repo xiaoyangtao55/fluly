@@ -12,7 +12,7 @@ class ControlCenterRemovalContractTest {
         File("../app/src/main/kotlin"),
     ).first(File::isDirectory)
 
-    private fun source(relative: String) = File(root, "com/example/wlauncher/$relative").readText()
+    private fun source(relative: String) = File(root, "com/fluly/launcher/$relative").readText()
 
     @Test
     fun `removed panel has no navigation state gesture or settings entry`() {

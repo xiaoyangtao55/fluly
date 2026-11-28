@@ -7,7 +7,7 @@ import org.junit.Test
 class WatchFaceFeedbackUiContractTest {
     @Test
     fun `editor exposes fill preview toolbar order icons and scale slider`() {
-        val editor = source("com/example/wlauncher/WatchEditorActivity.kt")
+        val editor = source("com/fluly/launcher/WatchEditorActivity.kt")
 
         assertTrue(editor.contains("view.setCanvasSettings(WatchCanvasSettings.GLOBAL_DEFAULT)"))
         assertTrue(editor.contains("fill = true"))
@@ -18,7 +18,7 @@ class WatchFaceFeedbackUiContractTest {
 
     @Test
     fun `launcher theme gives outlined inputs the larger row shape`() {
-        val theme = source("com/example/wlauncher/ui/theme/Theme.kt")
+        val theme = source("com/fluly/launcher/ui/theme/Theme.kt")
         // Check the shape mapping and theme wiring, not a local variable's name.
         assertTrue(theme.contains("flulyMaterialShapes(appleWatchLauncherStyle(isDark))"))
         assertTrue(theme.contains("val rowShape = style.rowShape as CornerBasedShape"))
@@ -28,7 +28,7 @@ class WatchFaceFeedbackUiContractTest {
 
     @Test
     fun `corner mask slider is not nested inside the dialog vertical scroller`() {
-        val about = source("com/example/wlauncher/ui/settings/SettingsAboutAndDonate.kt")
+        val about = source("com/fluly/launcher/ui/settings/SettingsAboutAndDonate.kt")
         val dialog = about.substringAfter("internal fun OverlayMaskCornerRadiusDialog(")
             .substringBefore("internal fun", missingDelimiterValue = about)
 
@@ -38,7 +38,7 @@ class WatchFaceFeedbackUiContractTest {
 
     @Test
     fun `app long press menu keeps its original centered card presentation`() {
-        val popup = source("com/example/wlauncher/ui/drawer/ShortcutPopup.kt")
+        val popup = source("com/fluly/launcher/ui/drawer/ShortcutPopup.kt")
 
         assertTrue(popup.contains("val panelWidth = (maxWidth * 0.78f)"))
         assertTrue(popup.contains("label = \"overlay_scale\""))
@@ -48,7 +48,7 @@ class WatchFaceFeedbackUiContractTest {
 
     @Test
     fun `new watch flow always creates format one without a version chooser`() {
-        val editor = source("com/example/wlauncher/WatchEditorActivity.kt")
+        val editor = source("com/fluly/launcher/WatchEditorActivity.kt")
         val creation = editor.substringAfter("val blankFaceIsRound").substringBefore("DisposableEffect(session)")
 
         assertFalse(editor.contains("private fun WatchFormatChoicePage("))

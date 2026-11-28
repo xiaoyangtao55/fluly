@@ -14,7 +14,7 @@ import org.junit.Test
 class AppListEdgeAlignPreferenceContractTest {
     @Test
     fun `view model persists restores and resets the edge align switch`() {
-        val source = source("com/example/wlauncher/viewmodel/LauncherViewModel.kt")
+        val source = source("com/fluly/launcher/viewmodel/LauncherViewModel.kt")
 
         assertTrue(source.contains("booleanPreferencesKey(\"app_list_edge_align_enabled\")"))
         assertTrue(source.contains("private val _appListEdgeAlignEnabled = MutableStateFlow(false)"))
@@ -29,8 +29,8 @@ class AppListEdgeAlignPreferenceContractTest {
     fun `settings exposes the edge align switch with a search entry`() {
         // 显示大小屏已整页搬到独立文件，开关本体在那里；
         // 搜索索引也从 SettingsActivity 拆到了 SettingsSearchIndex.kt。
-        val displaySize = source("com/example/wlauncher/ui/settings/DisplaySizeScreen.kt")
-        val searchIndex = source("com/example/wlauncher/ui/settings/SettingsSearchIndex.kt")
+        val displaySize = source("com/fluly/launcher/ui/settings/DisplaySizeScreen.kt")
+        val searchIndex = source("com/fluly/launcher/ui/settings/SettingsSearchIndex.kt")
 
         assertTrue(displaySize.contains("settings_app_list_edge_align"))
         assertTrue(displaySize.contains("appListEdgeAlignEnabled"))
@@ -43,7 +43,7 @@ class AppListEdgeAlignPreferenceContractTest {
     /** 开关必须一路从 Compose 传到原生配置，中间断一环就是「设置里能点、列表没反应」。 */
     @Test
     fun `the switch reaches the native app list config`() {
-        val activity = source("com/example/wlauncher/LauncherActivity.kt")
+        val activity = source("com/fluly/launcher/LauncherActivity.kt")
         assertTrue(activity.contains("edgeAlignEnabled = appListEdgeAlignEnabled"))
 
         val drawer = source("com/fluly/launcher/ui/drawer/NativeListDrawerScreen.kt")

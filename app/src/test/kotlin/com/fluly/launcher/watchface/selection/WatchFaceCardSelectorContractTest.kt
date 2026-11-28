@@ -8,8 +8,8 @@ import org.junit.Test
 class WatchFaceCardSelectorContractTest {
     @Test
     fun `selector pages static previews and composes no extra neighbors`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
-        val preview = source("com/example/wlauncher/ui/settings/WatchFaceSettingCard.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
+        val preview = source("com/fluly/launcher/ui/settings/WatchFaceSettingCard.kt")
 
         assertTrue(selector.contains("HorizontalPager("))
         assertTrue(selector.contains("beyondViewportPageCount = 0"))
@@ -20,8 +20,8 @@ class WatchFaceCardSelectorContractTest {
 
     @Test
     fun `launcher owns cards and keeps the legacy list route`() {
-        val launcher = source("com/example/wlauncher/LauncherActivity.kt")
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val launcher = source("com/fluly/launcher/LauncherActivity.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertTrue(launcher.contains("WATCH_FACE_LONG_PRESS_TIMEOUT_MS = 450L"))
         assertTrue(launcher.contains("WatchFaceChooserDestination.CARDS"))
@@ -34,8 +34,8 @@ class WatchFaceCardSelectorContractTest {
 
     @Test
     fun `cards match the direct preview hierarchy and expose navigation`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
-        val settingsCard = source("com/example/wlauncher/ui/settings/WatchFaceSettingCard.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
+        val settingsCard = source("com/fluly/launcher/ui/settings/WatchFaceSettingCard.kt")
 
         assertTrue(selector.contains("FlulyFullScreenOverlay("))
         assertTrue(selector.contains("MiuixIcons.Store"))
@@ -49,7 +49,7 @@ class WatchFaceCardSelectorContractTest {
 
     @Test
     fun `selector sizes previews from constraints and transforms the complete card surface`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertTrue(selector.contains("watchFaceCardLayout("))
         assertTrue(selector.contains("WatchFaceCardVisualSurface("))
@@ -58,7 +58,7 @@ class WatchFaceCardSelectorContractTest {
 
     @Test
     fun `long titles marquee inside measured header width and remain readable with reduced motion`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertTrue(selector.contains("basicMarquee("))
         assertTrue(selector.contains("iterations = Int.MAX_VALUE"))
@@ -69,7 +69,7 @@ class WatchFaceCardSelectorContractTest {
 
     @Test
     fun `selector uses a finite safe viewport and distributes sections through its height`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertFalse(selector.contains("LocalConfiguration.current.screenHeightDp"))
         assertTrue(selector.contains("WindowInsets.safeDrawing.asPaddingValues()"))
@@ -81,7 +81,7 @@ class WatchFaceCardSelectorContractTest {
 
     @Test
     fun `back affordance follows focused face luminance with an animated transition`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertFalse(selector.contains("rememberAppListSeedColor("))
         assertTrue(selector.contains("backdropColor"))
@@ -92,14 +92,14 @@ class WatchFaceCardSelectorContractTest {
 
     @Test
     fun `selector renders page count synchronized with current page`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertTrue(selector.contains("\${pagerState.currentPage + 1} / \${items.size}"))
     }
 
     @Test
     fun `selector centers page counter and balances bottom actions`() {
-        val selector = source("com/example/wlauncher/ui/home/WatchFaceCardSelector.kt")
+        val selector = source("com/fluly/launcher/ui/home/WatchFaceCardSelector.kt")
 
         assertTrue(selector.contains("textAlign = TextAlign.Center"))
         assertTrue(selector.contains("Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)"))

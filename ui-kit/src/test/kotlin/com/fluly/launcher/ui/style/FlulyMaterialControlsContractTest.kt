@@ -38,7 +38,7 @@ class FlulyMaterialControlsContractTest {
         assertTrue(indicator.contains("enabled = enabled"))
         assertTrue(indicator.contains("checkedTrackColor = style.accentColor"))
         assertTrue(md3.contains("activeTrackColor = style.accentColor"))
-        val rows = source("app/src/main/kotlin/com/example/wlauncher/ui/settings/SettingsRowControls.kt")
+        val rows = source("app/src/main/kotlin/com/fluly/launcher/ui/settings/SettingsRowControls.kt")
         assertTrue(rows.contains("FlulySwitchIndicator("))
         assertFalse(rows.contains("androidx.compose.material3.Switch("))
         assertFalse(Regex("(?m)^\\s+Slider\\(").containsMatchIn(rows))

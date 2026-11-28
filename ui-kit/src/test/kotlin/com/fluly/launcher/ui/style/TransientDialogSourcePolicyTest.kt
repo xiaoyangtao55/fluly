@@ -12,11 +12,11 @@ class TransientDialogSourcePolicyTest {
      * 设置页拆分后的全屏任务按实际所在文件登记，不豁免瞬时菜单。
      */
     private val allowedFullscreenDialogFiles = setOf(
-        "app/src/main/kotlin/com/example/wlauncher/SettingsActivity.kt",
-        "watchface-store/src/main/kotlin/com/example/wlauncher/WatchStoreActivity.kt",
+        "app/src/main/kotlin/com/fluly/launcher/SettingsActivity.kt",
+        "watchface-store/src/main/kotlin/com/fluly/launcher/WatchStoreActivity.kt",
         // 从 SettingsActivity 拆出的捐赠图片全屏预览与备份阻塞进度页。
-        "app/src/main/kotlin/com/example/wlauncher/ui/settings/SettingsAboutAndDonate.kt",
-        "app/src/main/kotlin/com/example/wlauncher/ui/settings/SettingsBackupDialogs.kt",
+        "app/src/main/kotlin/com/fluly/launcher/ui/settings/SettingsAboutAndDonate.kt",
+        "app/src/main/kotlin/com/fluly/launcher/ui/settings/SettingsBackupDialogs.kt",
         "ui-kit/src/main/kotlin/com/fluly/launcher/ui/common/FlulyImageCropOverlay.kt",
         "ui-kit/src/main/kotlin/com/fluly/launcher/ui/common/InternalFileBrowser.kt",
         "watchface-store/src/main/kotlin/com/fluly/launcher/ui/store/WatchStorePageStack.kt",

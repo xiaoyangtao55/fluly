@@ -8,7 +8,7 @@ import org.junit.Test
 class WatchFaceLongPressPersistenceContractTest {
     @Test
     fun `view model persists restores and resets the long press mode`() {
-        val source = source("com/example/wlauncher/viewmodel/LauncherViewModel.kt")
+        val source = source("com/fluly/launcher/viewmodel/LauncherViewModel.kt")
 
         assertTrue(source.contains("stringPreferencesKey(\"watchface_long_press_mode\")"))
         assertTrue(source.contains("MutableStateFlow(WatchFaceLongPressMode.CARDS)"))
@@ -19,7 +19,7 @@ class WatchFaceLongPressPersistenceContractTest {
 
     @Test
     fun `normal settings backup does not exclude the mode`() {
-        val source = source("com/example/wlauncher/backup/FlulyBackupManager.kt")
+        val source = source("com/fluly/launcher/backup/FlulyBackupManager.kt")
         val excludedBlock = source.substringAfter("private val settingsExcludedNames")
             .substringBefore("fun suggestedFileName")
 

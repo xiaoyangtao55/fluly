@@ -3346,7 +3346,7 @@ private suspend fun exportLog(context: android.content.Context) {
                 }
                 .joinToString("\n\n")
                 .ifBlank { "No private crash files found." }
-            File(context.cacheDir, "wlauncher_log.txt").apply {
+            File(context.cacheDir, "fluly_log.txt").apply {
                 writeText(
                     buildString {
                         appendLine("===== Fluly Diagnostics =====")

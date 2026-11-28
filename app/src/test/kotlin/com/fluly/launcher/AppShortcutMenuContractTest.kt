@@ -22,7 +22,7 @@ class AppShortcutMenuContractTest {
     ).first(File::isDirectory)
 
     private val popup by lazy {
-        File(root, "com/example/wlauncher/ui/drawer/ShortcutPopup.kt").readText()
+        File(root, "com/fluly/launcher/ui/drawer/ShortcutPopup.kt").readText()
     }
 
     @Test

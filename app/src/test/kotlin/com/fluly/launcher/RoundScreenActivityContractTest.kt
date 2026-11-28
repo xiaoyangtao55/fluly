@@ -94,13 +94,13 @@ class RoundScreenActivityContractTest {
     private fun sourceFile(name: String): File {
         // 商店与编辑器分别位于 :watchface-store / :watchface-editor。
         val mainSource = sequenceOf(
-            File("src/main/kotlin/com/example/wlauncher"),
-            File("app/src/main/kotlin/com/example/wlauncher"),
-            File("../app/src/main/kotlin/com/example/wlauncher"),
-            File("watchface-editor/src/main/kotlin/com/example/wlauncher"),
-            File("../watchface-editor/src/main/kotlin/com/example/wlauncher"),
-            File("watchface-store/src/main/kotlin/com/example/wlauncher"),
-            File("../watchface-store/src/main/kotlin/com/example/wlauncher"),
+            File("src/main/kotlin/com/fluly/launcher"),
+            File("app/src/main/kotlin/com/fluly/launcher"),
+            File("../app/src/main/kotlin/com/fluly/launcher"),
+            File("watchface-editor/src/main/kotlin/com/fluly/launcher"),
+            File("../watchface-editor/src/main/kotlin/com/fluly/launcher"),
+            File("watchface-store/src/main/kotlin/com/fluly/launcher"),
+            File("../watchface-store/src/main/kotlin/com/fluly/launcher"),
         ).firstOrNull { File(it, name).isFile }
             ?: error("找不到源码 $name，工作目录是 ${File(".").absolutePath}")
         return File(mainSource, name)

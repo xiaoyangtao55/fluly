@@ -33,10 +33,10 @@
 
 相关文件：
 
-- [`SmartStackLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/smartstack/SmartStackLayer.kt)
-- [`LauncherActivity.kt`](app/src/main/kotlin/com/example/wlauncher/LauncherActivity.kt)
-- [`GestureHost.kt`](app/src/main/kotlin/com/example/wlauncher/ui/navigation/GestureHost.kt)
-- [`LauncherViewModel.kt`](app/src/main/kotlin/com/example/wlauncher/viewmodel/LauncherViewModel.kt)
+- [`SmartStackLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/smartstack/SmartStackLayer.kt)
+- [`LauncherActivity.kt`](app/src/main/kotlin/com/fluly/launcher/LauncherActivity.kt)
+- [`GestureHost.kt`](app/src/main/kotlin/com/fluly/launcher/ui/navigation/GestureHost.kt)
+- [`LauncherViewModel.kt`](app/src/main/kotlin/com/fluly/launcher/viewmodel/LauncherViewModel.kt)
 
 ### 2. 通知中心重做与通知监听增强
 
@@ -49,10 +49,10 @@
 
 相关文件：
 
-- [`WLauncherNotificationListener.kt`](app/src/main/kotlin/com/example/wlauncher/service/WLauncherNotificationListener.kt)
-- [`NotificationLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/notification/NotificationLayer.kt)
-- [`NotificationModels.kt`](app/src/main/kotlin/com/example/wlauncher/ui/notification/NotificationModels.kt)
-- [`SwipeRevealDeleteContainer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/notification/SwipeRevealDeleteContainer.kt)
+- [`WLauncherNotificationListener.kt`](app/src/main/kotlin/com/fluly/launcher/service/WLauncherNotificationListener.kt)
+- [`NotificationLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/notification/NotificationLayer.kt)
+- [`NotificationModels.kt`](app/src/main/kotlin/com/fluly/launcher/ui/notification/NotificationModels.kt)
+- [`SwipeRevealDeleteContainer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/notification/SwipeRevealDeleteContainer.kt)
 
 ### 3. 表盘能力增强
 
@@ -64,9 +64,9 @@
 
 相关文件：
 
-- [`InternalWatchFaceStorage.kt`](app/src/main/kotlin/com/example/wlauncher/watchface/InternalWatchFaceStorage.kt)
-- [`WatchFaceLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/home/WatchFaceLayer.kt)
-- [`LauncherViewModel.kt`](app/src/main/kotlin/com/example/wlauncher/viewmodel/LauncherViewModel.kt)
+- [`InternalWatchFaceStorage.kt`](app/src/main/kotlin/com/fluly/launcher/watchface/InternalWatchFaceStorage.kt)
+- [`WatchFaceLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/home/WatchFaceLayer.kt)
+- [`LauncherViewModel.kt`](app/src/main/kotlin/com/fluly/launcher/viewmodel/LauncherViewModel.kt)
 
 ### 4. 设置页与配置项扩展
 
@@ -78,8 +78,8 @@
 
 相关文件：
 
-- [`SettingsActivity.kt`](app/src/main/kotlin/com/example/wlauncher/SettingsActivity.kt)
-- [`WatchFaceSettingCard.kt`](app/src/main/kotlin/com/example/wlauncher/ui/settings/WatchFaceSettingCard.kt)
+- [`SettingsActivity.kt`](app/src/main/kotlin/com/fluly/launcher/SettingsActivity.kt)
+- [`WatchFaceSettingCard.kt`](app/src/main/kotlin/com/fluly/launcher/ui/settings/WatchFaceSettingCard.kt)
 - [`app/src/main/res/mipmap-mdpi/ic_launcher.png`](app/src/main/res/mipmap-mdpi/ic_launcher.png)
 
 ### 5. 动画、回弹与返回手势优化
@@ -92,10 +92,10 @@
 
 相关文件：
 
-- [`LauncherActivity.kt`](app/src/main/kotlin/com/example/wlauncher/LauncherActivity.kt)
-- [`NotificationLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/notification/NotificationLayer.kt)
-- [`SmartStackLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/smartstack/SmartStackLayer.kt)
-- [`ScaleBlurModifier.kt`](app/src/main/kotlin/com/example/wlauncher/ui/anim/ScaleBlurModifier.kt)
+- [`LauncherActivity.kt`](app/src/main/kotlin/com/fluly/launcher/LauncherActivity.kt)
+- [`NotificationLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/notification/NotificationLayer.kt)
+- [`SmartStackLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/smartstack/SmartStackLayer.kt)
+- [`ScaleBlurModifier.kt`](app/src/main/kotlin/com/fluly/launcher/ui/anim/ScaleBlurModifier.kt)
 
 ## 本次最新补充修复
 
@@ -113,12 +113,12 @@
 
 相关文件：
 
-- [`WatchFaceLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/home/WatchFaceLayer.kt)
-- [`InternalWatchFaceConfigActivity.kt`](app/src/main/kotlin/com/example/wlauncher/InternalWatchFaceConfigActivity.kt)
-- [`LauncherActivity.kt`](app/src/main/kotlin/com/example/wlauncher/LauncherActivity.kt)
-- [`AppListTheme.kt`](app/src/main/kotlin/com/example/wlauncher/ui/drawer/AppListTheme.kt)
-- [`HoneycombScreen.kt`](app/src/main/kotlin/com/example/wlauncher/ui/drawer/HoneycombScreen.kt)
-- [`ListDrawerScreen.kt`](app/src/main/kotlin/com/example/wlauncher/ui/drawer/ListDrawerScreen.kt)
+- [`WatchFaceLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/home/WatchFaceLayer.kt)
+- [`InternalWatchFaceConfigActivity.kt`](app/src/main/kotlin/com/fluly/launcher/InternalWatchFaceConfigActivity.kt)
+- [`LauncherActivity.kt`](app/src/main/kotlin/com/fluly/launcher/LauncherActivity.kt)
+- [`AppListTheme.kt`](app/src/main/kotlin/com/fluly/launcher/ui/drawer/AppListTheme.kt)
+- [`HoneycombScreen.kt`](app/src/main/kotlin/com/fluly/launcher/ui/drawer/HoneycombScreen.kt)
+- [`ListDrawerScreen.kt`](app/src/main/kotlin/com/fluly/launcher/ui/drawer/ListDrawerScreen.kt)
 
 ### 应用列表与图标增强
 
@@ -130,10 +130,10 @@
 
 相关文件：
 
-- [`AppRepository.kt`](app/src/main/kotlin/com/example/wlauncher/data/repository/AppRepository.kt)
-- [`LauncherViewModel.kt`](app/src/main/kotlin/com/example/wlauncher/viewmodel/LauncherViewModel.kt)
-- [`HoneycombScreen.kt`](app/src/main/kotlin/com/example/wlauncher/ui/drawer/HoneycombScreen.kt)
-- [`ListDrawerScreen.kt`](app/src/main/kotlin/com/example/wlauncher/ui/drawer/ListDrawerScreen.kt)
+- [`AppRepository.kt`](app/src/main/kotlin/com/fluly/launcher/data/repository/AppRepository.kt)
+- [`LauncherViewModel.kt`](app/src/main/kotlin/com/fluly/launcher/viewmodel/LauncherViewModel.kt)
+- [`HoneycombScreen.kt`](app/src/main/kotlin/com/fluly/launcher/ui/drawer/HoneycombScreen.kt)
+- [`ListDrawerScreen.kt`](app/src/main/kotlin/com/fluly/launcher/ui/drawer/ListDrawerScreen.kt)
 
 ### 副一屏电池与步数
 
@@ -144,8 +144,8 @@
 
 相关文件：
 
-- [`SmartStackLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/smartstack/SmartStackLayer.kt)
-- [`LauncherViewModel.kt`](app/src/main/kotlin/com/example/wlauncher/viewmodel/LauncherViewModel.kt)
+- [`SmartStackLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/smartstack/SmartStackLayer.kt)
+- [`LauncherViewModel.kt`](app/src/main/kotlin/com/fluly/launcher/viewmodel/LauncherViewModel.kt)
 - [`AndroidManifest.xml`](app/src/main/AndroidManifest.xml)
 
 ### Warning 与 Deprecation 清理
@@ -156,10 +156,10 @@
 
 相关文件：
 
-- [`NotificationLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/notification/NotificationLayer.kt)
-- [`WLauncherNotificationListener.kt`](app/src/main/kotlin/com/example/wlauncher/service/WLauncherNotificationListener.kt)
-- [`SettingsActivity.kt`](app/src/main/kotlin/com/example/wlauncher/SettingsActivity.kt)
-- [`SmartStackLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/smartstack/SmartStackLayer.kt)
+- [`NotificationLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/notification/NotificationLayer.kt)
+- [`WLauncherNotificationListener.kt`](app/src/main/kotlin/com/fluly/launcher/service/WLauncherNotificationListener.kt)
+- [`SettingsActivity.kt`](app/src/main/kotlin/com/fluly/launcher/SettingsActivity.kt)
+- [`SmartStackLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/smartstack/SmartStackLayer.kt)
 
 以下内容是此前补进去的行为修正：
 
@@ -172,9 +172,9 @@
 
 相关文件：
 
-- [`WatchBatteryPill.kt`](app/src/main/kotlin/com/example/wlauncher/ui/common/WatchBatteryPill.kt)
-- [`NotificationLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/notification/NotificationLayer.kt)
-- [`SmartStackLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/smartstack/SmartStackLayer.kt)
+- [`WatchBatteryPill.kt`](app/src/main/kotlin/com/fluly/launcher/ui/common/WatchBatteryPill.kt)
+- [`NotificationLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/notification/NotificationLayer.kt)
+- [`SmartStackLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/smartstack/SmartStackLayer.kt)
 
 ### 通知下拉返回逻辑修正
 
@@ -184,7 +184,7 @@
 
 相关文件：
 
-- [`NotificationLayer.kt`](app/src/main/kotlin/com/example/wlauncher/ui/notification/NotificationLayer.kt)
+- [`NotificationLayer.kt`](app/src/main/kotlin/com/fluly/launcher/ui/notification/NotificationLayer.kt)
 
 ## CI 状态
 
