@@ -126,45 +126,72 @@ internal fun canUseLockScreenFullScreenIntent(context: Context): Boolean =
         NotificationManagerCompat.from(context).canUseFullScreenIntent()
 
 /**
- * Keep registered until destroy: screen-off can pause/stop HOME before delivering the broadcast.
- * Both eligibility and the preference are evaluated per event; registration is not foreground proof.
+ * 进程级锁屏表盘触发器：SCREEN_OFF 广播注册在 applicationContext 上，随进程存活。
+ *
+ * 为什么不挂在 LauncherActivity 上（装机实测）：FSI 把锁屏表盘 Activity 从后台
+ * 拉起后，后台的 HOME Activity 会被系统随手销毁——它一销毁，挂在它身上的
+ * receiver 就在 onDestroy 里被反注册，之后的熄屏再也无人响应，表盘不再出现
+ * （侧滑返回 → 解锁 → 再锁屏的复现路径）。注册挪到 application context 后，
+ * receiver 随进程存活，Activity 的生死不再影响触发。
+ *
+ * 开关状态（[featureEnabled]）由 LauncherViewModel 加载/设置时同步进来；
+ * 门禁（[onLauncherResumed] 等）由 LauncherActivity 生命周期同步，只服务
+ * FSI/overlay 都不可用的降级路径。
  */
-fun screenOffReceiverFor(
-    context: Context,
-    foregroundGate: LockScreenForegroundGate,
-    isEnabled: () -> Boolean,
-): BroadcastReceiver = object : BroadcastReceiver() {
-    override fun onReceive(receiverContext: Context?, intent: Intent?) {
-        if (intent?.action != Intent.ACTION_SCREEN_OFF) return
-        val gateEligible = foregroundGate.consumeScreenOff()
-        val enabled = isEnabled()
-        val fsiUsable = canUseLockScreenFullScreenIntent(context)
-        val overlayPermitted = LockScreenFaceOverlay.canShow(context)
-        val action = lockScreenAction(fsiUsable, overlayPermitted, enabled, gateEligible)
-        Log.i(
-            LOG_TAG,
-            "SCREEN_OFF gate=$gateEligible enabled=$enabled fsi=$fsiUsable " +
-                "overlay=$overlayPermitted action=$action",
+object LockScreenFaceTrigger {
+    @Volatile var featureEnabled: Boolean = true
+
+    private val gate = LockScreenForegroundGate()
+    private var registered = false
+    private var appContext: Context? = null
+
+    /**
+     * 在 LauncherActivity.onCreate 里调用一次。注册永不反注册（随进程存活）；
+     * 进程被 LMK 杀掉后的重启由下一次 LauncherActivity.onCreate 重新武装。
+     */
+    fun ensureRegistered(context: Context) {
+        if (registered) return
+        val app = context.applicationContext
+        appContext = app
+        registered = true
+        ContextCompat.registerReceiver(
+            app,
+            receiver,
+            IntentFilter(Intent.ACTION_SCREEN_OFF),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
         )
-        when (action) {
-            LockScreenAction.NOTIFY_FULL_SCREEN -> notifyLockScreenFace(context)
-            LockScreenAction.SHOW_OVERLAY ->
-                // 添加失败（OEM 拦截 addView 等）回退 Activity 路径；回退只在令牌
-                // 原本合格时有效——没有权限的用户行为与历史版本完全一致。
-                if (!LockScreenFaceOverlay.show(context) && gateEligible) {
-                    startLockScreenWatchFace(context)
-                }
-            LockScreenAction.START_ACTIVITY -> startLockScreenWatchFace(context)
-            LockScreenAction.NONE -> Unit
+        Log.i(LOG_TAG, "screen-off trigger registered")
+    }
+
+    fun onLauncherResumed() { gate.onResume() }
+    fun onLauncherPaused(isInteractive: Boolean) { gate.onPause(isInteractive) }
+    fun onLauncherStopped(isInteractive: Boolean) { gate.onStop(isInteractive) }
+
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(receiverContext: Context?, intent: Intent?) {
+            if (intent?.action != Intent.ACTION_SCREEN_OFF) return
+            val context = appContext ?: return
+            val gateEligible = gate.consumeScreenOff()
+            if (!featureEnabled) return
+            val fsiUsable = canUseLockScreenFullScreenIntent(context)
+            val overlayPermitted = LockScreenFaceOverlay.canShow(context)
+            val action = lockScreenAction(fsiUsable, overlayPermitted, true, gateEligible)
+            Log.i(
+                LOG_TAG,
+                "SCREEN_OFF gate=$gateEligible fsi=$fsiUsable " +
+                    "overlay=$overlayPermitted action=$action",
+            )
+            when (action) {
+                LockScreenAction.NOTIFY_FULL_SCREEN -> notifyLockScreenFace(context)
+                LockScreenAction.SHOW_OVERLAY ->
+                    // 添加失败（OEM 拦截 addView 等）回退 Activity 路径；回退只在令牌
+                    // 原本合格时有效——没有权限的用户行为与历史版本完全一致。
+                    if (!LockScreenFaceOverlay.show(context) && gateEligible) {
+                        startLockScreenWatchFace(context)
+                    }
+                LockScreenAction.START_ACTIVITY -> startLockScreenWatchFace(context)
+                LockScreenAction.NONE -> Unit
+            }
         }
     }
-}
-
-fun registerScreenOffReceiver(context: Context, receiver: BroadcastReceiver) {
-    ContextCompat.registerReceiver(
-        context,
-        receiver,
-        IntentFilter(Intent.ACTION_SCREEN_OFF),
-        ContextCompat.RECEIVER_NOT_EXPORTED,
-    )
 }

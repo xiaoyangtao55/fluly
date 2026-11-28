@@ -60,6 +60,11 @@ class LockScreenHostContractTest {
         assertTrue(trigger.contains("setSound(null, null)"))
         assertTrue(trigger.contains("enableVibration(false)"))
         assertTrue(trigger.contains("NOTIFY_FULL_SCREEN"))
+        // 熄屏触发器必须挂 applicationContext（进程级）：HOME Activity 会被系统随手
+        // 销毁，挂 Activity 上的 receiver 在 onDestroy 被反注册后熄屏就无人响应。
+        assertTrue(trigger.contains("object LockScreenFaceTrigger"))
+        assertTrue(trigger.contains("applicationContext"))
+        assertTrue(trigger.contains("fun ensureRegistered"))
         val activity = File(root, "app/src/main/kotlin/com/example/wlauncher/lockscreen/LockScreenWatchFaceActivity.kt").readText()
         assertTrue(activity.contains("LOCK_SCREEN_FSI_NOTIFICATION_ID"))
         // 上滑走 requestDismissKeyguard：PIN 弹层盖在表盘之上；成功/失败都收尾，

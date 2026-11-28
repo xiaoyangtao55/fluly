@@ -1,12 +1,9 @@
 package com.flue.launcher
 
 import com.flue.launcher.i18n.FlueComponentActivity
-import com.flue.launcher.lockscreen.LockScreenForegroundGate
 import android.os.PowerManager
-import com.flue.launcher.lockscreen.registerScreenOffReceiver
-import com.flue.launcher.lockscreen.screenOffReceiverFor
+import com.flue.launcher.lockscreen.LockScreenFaceTrigger
 
-import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -221,11 +218,10 @@ class LauncherActivity : FlueComponentActivity() {
     private var deferredResumeMaintenance: Runnable? = null
 
     /**
-     * 熄屏广播的接收者。注册到 `onDestroy` 而不是 `onPause`：熄屏时 Activity 先 pause
-     * 再派发 `ACTION_SCREEN_OFF`，放在 onPause 反注册会永远收不到 —— 见 LockScreenTrigger。
+     * 熄屏触发器注册在 applicationContext 上（进程级，见 LockScreenFaceTrigger）：
+     * FSI 拉起表盘后系统会随手销毁后台的 HOME Activity，挂在 Activity 上的
+     * receiver 会在 onDestroy 被反注册，之后的熄屏就没人响应了（装机实测）。
      */
-    private var screenOffReceiver: BroadcastReceiver? = null
-    private val lockScreenForegroundGate = LockScreenForegroundGate()
     private fun isScreenInteractive(): Boolean =
         getSystemService(PowerManager::class.java)?.isInteractive != false
 
@@ -242,11 +238,7 @@ class LauncherActivity : FlueComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
         onBackPressedDispatcher.addCallback(this) { vm.requestBackPress() }
-        runCatching {
-            val receiver = screenOffReceiverFor(this, lockScreenForegroundGate) { vm.lockScreenWatchFaceEnabled.value }
-            registerScreenOffReceiver(this, receiver)
-            screenOffReceiver = receiver
-        }.onFailure { Log.e(WIDGET_HOST_LOG_TAG, "无法注册熄屏广播", it) }
+        LockScreenFaceTrigger.ensureRegistered(applicationContext)
         setContent {
             val themeMode by vm.themeMode.collectAsStateWithLifecycle()
             val uiStyle by vm.uiStyle.collectAsStateWithLifecycle()
@@ -292,7 +284,7 @@ class LauncherActivity : FlueComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        lockScreenForegroundGate.onResume()
+        LockScreenFaceTrigger.onLauncherResumed()
         RecentsVisibility.apply(this)
         vm.setLauncherInteractive(true)
         vm.onLauncherResumed()
@@ -307,7 +299,7 @@ class LauncherActivity : FlueComponentActivity() {
     override fun onPause() {
         val interactiveAtPause = isScreenInteractive()
         Log.i("LockScreenWatchFace", "HOME pause interactive=$interactiveAtPause")
-        lockScreenForegroundGate.onPause(interactiveAtPause)
+        LockScreenFaceTrigger.onLauncherPaused(interactiveAtPause)
         super.onPause()
         deferredResumeMaintenance?.let(window.decorView::removeCallbacks)
         deferredResumeMaintenance = null
@@ -318,7 +310,7 @@ class LauncherActivity : FlueComponentActivity() {
     override fun onStop() {
         val interactiveAtStop = isScreenInteractive()
         Log.i("LockScreenWatchFace", "HOME stop interactive=$interactiveAtStop")
-        lockScreenForegroundGate.onStop(interactiveAtStop)
+        LockScreenFaceTrigger.onLauncherStopped(interactiveAtStop)
         runCatching { widgetHostLifecycle.release(this) }
             .onFailure { error ->
                 Log.e(WIDGET_HOST_LOG_TAG, "Unable to stop AppWidgetHost listening", error)
@@ -328,11 +320,7 @@ class LauncherActivity : FlueComponentActivity() {
     }
 
     override fun onDestroy() {
-        screenOffReceiver?.let { receiver ->
-            runCatching { unregisterReceiver(receiver) }
-                .onFailure { Log.e(WIDGET_HOST_LOG_TAG, "无法注销熄屏广播", it) }
-        }
-        screenOffReceiver = null
+        // 熄屏触发器注册在 applicationContext 上，随进程存活，Activity 销毁不反注册。
         super.onDestroy()
     }
 
