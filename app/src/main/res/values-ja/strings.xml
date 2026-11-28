@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flue Next</string>
+    <string name="app_name">Fluly</string>
     <string name="watchface_builtin_default_name">デフォルト文字盤</string>
     <string name="watchface_builtin_photo_name">写真文字盤</string>
     <string name="watchface_builtin_video_name">動画文字盤</string>
@@ -8,9 +8,9 @@
     <string name="shortcut_settings">ランチャー設定</string>
     <string name="settings_title">ランチャー設定</string>
     <string name="internal_watchface_config_title">内蔵文字盤設定</string>
-    <string name="flue_accessibility_label">Flue アクセシビリティ制御</string>
-    <string name="flue_accessibility_description">この権限はダブルタップ画面ロックと電源オプションの表示にのみ使用されます。画面の内容を読み取ることはなく、入力も収集しません。</string>
-    <string name="flue_device_admin_description">Android 8.1 では、ダブルタップ画面ロックにのみこの権限を使用します。端末データの消去やロック画面パスワードの変更はできません。</string>
+    <string name="fluly_accessibility_label">Fluly アクセシビリティ制御</string>
+    <string name="fluly_accessibility_description">この権限はダブルタップ画面ロックと電源オプションの表示にのみ使用されます。画面の内容を読み取ることはなく、入力も収集しません。</string>
+    <string name="fluly_device_admin_description">Android 8.1 では、ダブルタップ画面ロックにのみこの権限を使用します。端末データの消去やロック画面パスワードの変更はできません。</string>
 
     <!-- 汎用 -->
     <string name="follow_system">システムに従う</string>
@@ -35,7 +35,7 @@
     <string name="settings_display_fit_sub">グローバル UI、アプリリストサイズ、セーフエリア</string>
     <string name="settings_global_ui_size">グローバル UI サイズ</string>
     <string name="settings_global_ui_restart_hint">調整後に表示が乱れた場合は再起動してください。</string>
-    <string name="settings_global_ui_apply_restart">適用して Flue を再起動</string>
+    <string name="settings_global_ui_apply_restart">適用して Fluly を再起動</string>
     <string name="settings_honeycomb_cols">グリッド列数</string>
     <string name="settings_honeycomb_cols_fmt">%d 列</string>
     <string name="settings_app_list_size">アプリリストサイズ</string>
@@ -109,7 +109,7 @@
     <string name="settings_edge_blur">エッジブラー（実験的）</string>
     <string name="settings_edge_blur_sub">上下端に追加のブラーを適用する</string>
     <string name="settings_edge_blur_radius">エッジブラー半径</string>
-    <string name="settings_direct_launch">Flue 起動時にアプリリストへ</string>
+    <string name="settings_direct_launch">Fluly 起動時にアプリリストへ</string>
     <string name="settings_direct_launch_on">起動後にアプリリストを表示し、文字盤に戻る操作を維持</string>
     <string name="settings_direct_launch_off">デフォルトで最初に文字盤を表示</string>
 
@@ -234,13 +234,13 @@
     <string name="settings_allow_folders_off">ドラッグでのフォルダー作成を無効にして並べ替えのみ維持</string>
     <string name="settings_icon_shadow">アイコンシャドウ</string>
     <string name="settings_icon_shadow_sub">アプリアイコンとドラッグプレビューのシャドウ描画を軽減</string>
-    <string name="settings_direct_launch_app_list">Flue 起動時にアプリリストへ</string>
+    <string name="settings_direct_launch_app_list">Fluly 起動時にアプリリストへ</string>
     <string name="settings_direct_launch_app_list_on">起動後にアプリリストを表示し、文字盤に戻る操作を維持</string>
     <string name="settings_direct_launch_app_list_off">デフォルトで最初に文字盤を表示</string>
 
     <!-- アニメーション -->
-    <string name="settings_launch_animation">Flue 起動と戻るアニメーション</string>
-    <string name="settings_launch_animation_sub">オフ時はシステムに従う；オン時は Flue マスクとアイコン起源モーションを使用</string>
+    <string name="settings_launch_animation">Fluly 起動と戻るアニメーション</string>
+    <string name="settings_launch_animation_sub">オフ時はシステムに従う；オン時は Fluly マスクとアイコン起源モーションを使用</string>
     <string name="settings_app_list_shrink">アプリリスト縮小アニメーション</string>
     <string name="settings_app_list_shrink_sub">アプリから戻る時はフェードのみ；全体スケールをスキップ</string>
     <string name="settings_icon_float">戻る時のアイコンフロート</string>
@@ -254,7 +254,7 @@
     <string name="settings_reduce_motion">モーション軽減</string>
     <string name="settings_reduce_motion_sub">トランジション後のオーバーシュートを除去：アニメーションが正確に停止</string>
     <string name="settings_hide_recents">履歴カードを非表示</string>
-    <string name="settings_hide_recents_sub">システムの履歴画面から Flue を非表示にする</string>
+    <string name="settings_hide_recents_sub">システムの履歴画面から Fluly を非表示にする</string>
     <string name="settings_watch_store_segmented_download">マルチスレッド分割ダウンロード</string>
     <string name="settings_watch_store_segmented_download_sub">文字盤を複数の区間に分けて並行取得します。サーバーが非対応の場合は単一接続に自動で戻ります</string>
 
@@ -341,7 +341,7 @@
     <string name="search_d_icon_shadow">プラットフォームの高さシャドウ</string>
     <string name="search_d_low_res">アイコンの負荷を下げてパフォーマンス向上</string>
     <string name="search_d_music_text">曲替えのテキストトランジション</string>
-    <string name="search_d_hide_recents">履歴画面から Flue を非表示</string>
+    <string name="search_d_hide_recents">履歴画面から Fluly を非表示</string>
     <string name="search_d_segmented_download">文字盤を分割して並行ダウンロード</string>
     <string name="search_d_thumbnails">写真・動画リストのプレビュー画像</string>
     <string name="search_d_motion_profile_entry">モーションプロファイルページへ移動</string>
@@ -360,7 +360,7 @@
 
     <!-- 共通操作 -->
     <string name="settings_language_restart_title">再起動が必要です</string>
-    <string name="settings_language_restart_message">言語の変更を完全に適用するには Flue を再起動する必要があります。「確定」をタップすると今すぐ再起動します。</string>
+    <string name="settings_language_restart_message">言語の変更を完全に適用するには Fluly を再起動する必要があります。「確定」をタップすると今すぐ再起動します。</string>
     <string name="settings_language_restart_confirm">確定</string>
     <string name="toast_language_save_failed">言語設定を保存できませんでした。もう一度お試しください。</string>
     <string name="action_delete">削除</string>
@@ -373,7 +373,7 @@
     <string name="progress_import_watchface_detail">標準 .watch / jb_watch 文字盤を判別してインポートしています</string>
     <string name="progress_import_done">インポート完了</string>
     <string name="progress_export_config">設定をエクスポート</string>
-    <string name="progress_export_config_detail">Flue バックアップ ZIP を書き込んでいます</string>
+    <string name="progress_export_config_detail">Fluly バックアップ ZIP を書き込んでいます</string>
     <string name="progress_export_done">エクスポート完了</string>
     <string name="progress_read_config">設定を読み込み</string>
     <string name="progress_read_config_detail">バックアップ ZIP を確認しています</string>
@@ -388,11 +388,11 @@
     <string name="toast_read_failed_fmt">読み込みに失敗しました：%s</string>
     <string name="toast_delete_failed_fmt">削除に失敗しました：%s</string>
     <string name="toast_deleted_fmt">%s を削除しました</string>
-    <string name="toast_grant_accessibility">システム設定で Flue のユーザー補助を許可してください</string>
-    <string name="toast_grant_overlay">他アプリのロック画面に表示するため、Flue のオーバーレイを許可してください</string>
+    <string name="toast_grant_accessibility">システム設定で Fluly のユーザー補助を許可してください</string>
+    <string name="toast_grant_overlay">他アプリのロック画面に表示するため、Fluly のオーバーレイを許可してください</string>
     <string name="lock_screen_overlay_channel">ロック画面の文字盤</string>
-    <string name="toast_accessibility_connecting">Flue のユーザー補助サービスに接続中です。少し待ってから再試行してください。</string>
-    <string name="toast_grant_device_admin">ダブルタップ画面ロックのため Flue のデバイス管理者を許可してください</string>
+    <string name="toast_accessibility_connecting">Fluly のユーザー補助サービスに接続中です。少し待ってから再試行してください。</string>
+    <string name="toast_grant_device_admin">ダブルタップ画面ロックのため Fluly のデバイス管理者を許可してください</string>
     <string name="toast_open_device_admin_failed">デバイス管理者の設定画面を開けません</string>
     <string name="toast_no_custom_curves">エクスポートできるカスタムモーションカーブがありません</string>
     <string name="toast_curves_exported">モーションカーブをエクスポートしました</string>
@@ -408,7 +408,7 @@
     <string name="backup_unknown_location">不明な場所</string>
 
     <!-- 設定ホーム -->
-    <string name="settings_root_title">Flue の設定</string>
+    <string name="settings_root_title">Fluly の設定</string>
     <string name="settings_search_empty">一致する設定はありません</string>
     <string name="settings_search_placeholder">設定を検索</string>
     <string name="action_clear">クリア</string>
@@ -431,7 +431,7 @@
     <string name="settings_tools">ツール</string>
     <string name="settings_tools_sub">バックアップ・ログ書き出し・初期化</string>
     <string name="settings_about">このアプリについて</string>
-    <string name="settings_about_sub_fmt">Flue Next  %s</string>
+    <string name="settings_about_sub_fmt">Fluly %s</string>
 
     <!-- 文字盤 -->
     <string name="settings_watchface_refresh">文字盤を再スキャン</string>
@@ -439,11 +439,11 @@
     <string name="settings_watchface_import">文字盤をインポート</string>
     <string name="settings_watchface_import_sub">標準 Watchmaker .watch 文字盤をインポート（jb_watch パッケージ対応）</string>
     <string name="settings_watchface_store">文字盤ストア</string>
-    <string name="settings_watchface_store_sub">Flue Studio で Watchmaker Community Store を閲覧し、.watch 文字盤を読み込みます</string>
+    <string name="settings_watchface_store_sub">Fluly Studio で Watchmaker Community Store を閲覧し、.watch 文字盤を読み込みます</string>
     <string name="settings_watchface_editor_new">.watch 文字盤を新規作成</string>
-    <string name="settings_watchface_editor_new_sub">Flue Studio で文字盤を新規作成し、リアルタイムでプレビュー</string>
+    <string name="settings_watchface_editor_new_sub">Fluly Studio で文字盤を新規作成し、リアルタイムでプレビュー</string>
     <string name="settings_watchface_editor_current">現在の標準文字盤を編集</string>
-    <string name="settings_watchface_editor_current_sub_fmt">Flue Studio で %s を編集し、新しい文字盤として保存</string>
+    <string name="settings_watchface_editor_current_sub_fmt">Fluly Studio で %s を編集し、新しい文字盤として保存</string>
     <string name="settings_watchface_more">文字盤の詳細設定</string>
     <string name="settings_watchface_more_sub">内蔵文字盤のフォントと下部フェード</string>
     <string name="settings_watchmaker_force_fill">画面いっぱいに表示</string>
@@ -532,7 +532,7 @@
     <!-- このアプリについて・寄付 -->
     <string name="settings_about_title">このアプリについて</string>
     <string name="settings_donate_title">開発を支援</string>
-    <string name="settings_donate_tip">Flue Next の開発を支援していただき、本当にありがとうございます！下の QR コードをタップすると全画面で表示できます。</string>
+    <string name="settings_donate_tip">Fluly の開発を支援していただき、本当にありがとうございます！下の QR コードをタップすると全画面で表示できます。</string>
     <string name="settings_donate_wechat">WeChat</string>
     <string name="settings_donate_preview_tap">サムネイルをタップして全画面表示</string>
     <string name="settings_donate_alipay">Alipay</string>
@@ -614,7 +614,7 @@
     <string name="music_text_anim_fade_out_left_fade_in_right_label">左へフェードアウト &amp; 右からフェードイン</string>
     <string name="music_text_anim_fade_out_left_fade_in_right_subtitle">旧テキストが左へ消え、新テキストが右から現れます</string>
     <string name="music_text_anim_fade_out_left_fade_in_up_label">左へフェードアウト &amp; 上へフェードイン</string>
-    <string name="music_text_anim_fade_out_left_fade_in_up_subtitle">Flue 標準の音楽テキスト切り替え効果</string>
+    <string name="music_text_anim_fade_out_left_fade_in_up_subtitle">Fluly 標準の音楽テキスト切り替え効果</string>
     <string name="music_text_anim_fade_out_left_zoom_in_label">左へフェードアウト &amp; ズームイン</string>
     <string name="music_text_anim_fade_out_left_zoom_in_subtitle">旧テキストが左へ消え、新テキストが拡大して現れます</string>
     <string name="music_text_anim_fade_out_left_landing_label">左へフェードアウト &amp; ソフト着地</string>
@@ -698,7 +698,7 @@
     <string name="settings_backup_menu">設定のインポート / エクスポート</string>
     <string name="settings_backup_menu_sub">バックアップする項目と文字盤リソースを選択</string>
     <string name="settings_export_log">ログをエクスポート</string>
-    <string name="settings_export_log_sub">Flue の概要、クラッシュファイル、直近 500 行のシステムログを書き出す</string>
+    <string name="settings_export_log_sub">Fluly の概要、クラッシュファイル、直近 500 行のシステムログを書き出す</string>
     <string name="settings_diagnostic_logging">診断ログモード</string>
     <string name="settings_diagnostic_logging_on">有効。5 分後に自動的にオフになります</string>
     <string name="settings_diagnostic_logging_off">通常はオフ。有効にするとリリース版でも一時的に診断ログを出力します</string>
@@ -715,11 +715,11 @@
     <string name="settings_backup_export_page">設定をエクスポート</string>
     <string name="settings_backup_export_page_sub">設定・並び順・文字盤リソースを ZIP に書き出す</string>
     <string name="settings_backup_import_page">設定をインポート</string>
-    <string name="settings_backup_import_page_sub">Flue の ZIP バックアップを選び、項目ごとに復元</string>
+    <string name="settings_backup_import_page_sub">Fluly の ZIP バックアップを選び、項目ごとに復元</string>
     <string name="settings_backup_export_start">エクスポートを開始</string>
     <string name="settings_backup_export_start_sub">保存先を選ぶと ZIP バックアップを書き込みます</string>
     <string name="settings_backup_import_pick">バックアップファイルを選択</string>
-    <string name="settings_backup_import_pick_sub">Flue の ZIP バックアップファイルを選択</string>
+    <string name="settings_backup_import_pick_sub">Fluly の ZIP バックアップファイルを選択</string>
     <string name="settings_backup_preview_fmt">バックアップ版 %1$s · %2$s</string>
     <string name="settings_backup_unknown_time">日時不明</string>
     <string name="settings_backup_import_start">インポートを開始</string>
@@ -758,9 +758,9 @@
 
     <!-- 文字盤削除ダイアログ -->
     <string name="dialog_delete_watchface_title">文字盤を削除</string>
-    <string name="dialog_delete_watchmaker_fmt">%s を削除しますか？この標準 .watch 文字盤は Flue の非公開フォルダーから削除されます。</string>
-    <string name="dialog_delete_jbwatch_fmt">%s を削除しますか？この jb_watch 互換文字盤は Flue の非公開フォルダーから削除されます。</string>
-    <string name="dialog_delete_imported_fmt">%s を削除しますか？このインポート済み文字盤は Flue の非公開フォルダーから削除されます。</string>
+    <string name="dialog_delete_watchmaker_fmt">%s を削除しますか？この標準 .watch 文字盤は Fluly の非公開フォルダーから削除されます。</string>
+    <string name="dialog_delete_jbwatch_fmt">%s を削除しますか？この jb_watch 互換文字盤は Fluly の非公開フォルダーから削除されます。</string>
+    <string name="dialog_delete_imported_fmt">%s を削除しますか？このインポート済み文字盤は Fluly の非公開フォルダーから削除されます。</string>
     <string name="settings_overlay_mask_corner_radius">マスクの角丸</string>
     <string name="settings_overlay_mask_corner_radius_sub_fmt">スマートスタック、ウィジェット · %1$d dp</string>
     <string name="dialog_overlay_mask_corner_title">調整が必要です</string>
@@ -1010,7 +1010,7 @@
     <string name="watch_editor_canvas_matches_screen_suffix">・この端末の画面と一致</string>
     <string name="watch_editor_canvas_size_description">レイヤー座標はキャンバス中央が原点です。サイズ変更では既存レイヤーを動かさず、デザイン空間だけを変更します。</string>
     <string name="watch_editor_change_canvas_size">キャンバスサイズを変更</string>
-    <string name="watch_editor_default_watch_name">Flue 文字盤</string>
+    <string name="watch_editor_default_watch_name">Fluly 文字盤</string>
     <string name="watch_editor_draft_display_name">エディター下書き</string>
     <string name="watch_editor_preview_summary_fmt">編集プレビュー・%1$d レイヤー</string>
     <string name="watch_editor_attribute_x">X 座標</string>
@@ -1413,7 +1413,7 @@
     <string name="watch_store_scan_warning_fmt">%1$d 個のインストール先をスキャンできませんでした</string>
     <string name="watch_store_scan_warning_detail_fmt">%1$s；最初に失敗したフォルダー：%2$s（%3$s）</string>
     <string name="watch_store_unknown_directory">不明なフォルダー</string>
-    <string name="watch_store_lua_script_warning">この文字盤には Global Script（Lua）が含まれています。Flue は制限付きサンドボックスで実行します。</string>
+    <string name="watch_store_lua_script_warning">この文字盤には Global Script（Lua）が含まれています。Fluly は制限付きサンドボックスで実行します。</string>
     <string name="watch_store_error_superseded_cleanup_fmt">新版はインストールされましたが、旧版を削除できませんでした：%1$s</string>
     <string name="watch_store_error_transaction_cleanup_fmt">インストールに失敗し、一時トランザクションも削除できませんでした：%1$s</string>
     <string name="watch_store_error_catalog_restore_after_install">文字盤はインストール済みですが、ストア記録を復元できていません。再スキャンしてもう一度お試しください。</string>
@@ -1566,7 +1566,7 @@
     <string name="file_manager_unnamed_file">名前のないファイル</string>
     <string name="file_manager_unknown_path">パス不明</string>
     <string name="internal_file_browser_permission_title">デバイスのファイル閲覧を許可</string>
-    <string name="internal_file_browser_permission_message">Wear OS にはシステムのファイル選択画面がない場合があります。Flue 内蔵ブラウザーを使うには、デバイス内ファイルの管理を許可してください。Flue は選択したファイルのみ読み取ります。</string>
+    <string name="internal_file_browser_permission_message">Wear OS にはシステムのファイル選択画面がない場合があります。Fluly 内蔵ブラウザーを使うには、デバイス内ファイルの管理を許可してください。Fluly は選択したファイルのみ読み取ります。</string>
     <string name="internal_file_browser_grant">権限を開く</string>
     <string name="internal_file_browser_back">上の階層へ</string>
     <string name="internal_file_browser_loading">ファイルを読み込み中…</string>
@@ -1687,5 +1687,5 @@
     <string name="watch_store_web_view_render_failed">ウェブ版の読み込みに失敗したため、システムのブラウザで開きました</string>
     <string name="settings_watchface_tap_haptics">タップ時の振動</string>
     <string name="settings_watchface_tap_haptics_sub">.watch 文字盤の操作ボタンをタップすると振動します</string>
-    <string name="flue_studio_not_installed">Flue Studio がインストールされていません（エディタとストアはこちらにあります）</string>
+    <string name="fluly_studio_not_installed">Fluly Studio がインストールされていません（エディタとストアはこちらにあります）</string>
 </resources>

@@ -73,14 +73,14 @@
          所以它和 ShortcutReceiverActivity 的 PIN 请求路径是互补关系，不是替代关系。 -->
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
 
-    <!-- 编辑器 / 商店在 Flue Studio 里，HOME 只负责把用户送过去。Android 11+ 不做
+    <!-- 编辑器 / 商店在 Fluly Studio 里，HOME 只负责把用户送过去。Android 11+ 不做
          包可见性声明就查不到它，「打开 Studio」会永远走「未安装」分支。 -->
     <queries>
-        <package android:name="com.flue.studio" />
+        <package android:name="com.fluly.studio" />
     </queries>
 
     <application
-        android:name=".FlueApplication"
+        android:name=".FlulyApplication"
         android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
@@ -127,7 +127,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <!-- 系统设置在「应用信息页齿轮 / 默认应用当前选中项」等位置展示入口时
-                 解析这个 action，点过去就是 Flue 的设置页。声明本身无副作用：
+                 解析这个 action，点过去就是 Fluly 的设置页。声明本身无副作用：
                  ROM 没实现就只是不显示入口；SettingsActivity 本就 exported=true
                  （LAUNCHER 入口），不存在新增暴露。 -->
             <intent-filter>
@@ -186,18 +186,18 @@
             长度上限、只当字符串、绝不进求值路径，见 WatchExternalData 的注释。
 
             两个动作：com.ailife.clox.WRITE_DATA 是为了兼容现有集成方，
-            com.flue.launcher.WRITE_DATA 给新写的用。
+            com.fluly.launcher.WRITE_DATA 给新写的用。
         -->
         <!--
             接收器实现已随渲染层搬进 :watchface-runtime；FQCN 未变，
-            所以这里仍按 app 包名（com.flue.launcher.*）寻址。
+            所以这里仍按 app 包名（com.fluly.launcher.*）寻址。
         -->
         <receiver
             android:name=".watchface.standard.WatchExternalDataReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.ailife.clox.WRITE_DATA" />
-                <action android:name="com.flue.launcher.WRITE_DATA" />
+                <action android:name="com.fluly.launcher.WRITE_DATA" />
             </intent-filter>
         </receiver>
 
@@ -217,7 +217,7 @@
 
         <!--
           WatchMaker 表盘画布调节页：本页渲染真实表盘，叠加参数面板即时预览。
-          exported="false"：仅供 Flue 内部设置入口启动，不是网页宿主。
+          exported="false"：仅供 Fluly 内部设置入口启动，不是网页宿主。
         -->
         <activity
             android:name=".CanvasAdjustActivity"
@@ -268,20 +268,20 @@
         </service>
 
         <service
-            android:name=".service.FlueAccessibilityService"
+            android:name=".service.FlulyAccessibilityService"
             android:exported="true"
-            android:label="@string/flue_accessibility_label"
+            android:label="@string/fluly_accessibility_label"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data
                 android:name="android.accessibilityservice"
-                android:resource="@xml/flue_accessibility_service" />
+                android:resource="@xml/fluly_accessibility_service" />
         </service>
 
         <receiver
-            android:name=".service.FlueDeviceAdminReceiver"
+            android:name=".service.FlulyDeviceAdminReceiver"
             android:exported="true"
             android:permission="android.permission.BIND_DEVICE_ADMIN">
             <intent-filter>
@@ -289,7 +289,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.app.device_admin"
-                android:resource="@xml/flue_device_admin" />
+                android:resource="@xml/fluly_device_admin" />
         </receiver>
 
         <provider

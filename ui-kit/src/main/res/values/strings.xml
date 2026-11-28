@@ -6,7 +6,7 @@
     <string name="internal_file_browser_grant">前往授权</string>
     <string name="internal_file_browser_import_selected_fmt">导入所选的 %1$d 个文件</string>
     <string name="internal_file_browser_loading">正在读取文件…</string>
-    <string name="internal_file_browser_permission_message">Wear OS 通常没有系统文件选择器。要使用 Flue 内置文件浏览器，请允许 Flue 管理设备中的文件。Flue 只会在您主动选择文件时读取内容。</string>
+    <string name="internal_file_browser_permission_message">Wear OS 通常没有系统文件选择器。要使用 Fluly 内置文件浏览器，请允许 Fluly 管理设备中的文件。Fluly 只会在您主动选择文件时读取内容。</string>
     <string name="internal_file_browser_permission_title">允许浏览设备文件</string>
     <string name="internal_file_browser_read_failed">无法读取这个目录</string>
     <string name="internal_file_browser_select_current_folder">导出到当前目录</string>

@@ -12,7 +12,7 @@ junit = "4.13.2"
 recyclerview = "1.4.0"
 robolectric = "4.16.1"
 coroutines = "1.10.2"
-# 0.9.x raises the Android AAR floor to compileSdk 37. Flue currently uses
+# 0.9.x raises the Android AAR floor to compileSdk 37. Fluly currently uses
 # AGP 8.13.2 / compileSdk 36, so keep the newest official API-36 build.
 miuix = "0.8.8"
 # BOM 2026.04 捆绑的 material3 1.4.0 里 MaterialExpressiveTheme 仍是 internal，

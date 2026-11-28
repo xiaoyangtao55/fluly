@@ -371,7 +371,7 @@ def fetch_image(url):
         # Pin the checked address while preserving HTTPS hostname/SNI verification.
         connection._create_connection = lambda _address, timeout, source_address=None: socket.create_connection((addresses[0], port), timeout, source_address)
         try:
-            connection.request('GET', urllib.parse.urlunsplit(('', '', parsed.path or '/', parsed.query, '')), headers={'Accept': 'image/*', 'User-Agent': 'Flue-Watchface-Prototype/1'})
+            connection.request('GET', urllib.parse.urlunsplit(('', '', parsed.path or '/', parsed.query, '')), headers={'Accept': 'image/*', 'User-Agent': 'Fluly-Watchface-Prototype/1'})
             response = connection.getresponse()
             if response.status in (301, 302, 303, 307, 308):
                 location = response.getheader('Location')
@@ -412,7 +412,7 @@ def generate_image(request):
     if request.get('image'):
         normalized = image_tools.result(image_tools.read_image(request['image']))['dataUrl']
         _, raw = image_tools.decode_data_url(normalized)
-        boundary = 'FlueBoundary' + uuid.uuid4().hex
+        boundary = 'FlulyBoundary' + uuid.uuid4().hex
         parts = []
         for name, value in fields.items():
             parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{value}\r\n'.encode('utf-8'))

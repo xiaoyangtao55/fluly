@@ -1,0 +1,3832 @@
+﻿package com.fluly.launcher.ui.smartstack
+
+import android.Manifest
+import android.app.Activity
+import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProviderInfo
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.content.pm.LauncherApps
+import android.content.pm.ShortcutInfo
+import android.graphics.Outline
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.os.Build
+import android.os.BatteryManager
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewOutlineProvider
+import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerId
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.icon.extended.Back
+import top.yukonga.miuix.kmp.icon.extended.Location
+import com.fluly.launcher.ui.common.isFlulyScreenRound
+import com.fluly.launcher.ui.common.DEFAULT_OVERLAY_MASK_CORNER_RADIUS_DP
+import com.fluly.launcher.ui.common.flulyOverlayMaskShape
+import com.fluly.launcher.data.model.AppInfo
+import com.fluly.launcher.data.model.WidgetInfo
+import com.fluly.launcher.data.model.iconForDisplay
+import com.fluly.launcher.FlulyApplication
+import com.fluly.launcher.R
+import com.fluly.launcher.data.repository.WidgetRepository
+import com.fluly.launcher.widget.WidgetBindingDecision
+import com.fluly.launcher.widget.WidgetRecoveryGate
+import com.fluly.launcher.widget.widgetBindingDecision
+import com.fluly.launcher.ui.common.FrostedHeader
+import com.fluly.launcher.ui.common.glassSurface
+import com.fluly.launcher.ui.common.instantPressGesture
+import com.fluly.launcher.ui.common.rememberPressedState
+import com.fluly.launcher.ui.common.WatchBatteryPill
+import com.fluly.launcher.ui.common.flulyPressScale
+import com.fluly.launcher.ui.common.rememberFlulyPressScale
+import com.fluly.launcher.ui.common.rememberFlulyElasticScrollState
+import com.fluly.launcher.ui.common.flulyOverlayOvershootPx
+import com.fluly.launcher.motion.LocalFlulyMotionProfile
+import com.fluly.launcher.ui.style.flulyOverscroll
+import com.fluly.launcher.ui.drawer.AppBubble
+import com.fluly.launcher.ui.drawer.AppShortcutOverlay
+import com.fluly.launcher.ui.style.vibrateHaptic
+import com.fluly.launcher.ui.notification.NotificationEntryUi
+import com.fluly.launcher.ui.notification.NotificationGroupUi
+import com.fluly.launcher.ui.notification.NotificationRevealTarget
+import com.fluly.launcher.ui.notification.SwipeRevealDeleteContainer
+import com.fluly.launcher.ui.notification.notificationStackBackColor
+import com.fluly.launcher.ui.notification.rememberNotificationStackBaseColor
+import com.fluly.launcher.ui.theme.LauncherTheme
+import com.fluly.launcher.ui.theme.UiStyle
+import com.fluly.launcher.ui.theme.WatchColors
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.yield
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.roundToInt
+
+private const val SIDE_SCREEN_CONTENT_WIDTH_RATIO = 0.90f
+private const val SIDE_SCREEN_NOTIFICATION_DRAG_RANGE_RATIO = 0.78f
+private const val SIDE_SCREEN_NOTIFICATION_DRAG_RANGE_MIN = 300f
+private const val SIDE_SCREEN_NOTIFICATION_RELEASE_PROGRESS = 0.6f
+private const val SIDE_SCREEN_NOTIFICATION_FLING_VELOCITY = 1350f
+private const val STACKED_PREVIEW_TRANSLATION_DP = 14
+private const val STACKED_PREVIEW_HORIZONTAL_INSET_DP = 5
+private const val SIDE_SCREEN_SHORTCUT_MENU_TRIGGER_MS = 410L
+private const val WIDGET_CARD_MIN_HEIGHT_DP = 64
+private const val WIDGET_CARD_MAX_HEIGHT_DP = 360
+
+private sealed interface SideScreenModalState {
+    data object None : SideScreenModalState
+    data class ShortcutPicker(val slotIndex: Int) : SideScreenModalState
+    data class ShortcutActions(val slotIndex: Int, val app: AppInfo) : SideScreenModalState
+    data class RemoveShortcut(val slotIndex: Int) : SideScreenModalState
+}
+
+private data class SideScreenClockSnapshot(val time: String, val date: String)
+private data class BatterySnapshot(val level: Int = 0, val charging: Boolean = false)
+private data class StepSnapshot(val steps: Int? = null)
+private data class ShortcutPickerItem(
+    val componentKey: String,
+    val label: String,
+    val packageName: String,
+    val icon: ImageBitmap,
+    val source: AppInfo
+)
+
+private data class SideScreenWidgetCardItem(
+    val widgetIndex: Int,
+    val widget: WidgetInfo,
+    val layout: WidgetSlotLayout,
+    val keyOverride: String? = null
+)
+
+private sealed interface WidgetLayoutSection {
+    val cards: List<SideScreenWidgetCardItem>
+    val stableKey: String
+
+    data class FullWidth(val card: SideScreenWidgetCardItem) : WidgetLayoutSection {
+        override val cards: List<SideScreenWidgetCardItem> = listOf(card)
+        override val stableKey: String = "full:${card.stableKey()}"
+    }
+
+    data class Columns(
+        val left: List<SideScreenWidgetCardItem>,
+        val right: List<SideScreenWidgetCardItem>
+    ) : WidgetLayoutSection {
+        override val cards: List<SideScreenWidgetCardItem> = left + right
+        // 只锚定该 section 内最小的 widgetIndex：拼接全部卡片内容会让任何
+        // 重排都变成"key 换血"（删+加），animateItem 的 placement 动画永远
+        // 不触发。同一次分组里各 section 的卡片集互斥，最小槽位天然唯一。
+        override val stableKey: String =
+            "cols:${cards.minOfOrNull { it.widgetIndex } ?: 0}"
+    }
+}
+
+private data class WidgetSlotLayout(
+    val spanColumns: Int = 2,
+    val heightDp: Int? = null
+)
+
+private data class ActiveWidgetResize(
+    val cardKey: String,
+    val startLayout: WidgetSlotLayout,
+    val resizeMode: WidgetResizeMode,
+    val singleColumnWidthDp: Float,
+    val delta: Offset = Offset.Zero
+)
+
+private data class WidgetDragPreview(
+    val card: SideScreenWidgetCardItem,
+    val bounds: Rect,
+    val offset: Offset
+)
+
+private enum class WidgetResizeMode {
+    Horizontal,
+    Vertical,
+    Both
+}
+
+private data class WidgetHostTag(
+    val bindTag: String,
+    val hostView: AppWidgetHostView
+)
+
+private data class PendingWidgetSelection(
+    val slotIndex: Int,
+    val widget: WidgetInfo,
+    val appWidgetId: Int
+)
+
+private enum class WidgetRecoveryUiState {
+    RECOVERING,
+    REBIND_REQUIRED,
+}
+
+private fun SideScreenWidgetCardItem.stableKey(): String {
+    keyOverride?.let { return it }
+    return "${baseStableKey()}@slot_$widgetIndex"
+}
+
+private fun SideScreenWidgetCardItem.baseStableKey(): String {
+    return if (widget.widgetId != -1) {
+        "widget_${widget.widgetId}"
+    } else {
+        "widget_${widget.widgetKey}"
+    }
+}
+
+private fun parseWidgetSlotLayout(
+    raw: String?,
+    widget: WidgetInfo,
+    widgetRepository: WidgetRepository
+): WidgetSlotLayout {
+    val defaultLayout = defaultWidgetSlotLayout(widget, widgetRepository)
+    val metadata = raw?.substringAfter('#', missingDelimiterValue = "").orEmpty()
+    if (metadata.isBlank()) return defaultLayout
+    val values = metadata
+        .split(';')
+        .mapNotNull { part ->
+            val key = part.substringBefore('=').trim()
+            val value = part.substringAfter('=', missingDelimiterValue = "").trim()
+            if (key.isBlank() || value.isBlank()) null else key to value
+        }
+        .toMap()
+    val span = (values["s"] ?: values["span"])
+        ?.toIntOrNull()
+        ?.coerceIn(1, 2)
+        ?: defaultLayout.spanColumns
+    val height = (values["h"] ?: values["height"])
+        ?.toIntOrNull()
+        ?.takeIf { it > 0 }
+        ?.coerceIn(WIDGET_CARD_MIN_HEIGHT_DP, WIDGET_CARD_MAX_HEIGHT_DP)
+    return WidgetSlotLayout(spanColumns = span, heightDp = height)
+}
+
+private fun defaultWidgetSlotLayout(
+    widget: WidgetInfo,
+    widgetRepository: WidgetRepository
+): WidgetSlotLayout {
+    val providerInfo = widgetRepository.findProviderInfo(widget.widgetKey)
+    val minWidth = providerInfo?.minWidth?.takeIf { it > 0 } ?: 0
+    val minHeight = providerInfo?.minHeight?.takeIf { it > 0 } ?: widget.minHeightDp
+    val aspect = if (minWidth > 0 && minHeight > 0) minWidth.toFloat() / minHeight.toFloat() else 2f
+    val span = if (aspect in 0.75f..1.18f) 1 else 2
+    return WidgetSlotLayout(spanColumns = span)
+}
+
+private fun serializeWidgetSlotValue(baseValue: String, layout: WidgetSlotLayout): String {
+    val height = layout.heightDp ?: 0
+    return "$baseValue#s=${layout.spanColumns.coerceIn(1, 2)};h=$height"
+}
+
+private fun resizeWidgetSlotLayout(
+    startLayout: WidgetSlotLayout,
+    delta: Offset,
+    density: androidx.compose.ui.unit.Density,
+    resizeMode: WidgetResizeMode = WidgetResizeMode.Both,
+    singleColumnWidthDp: Float? = null
+): WidgetSlotLayout {
+    val horizontalThresholdPx = with(density) { 34.dp.toPx() }
+    val verticalThresholdPx = with(density) { 14.dp.toPx() }
+    val horizontalResize = resizeMode != WidgetResizeMode.Vertical && abs(delta.x) > horizontalThresholdPx
+    val verticalResize = resizeMode != WidgetResizeMode.Horizontal && abs(delta.y) > verticalThresholdPx
+    val nextSpan = if (horizontalResize) {
+        if (startLayout.spanColumns == 1) 2 else 1
+    } else {
+        startLayout.spanColumns
+    }
+    val defaultHeight = startLayout.heightDp ?: if (nextSpan == 1) 156 else 170
+    val startHeight = startLayout.heightDp ?: defaultHeight
+    val nextHeight = if (verticalResize) {
+        val rawHeight = startHeight + with(density) { delta.y.toDp().value }
+        ((rawHeight / 8f).roundToInt() * 8).coerceIn(
+            WIDGET_CARD_MIN_HEIGHT_DP,
+            WIDGET_CARD_MAX_HEIGHT_DP
+        )
+    } else {
+        startLayout.heightDp ?: defaultHeight
+    }
+    return WidgetSlotLayout(spanColumns = nextSpan, heightDp = nextHeight)
+}
+
+private fun groupWidgetCardsIntoSections(widgetCards: List<SideScreenWidgetCardItem>): List<WidgetLayoutSection> {
+    if (widgetCards.isEmpty()) return emptyList()
+    val sections = mutableListOf<WidgetLayoutSection>()
+    val leftColumn = mutableListOf<SideScreenWidgetCardItem>()
+    val rightColumn = mutableListOf<SideScreenWidgetCardItem>()
+    var leftHeight = 0
+    var rightHeight = 0
+
+    fun flushColumns() {
+        if (leftColumn.isEmpty() && rightColumn.isEmpty()) return
+        sections += WidgetLayoutSection.Columns(
+            left = leftColumn.toList(),
+            right = rightColumn.toList()
+        )
+        leftColumn.clear()
+        rightColumn.clear()
+        leftHeight = 0
+        rightHeight = 0
+    }
+
+    widgetCards.forEach { card ->
+        if (card.layout.spanColumns >= 2) {
+            flushColumns()
+            sections += WidgetLayoutSection.FullWidth(card)
+        } else if (leftHeight <= rightHeight) {
+            leftColumn += card
+            leftHeight += card.estimatedHeightDp()
+        } else {
+            rightColumn += card
+            rightHeight += card.estimatedHeightDp()
+        }
+    }
+    flushColumns()
+    return sections
+}
+
+private fun SideScreenWidgetCardItem.estimatedHeightDp(): Int {
+    return (layout.heightDp ?: if (layout.spanColumns == 1) 156 else 170)
+        .coerceIn(WIDGET_CARD_MIN_HEIGHT_DP, WIDGET_CARD_MAX_HEIGHT_DP)
+}
+
+private fun widgetInsertionIndexFor(
+    point: Offset,
+    widgetCards: List<SideScreenWidgetCardItem>,
+    boundsByKey: Map<String, Rect>
+): Int? {
+    val targets = widgetCards.mapNotNull { card ->
+        boundsByKey[card.stableKey()]?.let { bounds -> card to bounds }
+    }
+    if (targets.isEmpty()) return null
+    val columnTargets = targets.filter { (_, bounds) ->
+        val horizontalSlop = bounds.width * 0.35f
+        point.x in (bounds.left - horizontalSlop)..(bounds.right + horizontalSlop)
+    }
+    val relevantTargets = (columnTargets.ifEmpty { targets })
+        .sortedWith(compareBy<Pair<SideScreenWidgetCardItem, Rect>> { it.second.top }.thenBy { it.second.left })
+    val beforeTarget = relevantTargets.firstOrNull { (_, bounds) -> point.y < bounds.center.y }
+    if (beforeTarget != null) return beforeTarget.first.widgetIndex
+    val afterTarget = relevantTargets.last()
+    val maxInsertIndex = widgetCards.maxOf { it.widgetIndex } + 1
+    return (afterTarget.first.widgetIndex + 1).coerceIn(0, maxInsertIndex)
+}
+
+/**
+ * 拖动中的本地预览顺序：把被拖卡从原位摘出、插到 targetIndex 对应的槽位
+ * 前面。插入语义与 LauncherViewModel.swapWidgetSlots 一致（先移除、
+ * toIndex 在 fromIndex 之后时左移一位），保证预览与松手落盘的结果吻合。
+ * 只影响渲染分组，不落盘。
+ */
+private fun buildWidgetDragPreviewOrder(
+    widgetCards: List<SideScreenWidgetCardItem>,
+    draggingKey: String,
+    targetIndex: Int
+): List<SideScreenWidgetCardItem> {
+    val fromPosition = widgetCards.indexOfFirst { it.stableKey() == draggingKey }
+    if (fromPosition < 0) return widgetCards
+    val reordered = widgetCards.toMutableList()
+    val dragged = reordered.removeAt(fromPosition)
+    val insertPosition = reordered
+        .indexOfFirst { it.widgetIndex >= targetIndex }
+        .let { if (it < 0) reordered.size else it }
+    reordered.add(insertPosition, dragged)
+    return reordered
+}
+
+private fun widgetResizeModeAt(
+    position: Offset,
+    widthPx: Float,
+    heightPx: Float,
+    hotspotPx: Float
+): WidgetResizeMode? {
+    val horizontal = position.x <= hotspotPx || position.x >= widthPx - hotspotPx
+    val vertical = position.y <= hotspotPx || position.y >= heightPx - hotspotPx
+    return when {
+        horizontal && vertical -> WidgetResizeMode.Both
+        horizontal -> WidgetResizeMode.Horizontal
+        vertical -> WidgetResizeMode.Vertical
+        else -> null
+    }
+}
+
+private fun <T> MutableList<T>.moveItem(fromIndex: Int, toIndex: Int) {
+    if (fromIndex == toIndex || fromIndex !in indices || toIndex !in indices) return
+    val item = removeAt(fromIndex)
+    add(toIndex, item)
+}
+
+private data class WidgetPickerApp(
+    val packageName: String,
+    val label: String,
+    val icon: ImageBitmap?,
+    val widgets: List<WidgetInfo>
+)
+private sealed interface PreviewRow {
+    data class Group(val group: NotificationGroupUi, val entries: List<NotificationEntryUi>, val hiddenCount: Int) : PreviewRow
+    data class Aggregate(val leadEntry: NotificationEntryUi, val hiddenCount: Int) : PreviewRow
+}
+
+private sealed interface PressHoldResult {
+    data class LongPress(val change: PointerInputChange) : PressHoldResult
+    data object Released : PressHoldResult
+    data object Cancelled : PressHoldResult
+}
+
+@Composable
+fun SmartStackLayer(
+    apps: List<AppInfo>,
+    sideScreenShortcuts: List<String?>,
+    previewGroups: List<NotificationGroupUi>,
+    shortcutRows: Int = 2,
+    shortcutColumns: Int = 4,
+    showMusicCard: Boolean = false,
+    showMediaCustomActions: Boolean = true,
+    musicTextSwitchAnimation: String = MusicTextSwitchAnimations.DEFAULT_ID,
+    glassHighlightEnabled: Boolean = true,
+    overlayMaskCornerRadiusDp: Int = DEFAULT_OVERLAY_MASK_CORNER_RADIUS_DP,
+    leftSafeInsetPercent: Int,
+    notificationsEnabled: Boolean,
+    notificationAccessGranted: Boolean,
+    notificationsSceneActive: Boolean,
+    notificationTransitionProgress: Float,
+    revealedNotificationTarget: NotificationRevealTarget?,
+    onRevealTargetChange: (NotificationRevealTarget?) -> Unit,
+    onOpenNotifications: () -> Unit,
+    onNotificationTransitionProgressChange: (Float) -> Unit,
+    onNotificationTransitionRelease: (Boolean) -> Unit,
+    onOpenNotification: (String, Offset) -> Unit,
+    onLaunchApp: (AppInfo, Offset) -> Unit,
+    onSetShortcut: (Int, String?) -> Unit,
+    onQueryAppShortcuts: suspend (AppInfo) -> List<ShortcutInfo>,
+    onSetAppShortcut: suspend (Int, ShortcutInfo) -> Boolean,
+    onRemoveShortcut: (Int) -> Unit,
+    onSwapShortcut: (Int, Int) -> Unit,
+    onSetShowNotification: (Boolean) -> Unit,
+    onDismissGroup: (String) -> Unit,
+    onDismissNotification: (String) -> Unit,
+    onDismissProgressChange: (Float) -> Unit,
+    onDismissRelease: (Float, Float, Boolean) -> Unit,
+    /**
+     * 负一屏已经打开、手指继续**向右**拉时的越界位移（像素，正数 = 内容往右）。
+     *
+     * 与 [onDismissProgressChange] 分成两条通道：dismiss 进度必须留在 0..1，越界是叠在
+     * 开态之上的额外位移，宿主用 graphicsLayer 的 translationX 承接。松手仍走
+     * [onDismissRelease]（cancelled = true），由宿主把越界弹回 0。
+     */
+    onOvershootChange: (Float) -> Unit = {},
+    showSteps: Boolean,
+    /**
+     * 负一屏此刻是否处于打开态。这一层是常驻组合、靠位移移出屏外的，
+     * 卡片类内容（音乐媒体轮询等）以它为门控，不打开就不跑。
+     */
+    contentVisible: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val clock = rememberClockSnapshot(contentVisible = contentVisible)
+    val currentOnDismissProgressChange by rememberUpdatedState(onDismissProgressChange)
+    val currentOnDismissRelease by rememberUpdatedState(onDismissRelease)
+    val currentOnOvershootChange by rememberUpdatedState(onOvershootChange)
+    val motionProfile = LocalFlulyMotionProfile.current
+    val battery = rememberBatterySnapshot()
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val contentScrollState = rememberScrollState()
+    val stepPermissionGranted = rememberActivityRecognitionPermission(showSteps)
+    val stepSnapshot = rememberStepSnapshot(showSteps, stepPermissionGranted)
+    val slotCenters = remember { mutableStateMapOf<Int, Offset>() }
+    val showNotificationPreview = notificationsEnabled && !showMusicCard
+    // 通知横幅占一行时保留 4x2；关闭通知后利用空出的高度扩成 4x3。
+    val effectiveShortcutRows = if (showNotificationPreview) 2 else 3
+    val effectiveShortcutColumns = 4
+    val expandedShortcutGrid = effectiveShortcutRows >= 3
+    val usesElasticOverscroll = sideScreenContentUsesElasticOverscroll(
+        showMusicCard = showMusicCard,
+        showNotificationPreview = showNotificationPreview,
+        expandedShortcutGrid = expandedShortcutGrid,
+    )
+    val canOpenNotificationsFromSide = showNotificationPreview
+    val visibleShortcutCount = effectiveShortcutRows * effectiveShortcutColumns
+    LaunchedEffect(visibleShortcutCount) { slotCenters.clear() }
+    val context = LocalContext.current
+
+    val shortcutItems = remember(apps, sideScreenShortcuts, visibleShortcutCount) {
+        List(visibleShortcutCount) { i ->
+            val appKey = sideScreenShortcuts.getOrNull(i)
+            appKey?.let { key -> apps.firstOrNull { it.componentKey == key } }
+        }
+    }
+    val previewRows = remember(previewGroups, showNotificationPreview) {
+        if (showNotificationPreview) buildPreviewRows(previewGroups, maxRows = 1) else emptyList()
+    }
+    val notificationDragRangePx = remember(configuration.screenHeightDp, density) {
+        maxOf(
+            with(density) { configuration.screenHeightDp.dp.toPx() } * SIDE_SCREEN_NOTIFICATION_DRAG_RANGE_RATIO,
+            SIDE_SCREEN_NOTIFICATION_DRAG_RANGE_MIN
+        )
+    }
+    val notificationReleaseThresholdPx = notificationDragRangePx * SIDE_SCREEN_NOTIFICATION_RELEASE_PROGRESS
+    var modalState by remember { mutableStateOf<SideScreenModalState>(SideScreenModalState.None) }
+    var dragDx by remember { mutableFloatStateOf(0f) }
+    var dragDy by remember { mutableFloatStateOf(0f) }
+    var dragVelocityX by remember { mutableFloatStateOf(0f) }
+    var dragVelocityY by remember { mutableFloatStateOf(0f) }
+    var dismissGestureActive by remember { mutableStateOf(false) }
+    // 「已经打开、手指还在继续往右拉」的越界通道，与 dismiss 互斥。
+    var overshootGestureActive by remember { mutableStateOf(false) }
+    var lastDragEventUptime by remember { mutableStateOf(0L) }
+    var transitionInFlight by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(notificationsSceneActive, usesElasticOverscroll) {
+        dragDx = 0f
+        dragDy = 0f
+        dragVelocityX = 0f
+        dragVelocityY = 0f
+        dismissGestureActive = false
+        overshootGestureActive = false
+        lastDragEventUptime = 0L
+        transitionInFlight = false
+    }
+    val launcherStyle = LauncherTheme.style
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            // 圆屏整圆裁剪（40dp 圆角矩形在圆屏上会露出底边弧线）；根底改
+            // 半透明玻璃：表盘背衬在下面被压暗模糊，这层透出它就是毛玻璃。
+            .clip(flulyOverlayMaskShape(overlayMaskCornerRadiusDp))
+            .background(launcherStyle.screenBackground.copy(alpha = 0.62f))
+            .pointerInput(
+                notificationAccessGranted,
+                canOpenNotificationsFromSide,
+                usesElasticOverscroll,
+                modalState,
+                notificationsSceneActive,
+                transitionInFlight,
+            ) {
+                if (modalState != SideScreenModalState.None || notificationsSceneActive || transitionInFlight) return@pointerInput
+                detectDragGestures(
+                    onDragStart = {
+                        dragDx = 0f
+                        dragDy = 0f
+                        dragVelocityX = 0f
+                        dragVelocityY = 0f
+                        dismissGestureActive = false
+                        overshootGestureActive = false
+                        lastDragEventUptime = 0L
+                    },
+                    onDrag = { change, dragAmount ->
+                        if (lastDragEventUptime != 0L) {
+                            val deltaMs = (change.uptimeMillis - lastDragEventUptime).coerceAtLeast(1L)
+                            val instantVelocityX = dragAmount.x / deltaMs * 1000f
+                            val instantVelocityY = dragAmount.y / deltaMs * 1000f
+                            dragVelocityX = if (dragVelocityX == 0f) {
+                                instantVelocityX
+                            } else {
+                                dragVelocityX * 0.35f + instantVelocityX * 0.65f
+                            }
+                            dragVelocityY = if (dragVelocityY == 0f) {
+                                instantVelocityY
+                            } else {
+                                dragVelocityY * 0.35f + instantVelocityY * 0.65f
+                            }
+                        }
+                        lastDragEventUptime = change.uptimeMillis
+                        dragDx += dragAmount.x
+                        dragDy += dragAmount.y
+                        if (
+                            dismissGestureActive ||
+                            (dragDx < -18f && abs(dragDx) > abs(dragDy))
+                        ) {
+                            dismissGestureActive = true
+                            change.consume()
+                            currentOnDismissProgressChange(
+                                (1f + dragDx / (size.width.coerceAtLeast(1) * 0.8f))
+                                    .coerceIn(0f, 1f)
+                            )
+                        } else if (
+                            overshootGestureActive ||
+                            (dragDx > 18f && abs(dragDx) > abs(dragDy))
+                        ) {
+                            // 这里原先是一条空语句（`Unit`）：负一屏已经打开、手指继续
+                            // 向右拉时什么都不做，于是到边界硬停。现在换成越界回弹 ——
+                            // 拉得越远阻力越大（flulyOverlayOvershootPx 的闭式解），
+                            // 有硬上限防止拉过头，松手交给宿主弹回。
+                            overshootGestureActive = true
+                            change.consume()
+                            currentOnOvershootChange(
+                                flulyOverlayOvershootPx(
+                                    outwardTravelPx = dragDx,
+                                    viewportPx = size.width,
+                                    density = density.density,
+                                    motionProfile = motionProfile,
+                                )
+                            )
+                        } else if (abs(dragDx) > abs(dragDy)) {
+                            Unit
+                        } else if (canOpenNotificationsFromSide && (dragDy < 0f || notificationTransitionProgress > 0f)) {
+                            change.consume()
+                            onNotificationTransitionProgressChange(
+                                (-dragDy / notificationDragRangePx).coerceIn(0f, 1f)
+                            )
+                        }
+                        // 这里原先还有三条手写橡皮筋分支（`applySideOverscroll`）。它们挂在
+                        // verticalScroll 的**父级** pointerInput 上，子级先消费之后
+                        // awaitTouchSlopOrCancellation 会让整场手势放弃，所以一行都执行不到 ——
+                        // 是死代码。内容能滚时的回弹已经由 Modifier.flulyOverscroll 负责（见
+                        // sideScreenContentUsesElasticOverscroll）；内容不可滚时本来就不该有
+                        // 假回弹，所以直接删掉而不是搬位置。
+                    },
+                    onDragEnd = {
+                        val verticalIntent = abs(dragDy) > abs(dragDx) ||
+                            abs(dragVelocityY) > SIDE_SCREEN_NOTIFICATION_FLING_VELOCITY
+                        val openNotifications = canOpenNotificationsFromSide &&
+                            verticalIntent &&
+                            (
+                                dragDy < -notificationReleaseThresholdPx ||
+                                    notificationTransitionProgress > SIDE_SCREEN_NOTIFICATION_RELEASE_PROGRESS ||
+                                    dragVelocityY < -SIDE_SCREEN_NOTIFICATION_FLING_VELOCITY
+                                )
+
+                        when {
+                            dismissGestureActive -> {
+                                val progress =
+                                    (1f + dragDx / (size.width.coerceAtLeast(1) * 0.8f))
+                                        .coerceIn(0f, 1f)
+                                val velocity =
+                                    dragVelocityX / (size.width.coerceAtLeast(1) * 0.8f)
+                                dragDx = 0f
+                                dragDy = 0f
+                                dragVelocityX = 0f
+                                dragVelocityY = 0f
+                                dismissGestureActive = false
+                                lastDragEventUptime = 0L
+                                onNotificationTransitionRelease(false)
+                                onRevealTargetChange(null)
+                                currentOnDismissRelease(progress, velocity, false)
+                            }
+                            overshootGestureActive -> {
+                                dragDx = 0f
+                                dragDy = 0f
+                                dragVelocityX = 0f
+                                dragVelocityY = 0f
+                                overshootGestureActive = false
+                                lastDragEventUptime = 0L
+                                onNotificationTransitionRelease(false)
+                                // cancelled = true：越界只回弹，不改开/关状态。
+                                // 宿主在同一条 release 上把越界位移弹回 0。
+                                currentOnDismissRelease(1f, 0f, true)
+                            }
+                            openNotifications -> {
+                                dragDx = 0f
+                                dragDy = 0f
+                                dragVelocityX = 0f
+                                dragVelocityY = 0f
+                                lastDragEventUptime = 0L
+                                onRevealTargetChange(null)
+                                onNotificationTransitionRelease(true)
+                            }
+                            else -> {
+                                dragDx = 0f
+                                dragDy = 0f
+                                dragVelocityX = 0f
+                                dragVelocityY = 0f
+                                lastDragEventUptime = 0L
+                                onNotificationTransitionRelease(false)
+                            }
+                        }
+                    },
+                    onDragCancel = {
+                        if (dismissGestureActive) {
+                            val progress =
+                                (1f + dragDx / (size.width.coerceAtLeast(1) * 0.8f))
+                                    .coerceIn(0f, 1f)
+                            currentOnDismissRelease(progress, 0f, true)
+                        } else if (overshootGestureActive) {
+                            currentOnDismissRelease(1f, 0f, true)
+                        }
+                        dragDx = 0f
+                        dragDy = 0f
+                        dragVelocityX = 0f
+                        dragVelocityY = 0f
+                        dismissGestureActive = false
+                        overshootGestureActive = false
+                        lastDragEventUptime = 0L
+                        onNotificationTransitionRelease(false)
+                    }
+                )
+            }
+    ) {
+        val widthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
+        val heightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
+        val leftSafeInset = maxWidth * (leftSafeInsetPercent.coerceIn(0, 50) / 100f)
+        val availableWidth = maxWidth - leftSafeInset
+        val contentWidth = availableWidth * SIDE_SCREEN_CONTENT_WIDTH_RATIO
+        val verticalScrollEnabled = sideScreenContentAllowsVerticalScroll(
+            showMusicCard = showMusicCard,
+            showNotificationPreview = showNotificationPreview,
+            expandedShortcutGrid = expandedShortcutGrid,
+        )
+        val bottomSafePadding = 18.dp
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                // 这里原先挂着一个常驻 graphicsLayer（translationY = 手写橡皮筋位移）。
+                // 手写橡皮筋删掉之后位移恒为 0，而常驻图层在负一屏这种全屏尺寸上每次
+                // 失效都要透过它重绘 —— 正是 FlulyScrollBehavior 里写明的反模式。
+                .padding(start = leftSafeInset)
+                .padding(top = 10.dp, bottom = bottomSafePadding)
+                .then(
+                    if (verticalScrollEnabled) {
+                        // usesElasticOverscroll 与 verticalScrollEnabled 现在是同一个判据，
+                        // 所以能滚就一定挂得上回弹，不再有「能滚却没有橡皮筋」的差集。
+                        Modifier
+                            .flulyOverscroll(contentScrollState)
+                            .verticalScroll(contentScrollState)
+                    } else {
+                        Modifier
+                    }
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 顶部模糊头（§8）：时钟 + 日期整体包进 FrostedHeader，滚动量来自
+            // contentScrollState（当前副一屏纵向滚动关闭时恒为 0，头部保持全透明）。
+            // 原 14dp 间距由模糊头自带的 16dp 渐隐过渡带承担。
+            FrostedHeader(
+                scrollProvider = { contentScrollState.value.toFloat() },
+                height = 64.dp
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        clock.time,
+                        color = launcherStyle.titleColor,
+                        fontSize = 31.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        clock.date,
+                        color = WatchColors.TextSecondary,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            QuickPanel(
+                items = shortcutItems,
+                slotCenters = slotCenters,
+                dockWidth = contentWidth,
+                glassHighlightEnabled = glassHighlightEnabled,
+                onAdd = { onRevealTargetChange(null); modalState = SideScreenModalState.ShortcutPicker(it) },
+                onOpenActions = { slot, app ->
+                    onRevealTargetChange(null)
+                    modalState = SideScreenModalState.ShortcutActions(slot, app)
+                },
+                onCloseActions = {
+                    if (modalState is SideScreenModalState.ShortcutActions) {
+                        modalState = SideScreenModalState.None
+                    }
+                },
+                onSwap = onSwapShortcut,
+                onClickApp = { slot, app ->
+                    val center = slotCenters[slot] ?: Offset(widthPx / 2f, heightPx / 2f)
+                    onRevealTargetChange(null)
+                    onLaunchApp(app, Offset(center.x / widthPx, center.y / heightPx))
+                },
+                rows = effectiveShortcutRows,
+                columns = effectiveShortcutColumns,
+            )
+            if (showMusicCard) {
+                Spacer(Modifier.height(16.dp))
+                SideScreenMusicCard(
+                    notificationAccessGranted = notificationAccessGranted,
+                    musicTextSwitchAnimation = musicTextSwitchAnimation,
+                    showMediaCustomActions = showMediaCustomActions,
+                    glassHighlightEnabled = glassHighlightEnabled,
+                    active = contentVisible,
+                    modifier = Modifier.width(contentWidth)
+                )
+                Spacer(Modifier.height(20.dp))
+            }
+            if (showNotificationPreview) {
+                Spacer(Modifier.height(16.dp))
+                Column(
+                    Modifier
+                        .width(contentWidth)
+                        .animateContentSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    when {
+                        !notificationAccessGranted -> PreviewInfoCard(
+                            stringResource(R.string.side_notification_permission_title),
+                            stringResource(R.string.side_notification_permission_subtitle),
+                            glassHighlightEnabled,
+                            onOpenNotifications,
+                        )
+                        previewGroups.isEmpty() -> PreviewInfoCard(
+                            stringResource(R.string.side_notification_empty_title),
+                            stringResource(R.string.side_notification_empty_subtitle),
+                            glassHighlightEnabled,
+                            onOpenNotifications,
+                        )
+                        else -> previewRows.forEach { row ->
+                            when (row) {
+                                is PreviewRow.Aggregate -> StackedPreviewCard(
+                                    row.leadEntry,
+                                    row.hiddenCount,
+                                    glassHighlightEnabled,
+                                    onOpenNotifications
+                                )
+                                is PreviewRow.Group -> {
+                                    val entry = row.entries.firstOrNull()
+                                    if (entry != null) {
+                                        SwipeRevealDeleteContainer(
+                                            target = if (row.hiddenCount > 0) {
+                                                NotificationRevealTarget.Group(row.group.packageName)
+                                            } else {
+                                                NotificationRevealTarget.Entry(entry.key)
+                                            },
+                                            revealedTarget = revealedNotificationTarget,
+                                            onRevealTargetChange = onRevealTargetChange,
+                                            enabled = if (row.hiddenCount > 0) {
+                                                row.group.entries.any(NotificationEntryUi::isClearable)
+                                            } else {
+                                                entry.isClearable
+                                            },
+                                            onDelete = {
+                                                if (row.hiddenCount > 0) {
+                                                    onDismissGroup(row.group.packageName)
+                                                } else {
+                                                    onDismissNotification(entry.key)
+                                                }
+                                            },
+                                            actionHeight = 72.dp
+                                        ) {
+                                            if (row.hiddenCount > 0) {
+                                                StackedPreviewCard(entry, row.hiddenCount, glassHighlightEnabled, onOpenNotifications)
+                                            } else {
+                                                PreviewPill(
+                                                    entry = entry,
+                                                    glassHighlightEnabled = glassHighlightEnabled,
+                                                    onClick = onOpenNotifications
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Reserve the bottom capsule's hit area even when notifications are hidden.
+            // Full-size cards can continue below the viewport and scroll clear of this pill.
+            Spacer(Modifier.height(52.dp))
+        }
+        WatchBatteryAndStepsPill(
+            level = battery.level,
+            charging = battery.charging,
+            steps = stepSnapshot.steps,
+            showSteps = showSteps,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 14.dp)
+        )
+    }
+
+    when (val state = modalState) {
+        is SideScreenModalState.ShortcutPicker -> ShortcutPickerOverlay(
+            apps = apps,
+            onQueryShortcuts = onQueryAppShortcuts,
+            onSelectOpenApp = { onSetShortcut(state.slotIndex, it.componentKey) },
+            onSelectShortcut = { onSetAppShortcut(state.slotIndex, it) },
+            onDismiss = { modalState = SideScreenModalState.None }
+        )
+        is SideScreenModalState.ShortcutActions -> AppShortcutOverlay(
+            app = state.app,
+            onExcludeApp = null,
+            onRemoveShortcut = { onRemoveShortcut(state.slotIndex) },
+            onDismiss = { modalState = SideScreenModalState.None }
+        )
+        is SideScreenModalState.RemoveShortcut -> {
+            val app = shortcutItems.getOrNull(state.slotIndex)
+            if (app != null) {
+                RemoveOverlay(
+                    app = app,
+                    widget = null,
+                    onRemove = { onRemoveShortcut(state.slotIndex) },
+                    onDismiss = { modalState = SideScreenModalState.None }
+                )
+            } else {
+                LaunchedEffect(state) { modalState = SideScreenModalState.None }
+            }
+        }
+        SideScreenModalState.None -> Unit
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+fun WidgetPageLayer(
+    apps: List<AppInfo>,
+    active: Boolean = true,
+    sideScreenWidgetSlots: List<String?>,
+    leftSafeInsetPercent: Int,
+    glassHighlightEnabled: Boolean = true,
+    widgetGlassHighlightEnabled: Boolean = true,
+    onSetWidget: (Int, String?) -> Unit,
+    onSwapWidget: (Int, Int) -> Unit,
+    onRemoveWidget: (Int) -> Unit,
+    onEditModeChange: (Boolean) -> Unit = {},
+    overlayMaskCornerRadiusDp: Int = DEFAULT_OVERLAY_MASK_CORNER_RADIUS_DP,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val activity = remember(context) { context.findActivity() }
+    val density = LocalDensity.current
+    val launcherStyle = LauncherTheme.style
+    val effectiveWidgetGlassHighlightEnabled =
+        glassHighlightEnabled && widgetGlassHighlightEnabled
+    val roundScreen = isFlulyScreenRound()
+    val repositories = remember(context) { FlulyApplication.repositories(context) }
+    val widgetRepository = remember(repositories) { repositories.widgetRepository }
+    val appWidgetManager = remember(context) { AppWidgetManager.getInstance(context) }
+    val appWidgetHost = remember(repositories) { repositories.appWidgetHost }
+    val listState = rememberLazyListState()
+    val sharedElasticState = rememberFlulyElasticScrollState(listState)
+    val scope = rememberCoroutineScope()
+    val widgetCards = remember(sideScreenWidgetSlots, widgetRepository) {
+        val parsedCards = sideScreenWidgetSlots.mapIndexedNotNull { index, raw ->
+            widgetRepository.parseSlotValue(raw)?.let { widget ->
+                SideScreenWidgetCardItem(
+                    widgetIndex = index,
+                    widget = widget,
+                    layout = parseWidgetSlotLayout(raw, widget, widgetRepository)
+                )
+            }
+        }
+        val duplicateBaseKeys = parsedCards
+            .groupingBy { it.baseStableKey() }
+            .eachCount()
+            .filterValues { it > 1 }
+            .keys
+        parsedCards.map { card ->
+            if (card.baseStableKey() in duplicateBaseKeys) {
+                card.copy(keyOverride = "${card.baseStableKey()}_${card.widgetIndex}")
+            } else {
+                card
+            }
+        }
+    }
+    // —— 拖动实时避让（只改本地渲染顺序，不落盘）——
+    // 冻结快照：避让重排会让"洞"和其他卡片自己动起来，落点探针与跟手
+    // 补偿都必须以按下瞬间冻结的坐标为基准，实时读会互相追着横跳。
+    var widgetDragPreviewCards by remember { mutableStateOf<List<SideScreenWidgetCardItem>?>(null) }
+    var widgetDragPreviewBase by remember { mutableStateOf<List<SideScreenWidgetCardItem>?>(null) }
+    var dragFrozenCenter by remember { mutableStateOf<Offset?>(null) }
+    var dragFrozenTopLeft by remember { mutableStateOf<Offset?>(null) }
+    var dragFrozenBounds by remember { mutableStateOf<Map<String, Rect>>(emptyMap()) }
+    var dragScrollAccum by remember { mutableFloatStateOf(0f) }
+    val widgetSections = remember(widgetCards, widgetDragPreviewCards) {
+        // 预览只在其构建基准仍是当前数据时生效：落盘后新数据到账，陈旧
+        // 预览自动失效。提交后预览留到数据回流，中间帧才不会先回跳一下。
+        val previewCards = widgetDragPreviewCards?.takeIf { widgetDragPreviewBase === widgetCards }
+        groupWidgetCardsIntoSections(previewCards ?: widgetCards)
+    }
+    val widgetCardCenters = remember { mutableStateMapOf<String, Offset>() }
+    val widgetHostOwner = remember { Any() }
+    val refreshLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val refreshScope = rememberCoroutineScope()
+    fun refreshProviders() {
+        refreshScope.launch {
+            runCatching { repositories.widgetHostLifecycle.acquire(widgetHostOwner) }
+            withContext(kotlinx.coroutines.Dispatchers.IO) {
+                repositories.widgetRefreshCoordinator.refresh(widgetCards.map { it.widget })
+            }
+        }
+    }
+    DisposableEffect(active, refreshLifecycle, widgetCards) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (active && event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                refreshProviders()
+            }
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+                repositories.widgetHostLifecycle.release(widgetHostOwner)
+            }
+        }
+        refreshLifecycle.lifecycle.addObserver(observer)
+        if (active && refreshLifecycle.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+            refreshProviders()
+        }
+        onDispose {
+            refreshLifecycle.lifecycle.removeObserver(observer)
+            repositories.widgetHostLifecycle.release(widgetHostOwner)
+        }
+    }
+    val widgetCardBounds = remember { mutableStateMapOf<String, Rect>() }
+    var editMode by remember { mutableStateOf(false) }
+    var showPicker by remember { mutableStateOf(false) }
+    var pendingWidgetSelection by remember { mutableStateOf<PendingWidgetSelection?>(null) }
+    var draggingWidgetKey by remember { mutableStateOf<String?>(null) }
+    var draggingWidgetOffset by remember { mutableStateOf(Offset.Zero) }
+    var activeWidgetResize by remember { mutableStateOf<ActiveWidgetResize?>(null) }
+    var editGestureLocked by remember { mutableStateOf(false) }
+    var widgetDragAutoScrollPx by remember { mutableFloatStateOf(0f) }
+    var pendingWidgetDropIndex by remember { mutableStateOf<Int?>(null) }
+    var widgetPageRootOffset by remember { mutableStateOf(Offset.Zero) }
+    val removingWidgetKeys = remember { mutableStateListOf<String>() }
+    val enteringWidgetKeys = remember { mutableStateListOf<String>() }
+    val widgetRecoveryGate = remember { WidgetRecoveryGate() }
+    val widgetRecoveryStates = remember { mutableStateMapOf<String, WidgetRecoveryUiState>() }
+    // null = 首帧尚未记账。以前初值空集把首次组合的全部既有卡判成"新增"，
+    // 每次打开小组件页整页卡片重播入场动画。
+    var previousWidgetKeys by remember { mutableStateOf<Set<String>?>(null) }
+    val widgetBorderHotspotPx = with(density) { 26.dp.toPx() }
+    val widgetResizeLongPressMs = 420L
+    val autoScrollEdgePx = with(density) { 56.dp.toPx() }
+    val autoScrollMaxVelocityPx = with(density) { 1100.dp.toPx() }
+
+    LaunchedEffect(editMode, showPicker) {
+        onEditModeChange(editMode && !showPicker)
+    }
+
+    // 编辑模式下按返回先退出编辑，而不是直接回表盘（老师报的）。
+    //
+    // 侧滑返回早就在编辑模式下被 `widgetsBackGestureLocked` 拦住了，但**返回键**
+    // 一直直通到 Activity 的 onBackPressedDispatcher → vm.handleBackPress()，于是
+    // 小组件还在抖、用户想取消编辑，一按返回整页就飞走了，改动状态也跟着丢。
+    //
+    // Compose 的 BackHandler 注册在同一个 dispatcher 上，而组合期注册晚于
+    // Activity 在 onCreate 里加的那条回调，LIFO 下这里先拿到 —— 所以只要 enabled
+    // 为真就能截住。showPicker 打开时让位给选择器自己的返回处理。
+    BackHandler(enabled = editMode && !showPicker) {
+        editMode = false
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { onEditModeChange(false) }
+    }
+
+    fun clearAllocatedWidget(slotIndex: Int) {
+        widgetRepository.extractWidgetId(sideScreenWidgetSlots.getOrNull(slotIndex))?.let { widgetId ->
+            runCatching { appWidgetHost.deleteAppWidgetId(widgetId) }
+        }
+    }
+
+    fun persistBoundWidget(slotIndex: Int, widget: WidgetInfo, appWidgetId: Int) {
+        clearAllocatedWidget(slotIndex)
+        val boundWidget = widget.copy(widgetId = appWidgetId)
+        onSetWidget(
+            slotIndex,
+            serializeWidgetSlotValue(
+                baseValue = widgetRepository.serializeSlotValue(boundWidget),
+                layout = defaultWidgetSlotLayout(boundWidget, widgetRepository)
+            )
+        )
+    }
+
+    fun persistWidgetLayout(card: SideScreenWidgetCardItem, layout: WidgetSlotLayout) {
+        val baseValue = sideScreenWidgetSlots.getOrNull(card.widgetIndex)
+            ?.substringBefore('#')
+            ?: widgetRepository.serializeSlotValue(card.widget)
+        onSetWidget(card.widgetIndex, serializeWidgetSlotValue(baseValue, layout))
+    }
+
+    fun discardPendingWidgetSelection() {
+        pendingWidgetSelection?.let { selection ->
+            runCatching { appWidgetHost.deleteAppWidgetId(selection.appWidgetId) }
+        }
+        pendingWidgetSelection = null
+    }
+
+    fun continueWidgetBinding(
+        selection: PendingWidgetSelection,
+        configureLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
+    ) {
+        val providerInfo = appWidgetManager.getAppWidgetInfo(selection.appWidgetId)
+            ?: widgetRepository.findProviderInfo(selection.widget.widgetKey)
+        if (providerInfo?.configure != null) {
+            val configureIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE).apply {
+                component = providerInfo.configure
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, selection.appWidgetId)
+            }
+            configureLauncher.launch(configureIntent)
+        } else {
+            persistBoundWidget(selection.slotIndex, selection.widget, selection.appWidgetId)
+            pendingWidgetSelection = null
+        }
+    }
+
+    val configureWidgetLauncher = rememberLauncherForActivityResult(StartActivityForResult()) { result ->
+        val selection = pendingWidgetSelection ?: return@rememberLauncherForActivityResult
+        if (result.resultCode == Activity.RESULT_OK) {
+            persistBoundWidget(selection.slotIndex, selection.widget, selection.appWidgetId)
+        } else {
+            runCatching { appWidgetHost.deleteAppWidgetId(selection.appWidgetId) }
+        }
+        pendingWidgetSelection = null
+    }
+    val bindWidgetLauncher = rememberLauncherForActivityResult(StartActivityForResult()) { result ->
+        val selection = pendingWidgetSelection ?: return@rememberLauncherForActivityResult
+        if (result.resultCode == Activity.RESULT_OK) {
+            continueWidgetBinding(selection, configureWidgetLauncher)
+        } else {
+            runCatching { appWidgetHost.deleteAppWidgetId(selection.appWidgetId) }
+            pendingWidgetSelection = null
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            discardPendingWidgetSelection()
+        }
+    }
+
+    fun resolveWidgetBinding(widget: WidgetInfo): WidgetBindingDecision {
+        val providerInstalled = widgetRepository.findProviderInfo(widget.widgetKey) != null
+        val hostIds = runCatching { appWidgetHost.appWidgetIds.toSet() }.getOrDefault(emptySet())
+        val actualProviderKey = runCatching {
+            appWidgetManager.getAppWidgetInfo(widget.widgetId)
+                ?.provider
+                ?.flattenToString()
+        }.getOrNull()
+        return widgetBindingDecision(
+            savedId = widget.widgetId,
+            expectedProviderKey = widget.widgetKey,
+            hostIds = hostIds,
+            actualProviderKey = actualProviderKey,
+            providerInstalled = providerInstalled,
+        )
+    }
+
+    fun requestWidgetRebind(slotIndex: Int, widget: WidgetInfo) {
+        val providerInfo = widgetRepository.findProviderInfo(widget.widgetKey) ?: return
+        discardPendingWidgetSelection()
+        val newId = runCatching { appWidgetHost.allocateAppWidgetId() }.getOrNull() ?: return
+        val selection = PendingWidgetSelection(slotIndex, widget, newId)
+        pendingWidgetSelection = selection
+        val bindExtras = buildWidgetBindOptions(providerInfo)
+        val bound = runCatching {
+            appWidgetManager.bindAppWidgetIdIfAllowed(newId, providerInfo.provider, bindExtras)
+        }.getOrDefault(false)
+        if (bound) {
+            continueWidgetBinding(selection, configureWidgetLauncher)
+        } else if (activity != null) {
+            bindWidgetLauncher.launch(
+                Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, newId)
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, providerInfo.provider)
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_OPTIONS, bindExtras)
+                }
+            )
+        } else {
+            discardPendingWidgetSelection()
+        }
+    }
+
+    val nestedScrollConnection = remember(listState, sharedElasticState) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (source != NestedScrollSource.UserInput) return Offset.Zero
+                if (draggingWidgetKey != null || activeWidgetResize != null) {
+                    sharedElasticState.reset()
+                    return available
+                }
+                return sharedElasticState.connection.onPreScroll(available, source)
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                if (draggingWidgetKey != null || activeWidgetResize != null) return Offset.Zero
+                return sharedElasticState.connection.onPostScroll(consumed, available, source)
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (draggingWidgetKey != null || activeWidgetResize != null) return available
+                return sharedElasticState.connection.onPreFling(available)
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (draggingWidgetKey != null || activeWidgetResize != null) return available
+                return sharedElasticState.connection.onPostFling(consumed, available)
+            }
+        }
+    }
+
+    LaunchedEffect(widgetCards) {
+        if (widgetCards.isEmpty()) {
+            editMode = false
+        }
+        val activeKeys = widgetCards.map { it.stableKey() }.toSet()
+        val primedKeys = previousWidgetKeys
+        // 记账先落地：widgetCards 同帧再变会取消本协程，若 removeAll 只在
+        // yield 之后执行，对应卡片的 AnimatedVisibility 会永远停在 false——
+        // 「打断转场后小组件永久消失」的根因。
+        previousWidgetKeys = activeKeys
+        widgetCardCenters.keys.retainAll(activeKeys)
+        widgetCardBounds.keys.retainAll(activeKeys)
+        removingWidgetKeys.removeAll { key -> key !in activeKeys }
+        if (primedKeys == null) return@LaunchedEffect
+        val addedKeys = activeKeys - primedKeys
+        if (addedKeys.isNotEmpty()) {
+            enteringWidgetKeys += addedKeys
+            try {
+                yield()
+            } finally {
+                enteringWidgetKeys.removeAll(addedKeys)
+            }
+        }
+    }
+
+    LaunchedEffect(editMode, showPicker) {
+        editGestureLocked = editMode && !showPicker
+        if (!editMode || showPicker) {
+            draggingWidgetKey = null
+            draggingWidgetOffset = Offset.Zero
+            activeWidgetResize = null
+            widgetDragAutoScrollPx = 0f
+            pendingWidgetDropIndex = null
+            widgetDragPreviewCards = null
+            widgetDragPreviewBase = null
+            dragFrozenCenter = null
+            dragFrozenTopLeft = null
+            dragFrozenBounds = emptyMap()
+            dragScrollAccum = 0f
+            editGestureLocked = false
+        }
+    }
+
+    // key 只放「是否处于自动滚动状态」这个离散量。直接把 widgetDragAutoScrollPx
+    // 放进 key 的话，拖拽期间每个 MOVE 事件（靠近边缘的连续值）都会取消并重启
+    // 协程，previousFrameNanos 跟着归零、帧间隔恒按 1/60 假设，高刷屏上滚动
+    // 速度失真；现在速度值在循环内逐帧现读，激活态切换才重启。
+    val widgetAutoScrollActive = draggingWidgetKey != null && widgetDragAutoScrollPx != 0f
+    LaunchedEffect(widgetAutoScrollActive) {
+        if (!widgetAutoScrollActive) return@LaunchedEffect
+        var previousFrameNanos = 0L
+        while (isActive) {
+            val autoScrollPx = widgetDragAutoScrollPx
+            if (autoScrollPx == 0f) break
+            var scrollDelta = 0f
+            withFrameNanos { frameTimeNanos ->
+                val frameDeltaSeconds = if (previousFrameNanos == 0L) {
+                    1f / 60f
+                } else {
+                    ((frameTimeNanos - previousFrameNanos) / 1_000_000_000f).coerceIn(1f / 144f, 0.05f)
+                }
+                previousFrameNanos = frameTimeNanos
+                scrollDelta = autoScrollPx * frameDeltaSeconds
+            }
+            val consumed = listState.scrollBy(scrollDelta)
+            if (consumed != 0f) {
+                // 滚动量记入 dragScrollAccum 供落点探针换算"冻结内容坐标"；
+                // 被拖卡的视觉跟手由冻结锚点减实时布局位置的补偿项兜底。
+                dragScrollAccum += consumed
+            }
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .onGloballyPositioned { coordinates ->
+                widgetPageRootOffset = coordinates.positionInRoot()
+            }
+            .clip(flulyOverlayMaskShape(overlayMaskCornerRadiusDp))
+            .background(launcherStyle.screenBackground.copy(alpha = 0.62f))
+    ) {
+        val leftSafeInset = maxWidth * (leftSafeInsetPercent.coerceIn(0, 50) / 100f)
+        val availableWidth = maxWidth - leftSafeInset
+        val contentWidth = availableWidth * SIDE_SCREEN_CONTENT_WIDTH_RATIO
+        val widgetColumnGap = 10.dp
+        val singleColumnWidth = (contentWidth - widgetColumnGap) / 2f
+        val singleColumnWidthDp = with(density) { singleColumnWidth.toPx().toDp().value }
+
+        @Composable
+        fun EditableWidgetCard(
+            card: SideScreenWidgetCardItem,
+            targetWidth: Dp
+        ) {
+            val cardKey = card.stableKey()
+            val recoveryKey = "${card.widgetIndex}|${card.widget.widgetKey}|${card.widget.widgetId}"
+            val bindingDecision = resolveWidgetBinding(card.widget)
+            val recoveryState = widgetRecoveryStates[recoveryKey]
+            LaunchedEffect(recoveryKey, bindingDecision) {
+                if (
+                    bindingDecision == WidgetBindingDecision.RECOVER &&
+                    widgetRecoveryGate.tryStart(recoveryKey)
+                ) {
+                    widgetRecoveryStates[recoveryKey] = WidgetRecoveryUiState.RECOVERING
+                    val providerInfo = widgetRepository.findProviderInfo(card.widget.widgetKey)
+                    val newId = providerInfo?.let {
+                        runCatching { appWidgetHost.allocateAppWidgetId() }.getOrNull()
+                    }
+                    val recovered = if (providerInfo != null && newId != null) {
+                        val bound = runCatching {
+                            appWidgetManager.bindAppWidgetIdIfAllowed(
+                                newId,
+                                providerInfo.provider,
+                                buildWidgetBindOptions(providerInfo),
+                            )
+                        }.getOrDefault(false)
+                        if (bound && providerInfo.configure == null) {
+                            persistBoundWidget(card.widgetIndex, card.widget, newId)
+                            true
+                        } else {
+                            runCatching { appWidgetHost.deleteAppWidgetId(newId) }
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                    widgetRecoveryStates[recoveryKey] =
+                        if (recovered) WidgetRecoveryUiState.RECOVERING
+                        else WidgetRecoveryUiState.REBIND_REQUIRED
+                    widgetRecoveryGate.finish(recoveryKey)
+                }
+            }
+            val resizing = activeWidgetResize?.takeIf { it.cardKey == cardKey }
+            val displayLayout = resizing
+                ?.let {
+                    resizeWidgetSlotLayout(
+                        it.startLayout,
+                        it.delta,
+                        density,
+                        it.resizeMode,
+                        it.singleColumnWidthDp
+                    )
+                }
+                ?: card.layout
+            val cardWidth = if (displayLayout.spanColumns >= 2) {
+                contentWidth
+            } else {
+                targetWidth
+            }
+            val animatedCardWidth by animateDpAsState(
+                targetValue = cardWidth,
+                animationSpec = spring(stiffness = 620f, dampingRatio = 0.86f),
+                label = "widget_card_width"
+            )
+            // 卡片形状走令牌：写死 28dp 会让同一档里的小组件卡、拖拽预览、空槽位各自
+            // 一个圆角（老师报的 AW 卡片圆角不统一）。
+            val shellShape = launcherStyle.cardShape
+            val jiggleActive = editMode && !showPicker
+
+            key(cardKey) {
+                AnimatedVisibility(
+                    visible = cardKey !in removingWidgetKeys && cardKey !in enteringWidgetKeys,
+                    // 负一屏体系无缩放：入出场只做淡入淡出（缩放入场叠加首帧
+                    // 记账 bug 曾让整页卡片"从中间放大"重播）。
+                    enter = fadeIn(tween(180)),
+                    exit = fadeOut(tween(150))
+                ) {
+                    val dragging = draggingWidgetKey == cardKey
+                    val dragOverlayReady = dragging &&
+                        dragFrozenTopLeft != null &&
+                        dragFrozenBounds[cardKey] != null
+                    // 抬起/落位不再三元瞬跳：长按成立的那一帧突然放大+突现
+                    // 22dp 阴影、松手瞬移回原位，是拖拽最生硬的两下。
+                    val liftScale by animateFloatAsState(
+                        targetValue = if (dragging) 1.04f else 1f,
+                        animationSpec = spring(dampingRatio = 0.62f, stiffness = 900f),
+                        label = "widget_lift_scale",
+                    )
+                    val liftElevation by animateDpAsState(
+                        targetValue = if (dragging) 20.dp else 0.dp,
+                        animationSpec = tween(140),
+                        label = "widget_lift_elevation",
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(animatedCardWidth)
+                            .then(
+                                if (resizing != null) {
+                                    Modifier
+                                } else {
+                                    Modifier.animateContentSize(
+                                        animationSpec = spring(stiffness = 560f, dampingRatio = 0.86f)
+                                    )
+                                }
+                            )
+                            .onGloballyPositioned { coordinates ->
+                                val position = coordinates.positionInRoot()
+                                val width = coordinates.size.width.toFloat()
+                                val height = coordinates.size.height.toFloat()
+                                widgetCardCenters[cardKey] = Offset(
+                                    position.x + width / 2f,
+                                    position.y + height / 2f
+                                )
+                                widgetCardBounds[cardKey] = Rect(
+                                    left = position.x,
+                                    top = position.y,
+                                    right = position.x + width,
+                                    bottom = position.y + height
+                                )
+                            }
+                            .zIndex(if (dragging) 50f else 0f)
+                            .graphicsLayer {
+                                // 实时让位会把本卡重排进新槽位（布局基点变了），
+                                // 平移量要加上"冻结锚点 − 实时布局位置"的补偿，
+                                // 视觉上才始终吸在手指下不跳。
+                                val dragCorrection = if (dragging) {
+                                    val frozenTopLeft = dragFrozenTopLeft
+                                    val liveTopLeft = widgetCardBounds[cardKey]?.topLeft
+                                    if (frozenTopLeft != null && liveTopLeft != null) {
+                                        frozenTopLeft - liveTopLeft
+                                    } else {
+                                        Offset.Zero
+                                    }
+                                } else {
+                                    Offset.Zero
+                                }
+                                translationX = if (dragging) draggingWidgetOffset.x + dragCorrection.x else 0f
+                                translationY = if (dragging) draggingWidgetOffset.y + dragCorrection.y else 0f
+                                shadowElevation = liftElevation.toPx()
+                                // 拖动实体由列表外的根级预览接管，避免被 LazyColumn
+                                // item、相邻 AndroidView 或 section 容器裁掉。预览几何
+                                // 尚未冻结前保留原卡一帧，防止长按成立时闪空。
+                                alpha = if (dragOverlayReady) 0f else 1f
+                                scaleX = liftScale
+                                scaleY = liftScale
+                            }
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(shellShape)
+                                // 编辑态与普通态共用同一层 MIUIX 玻璃壳，不能在
+                                // 退出编辑后退回纯白/透明塑料底。
+                                .then(
+                                    if (effectiveWidgetGlassHighlightEnabled) {
+                                        Modifier.glassSurface(
+                                            shellShape,
+                                            launcherStyle.glass,
+                                            highlightEnabled = true,
+                                        )
+                                    } else {
+                                        Modifier.background(
+                                            if (editMode) Color.White.copy(alpha = 0.05f)
+                                            else Color.Transparent,
+                                            shellShape,
+                                        )
+                                    },
+                                )
+                                .padding(4.dp)
+                        ) {
+                            // 根级拖动预览接管后卸载原位置的 AppWidgetHostView，
+                            // 避免同一个 widgetId 同时创建两个 HostView、互相抢更新。
+                            if (!dragOverlayReady) {
+                                WidgetCard(
+                                    widget = card.widget,
+                                    layout = displayLayout,
+                                    cardWidth = cardWidth,
+                                    widgetRepository = widgetRepository,
+                                    appWidgetHost = appWidgetHost,
+                                    glassHighlightEnabled = effectiveWidgetGlassHighlightEnabled,
+                                    bindingDecision = bindingDecision,
+                                    recoveryInProgress = recoveryState == WidgetRecoveryUiState.RECOVERING,
+                                    onRebind = if (
+                                        bindingDecision == WidgetBindingDecision.RECOVER ||
+                                        recoveryState == WidgetRecoveryUiState.REBIND_REQUIRED
+                                    ) {
+                                        { requestWidgetRebind(card.widgetIndex, card.widget) }
+                                    } else {
+                                        null
+                                    },
+                                    onLongPress = if (!editMode && !showPicker) {
+                                        {
+                                            editMode = true
+                                            editGestureLocked = true
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                    onMeasuredHeight = {}
+                                )
+                            }
+                        }
+                        if (jiggleActive) {
+                            val blockerInteraction = remember { MutableInteractionSource() }
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clip(shellShape)
+                                    .clickable(
+                                        interactionSource = blockerInteraction,
+                                        indication = null,
+                                        onClick = {}
+                                    )
+                                    .pointerInput(cardKey, card.layout, editMode) {
+                                        awaitEachGesture {
+                                            val down = awaitPrimaryDown()
+                                            down.consume()
+                                            if (!editMode) return@awaitEachGesture
+                                            val resizeMode = widgetResizeModeAt(
+                                                position = down.position,
+                                                widthPx = size.width.toFloat(),
+                                                heightPx = size.height.toFloat(),
+                                                hotspotPx = widgetBorderHotspotPx
+                                            )
+                                            if (resizeMode != null) {
+                                                vibrateHaptic(context)
+                                                activeWidgetResize = ActiveWidgetResize(
+                                                    cardKey = cardKey,
+                                                    startLayout = card.layout,
+                                                    resizeMode = resizeMode,
+                                                    singleColumnWidthDp = singleColumnWidthDp
+                                                )
+                                                draggingWidgetKey = null
+                                                draggingWidgetOffset = Offset.Zero
+                                                widgetDragAutoScrollPx = 0f
+                                            } else {
+                                                val hold = awaitLongPressOrRelease(
+                                                    pointerId = down.id,
+                                                    downPosition = down.position,
+                                                    timeoutMillis = widgetResizeLongPressMs
+                                                )
+                                                if (hold !is PressHoldResult.LongPress) return@awaitEachGesture
+                                                vibrateHaptic(context)
+                                                hold.change.consume()
+                                                activeWidgetResize = null
+                                                draggingWidgetKey = cardKey
+                                                draggingWidgetOffset = Offset.Zero
+                                                widgetDragAutoScrollPx = 0f
+                                                pendingWidgetDropIndex = null
+                                                // 拖拽的移动、避让与落点提交全部移交列表级手势环
+                                                //（Initial pass 旁听）：实时让位会把本卡重排进别的
+                                                // section（组合树易主），卡内手势环会被连根取消断手。
+                                                return@awaitEachGesture
+                                            }
+                                            // 缩放没有避让重排，卡片节点稳定，留在卡内环里处理。
+                                            while (true) {
+                                                val event = awaitPointerEvent()
+                                                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                                if (!change.pressed) break
+                                                val dragAmount = change.positionChange()
+                                                if (dragAmount == Offset.Zero) continue
+                                                change.consume()
+                                                val resize = activeWidgetResize
+                                                if (resize?.cardKey == cardKey) {
+                                                    activeWidgetResize = resize.copy(delta = resize.delta + dragAmount)
+                                                }
+                                            }
+                                            activeWidgetResize?.takeIf { it.cardKey == cardKey }?.let { resize ->
+                                                persistWidgetLayout(
+                                                    card,
+                                                    resizeWidgetSlotLayout(
+                                                        resize.startLayout,
+                                                        resize.delta,
+                                                        density,
+                                                        resize.resizeMode,
+                                                        resize.singleColumnWidthDp
+                                                    )
+                                                )
+                                            }
+                                            activeWidgetResize = null
+                                        }
+                                    }
+                            )
+                            WidgetResizeHandles(
+                                shape = shellShape,
+                                modifier = Modifier.matchParentSize()
+                            )
+                            WidgetEditIconButton(
+                                enabled = true,
+                                backgroundColor = Color(0xFFE53935),
+                                onClick = {
+                                    clearAllocatedWidget(card.widgetIndex)
+                                    removingWidgetKeys += cardKey
+                                    scope.launch {
+                                        delay(170)
+                                        onRemoveWidget(card.widgetIndex)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp)
+                            ) {
+                                Text(
+                                    text = "-",
+                                    color = Color.White,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                // 列表级拖拽手势环：卡片长按晋升后从这里接管移动/避让/落点。
+                // 不能留在卡内环——实时让位会把被拖卡重排进别的 section，
+                // 组合树易主时卡内 pointerInput 协程会被连根取消（拖一半断手）。
+                .pointerInput(editGestureLocked, widgetCards) {
+                    if (!editGestureLocked) return@pointerInput
+                    fun resetDragState(clearPreview: Boolean = true) {
+                        draggingWidgetKey = null
+                        draggingWidgetOffset = Offset.Zero
+                        widgetDragAutoScrollPx = 0f
+                        pendingWidgetDropIndex = null
+                        if (clearPreview) {
+                            widgetDragPreviewCards = null
+                            widgetDragPreviewBase = null
+                        }
+                        dragFrozenCenter = null
+                        dragFrozenTopLeft = null
+                        dragFrozenBounds = emptyMap()
+                        dragScrollAccum = 0f
+                    }
+                    try {
+                        awaitEachGesture {
+                            var trackedPointer: PointerId? = null
+                            var dragActive = false
+                            var pointerOrigin = Offset.Zero
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                val change = trackedPointer
+                                    ?.let { id -> event.changes.firstOrNull { it.id == id } }
+                                    ?: event.changes.firstOrNull { it.pressed }?.also { trackedPointer = it.id }
+                                    ?: return@awaitEachGesture
+                                if (!change.pressed) {
+                                    // 抬手：拖拽中则一次性提交落点（整场拖动只落盘这一次）。
+                                    val liftKey = draggingWidgetKey
+                                    if (liftKey != null) {
+                                        val draggedCard = widgetCards.firstOrNull { it.stableKey() == liftKey }
+                                        val targetIndex = pendingWidgetDropIndex
+                                        val commitSwap = dragActive &&
+                                            draggedCard != null &&
+                                            targetIndex != null &&
+                                            targetIndex != draggedCard.widgetIndex &&
+                                            targetIndex != draggedCard.widgetIndex + 1
+                                        if (commitSwap && draggedCard != null && targetIndex != null) {
+                                            onSwapWidget(draggedCard.widgetIndex, targetIndex)
+                                        }
+                                        // 提交过落盘就把预览留到新数据到账（基准失配自动失
+                                        // 效），中间帧不回跳；没提交则立刻恢复原顺序。
+                                        resetDragState(clearPreview = !commitSwap)
+                                    }
+                                    return@awaitEachGesture
+                                }
+                                val dragKey = draggingWidgetKey
+                                if (dragKey == null) {
+                                    // 长按尚未晋升（或被缩放抢占）：只旁听、不消费。
+                                    if (dragActive) {
+                                        resetDragState()
+                                        dragActive = false
+                                    }
+                                    continue
+                                }
+                                if (widgetCards.none { it.stableKey() == dragKey }) {
+                                    // 拖拽途中数据被外力改动（卡片没了）：放弃这场拖拽。
+                                    resetDragState()
+                                    dragActive = false
+                                    continue
+                                }
+                                if (!dragActive) {
+                                    // 晋升后的第一个事件：冻结按下瞬间的几何快照。
+                                    val frozenCenter = widgetCardCenters[dragKey]
+                                    val frozenBounds = widgetCardBounds[dragKey]
+                                    if (frozenCenter == null || frozenBounds == null) {
+                                        resetDragState()
+                                        continue
+                                    }
+                                    dragActive = true
+                                    pointerOrigin = change.position
+                                    dragFrozenCenter = frozenCenter
+                                    dragFrozenTopLeft = frozenBounds.topLeft
+                                    dragFrozenBounds = widgetCardBounds.toMap()
+                                    dragScrollAccum = 0f
+                                }
+                                change.consume()
+                                draggingWidgetOffset = change.position - pointerOrigin
+                                // 边缘自动滚动：手指纵坐标直接取列表本地坐标，
+                                // 本节点不参与重排，无需再经卡片中心换算。
+                                val viewportHeight = size.height.toFloat().coerceAtLeast(1f)
+                                val fingerY = change.position.y
+                                widgetDragAutoScrollPx = when {
+                                    fingerY < autoScrollEdgePx -> {
+                                        val progress = ((autoScrollEdgePx - fingerY) / autoScrollEdgePx)
+                                            .coerceIn(0f, 1.2f)
+                                        -autoScrollMaxVelocityPx * progress
+                                    }
+                                    fingerY > viewportHeight - autoScrollEdgePx -> {
+                                        val progress = ((fingerY - (viewportHeight - autoScrollEdgePx)) / autoScrollEdgePx)
+                                            .coerceIn(0f, 1.2f)
+                                        autoScrollMaxVelocityPx * progress
+                                    }
+                                    else -> 0f
+                                }
+                                // 落点探针：冻结中心 + 手指位移 + 滚动累计，对着
+                                // 冻结边界求洞位——避让重排挪不动这套坐标，不会横跳。
+                                pendingWidgetDropIndex = dragFrozenCenter
+                                    ?.plus(draggingWidgetOffset)
+                                    ?.plus(Offset(0f, dragScrollAccum))
+                                    ?.let { point ->
+                                        widgetInsertionIndexFor(
+                                            point = point,
+                                            widgetCards = widgetCards,
+                                            boundsByKey = dragFrozenBounds
+                                        )
+                                    }
+                                // 实时让位：只改本地渲染顺序，其余卡走 animateItem 位移。
+                                pendingWidgetDropIndex?.let { target ->
+                                    widgetDragPreviewCards =
+                                        buildWidgetDragPreviewOrder(widgetCards, dragKey, target)
+                                    widgetDragPreviewBase = widgetCards
+                                }
+                            }
+                        }
+                    } finally {
+                        // pointerInput 重启/销毁兜底：别让拖拽状态卡死在半场。
+                        if (draggingWidgetKey != null || widgetDragPreviewCards != null) {
+                            resetDragState()
+                        }
+                    }
+                }
+                .nestedScroll(nestedScrollConnection)
+                .onSizeChanged { size -> sharedElasticState.setViewportHeight(size.height) }
+                .graphicsLayer { translationY = sharedElasticState.offsetPx }
+                .padding(start = leftSafeInset),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 32.dp)
+        ) {
+            item("widget_page_header") {
+                if (roundScreen) {
+                    Column(
+                        modifier = Modifier.width(contentWidth),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.widget_title),
+                            color = launcherStyle.titleColor,
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            WidgetPageChip(
+                                label = stringResource(
+                                    if (editMode) R.string.widget_done else R.string.widget_edit,
+                                ),
+                                onClick = { editMode = !editMode },
+                                enabled = widgetCards.isNotEmpty(),
+                            )
+                            WidgetPageChip(
+                                label = stringResource(R.string.widget_add),
+                                onClick = {
+                                    editMode = false
+                                    showPicker = true
+                                },
+                            )
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier
+                            .width(contentWidth)
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.widget_title),
+                            color = launcherStyle.titleColor,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            WidgetPageChip(
+                                label = stringResource(
+                                    if (editMode) R.string.widget_done else R.string.widget_edit,
+                                ),
+                                onClick = { editMode = !editMode },
+                                enabled = widgetCards.isNotEmpty(),
+                            )
+                            WidgetPageChip(
+                                label = stringResource(R.string.widget_add),
+                                onClick = {
+                                    editMode = false
+                                    showPicker = true
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+            if (widgetCards.isEmpty()) {
+                item("empty_widget_page") {
+                    EmptyWidgetCard(width = contentWidth)
+                }
+            } else {
+                items(
+                    items = widgetSections,
+                    key = { section -> section.stableKey },
+                    contentType = { section ->
+                        when (section) {
+                            is WidgetLayoutSection.Columns -> "widget_page_columns"
+                            is WidgetLayoutSection.FullWidth -> "widget_page_full"
+                        }
+                    }
+                ) { section ->
+                    val sectionIsResizing = activeWidgetResize?.cardKey?.let { activeKey ->
+                        section.cards.any { it.stableKey() == activeKey }
+                    } == true
+                    val sectionModifier = Modifier
+                        .width(contentWidth)
+                        .animateItem(
+                            // 拖动预览期间重分组会增删 section key：淡出残影会
+                            // 短暂存活并被新建的同 id 宿主视图"挤掉"变白，所以
+                            // 拖动中增删立现立没（null），只保留 placement 位移。
+                            fadeInSpec = if (draggingWidgetKey != null) null else tween(160),
+                            placementSpec = spring(stiffness = 520f, dampingRatio = 0.86f),
+                            fadeOutSpec = if (draggingWidgetKey != null) null else tween(160)
+                        )
+                        .then(
+                            if (sectionIsResizing) {
+                                Modifier
+                            } else {
+                                Modifier.animateContentSize(
+                                    animationSpec = spring(stiffness = 560f, dampingRatio = 0.86f)
+                                )
+                            }
+                        )
+                    when (section) {
+                        is WidgetLayoutSection.FullWidth -> {
+                            Box(modifier = sectionModifier) {
+                                EditableWidgetCard(section.card, contentWidth)
+                            }
+                        }
+                        is WidgetLayoutSection.Columns -> {
+                            Row(
+                                modifier = sectionModifier,
+                                horizontalArrangement = Arrangement.spacedBy(widgetColumnGap)
+                            ) {
+                                Column(
+                                    modifier = Modifier.width(singleColumnWidth),
+                                    verticalArrangement = Arrangement.spacedBy(widgetColumnGap)
+                                ) {
+                                    section.left.forEach { card ->
+                                        EditableWidgetCard(card, singleColumnWidth)
+                                    }
+                                }
+                                Column(
+                                    modifier = Modifier.width(singleColumnWidth),
+                                    verticalArrangement = Arrangement.spacedBy(widgetColumnGap)
+                                ) {
+                                    section.right.forEach { card ->
+                                    EditableWidgetCard(card, singleColumnWidth)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        draggingWidgetKey?.let { draggingKey ->
+            val draggingCard = widgetCards.firstOrNull { it.stableKey() == draggingKey }
+            val frozenBounds = dragFrozenBounds[draggingKey]
+            if (draggingCard != null && frozenBounds != null) {
+                WidgetDragPreviewCard(
+                    preview = WidgetDragPreview(
+                        card = draggingCard,
+                        bounds = frozenBounds,
+                        offset = draggingWidgetOffset,
+                    ),
+                    rootOffset = widgetPageRootOffset,
+                    widgetRepository = widgetRepository,
+                    appWidgetHost = appWidgetHost,
+                    glassHighlightEnabled = effectiveWidgetGlassHighlightEnabled,
+                    modifier = Modifier.zIndex(100f),
+                )
+            }
+        }
+        if (showPicker) {
+        val repository = requireNotNull(widgetRepository)
+        val host = requireNotNull(appWidgetHost)
+        val manager = requireNotNull(appWidgetManager)
+        WidgetPickerOverlay(
+            apps = apps,
+            widgetRepository = repository,
+            onSelectWidget = { widget ->
+                val targetIndex = sideScreenWidgetSlots.size
+                val providerInfo = repository.findProviderInfo(widget.widgetKey)
+                if (providerInfo != null) {
+                    discardPendingWidgetSelection()
+                    clearAllocatedWidget(targetIndex)
+                    val appWidgetId = runCatching { host.allocateAppWidgetId() }.getOrNull()
+                    if (appWidgetId != null) {
+                        val selection = PendingWidgetSelection(
+                            slotIndex = targetIndex,
+                            widget = widget,
+                            appWidgetId = appWidgetId
+                        )
+                        pendingWidgetSelection = selection
+                        val bindExtras = buildWidgetBindOptions(providerInfo)
+                        val bound = runCatching {
+                            manager.bindAppWidgetIdIfAllowed(
+                                appWidgetId,
+                                providerInfo.provider,
+                                bindExtras
+                            )
+                        }.getOrDefault(false)
+                        if (bound) {
+                            continueWidgetBinding(selection, configureWidgetLauncher)
+                        } else if (activity != null) {
+                            val bindIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_BIND).apply {
+                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_PROVIDER, providerInfo.provider)
+                                putExtra(AppWidgetManager.EXTRA_APPWIDGET_OPTIONS, bindExtras)
+                            }
+                            bindWidgetLauncher.launch(bindIntent)
+                        } else {
+                            discardPendingWidgetSelection()
+                        }
+                    }
+                }
+            },
+            onDismiss = { showPicker = false }
+        )
+    }
+}
+
+}
+
+@Composable
+private fun WidgetPageChip(
+    label: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    val launcherStyle = LauncherTheme.style
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressScale = rememberFlulyPressScale(interactionSource, pressedScale = 0.94f)
+    Box(
+        modifier = Modifier
+            .flulyPressScale(pressScale)
+            .clip(RoundedCornerShape(999.dp))
+            .background(if (enabled) launcherStyle.topBarChipColor else launcherStyle.cardColor)
+            .clickable(
+                enabled = enabled,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = if (enabled) launcherStyle.topBarTextColor else WatchColors.TextTertiary,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun WidgetEditIconButton(
+    enabled: Boolean,
+    backgroundColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val alpha = if (enabled) 1f else 0.34f
+    Box(
+        modifier = modifier
+            .size(30.dp)
+            .clip(CircleShape)
+            .background(backgroundColor.copy(alpha = backgroundColor.alpha * alpha))
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun WidgetResizeHandles(
+    shape: Shape,
+    modifier: Modifier = Modifier
+) {
+    val handleColor = Color.White.copy(alpha = 0.72f)
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .border(1.dp, Color.White.copy(alpha = 0.46f), shape)
+            .padding(6.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .width(46.dp)
+                .height(5.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(handleColor)
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .width(46.dp)
+                .height(5.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(handleColor)
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .width(5.dp)
+                .height(46.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(handleColor)
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .width(5.dp)
+                .height(46.dp)
+                .clip(RoundedCornerShape(999.dp))
+                .background(handleColor)
+        )
+    }
+}
+
+@Composable
+private fun WidgetDragPreviewCard(
+    preview: WidgetDragPreview,
+    rootOffset: Offset,
+    widgetRepository: WidgetRepository,
+    appWidgetHost: AppWidgetHost,
+    glassHighlightEnabled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val launcherStyle = LauncherTheme.style
+    val width = with(LocalDensity.current) { preview.bounds.width.toDp() }
+    val height = with(LocalDensity.current) { preview.bounds.height.toDp() }
+    // 拖拽预览必须和被拖的卡同形状，写死数字的话抓起来那一瞬圆角会跳一下。
+    val shape = launcherStyle.cardShape
+    Box(
+        modifier = modifier
+            .size(width, height)
+            .graphicsLayer {
+                translationX = preview.bounds.left - rootOffset.x + preview.offset.x
+                translationY = preview.bounds.top - rootOffset.y + preview.offset.y
+                shadowElevation = 22.dp.toPx()
+                this.shape = shape
+                clip = false
+                scaleX = 1.035f
+                scaleY = 1.035f
+            }
+            .then(
+                if (glassHighlightEnabled) {
+                    Modifier.glassSurface(
+                        shape,
+                        launcherStyle.glassThick,
+                        highlightEnabled = true,
+                    )
+                } else {
+                    Modifier.clip(shape).background(launcherStyle.cardColor)
+                },
+            )
+    ) {
+        WidgetCard(
+            widget = preview.card.widget,
+            layout = preview.card.layout,
+            cardWidth = width,
+            widgetRepository = widgetRepository,
+            appWidgetHost = appWidgetHost,
+            glassHighlightEnabled = glassHighlightEnabled,
+            onLongPress = null,
+            onMeasuredHeight = {}
+        )
+    }
+}
+
+/** 快捷启动 dock 的列数（设计蓝本 §9：2 行 × 4 列）。 */
+private const val QUICK_DOCK_COLUMNS = 4
+
+/** dock 图标的 squircle 圆角：按比例取，图标放大后圆角自动跟随。 */
+private val QuickDockIconShape = RoundedCornerShape(percent = 28)
+
+/**
+ * dock 尺寸。
+ *
+ * 宽度**必须等于 contentWidth**（也就是下面「暂无通知」横幅、音乐卡共用
+ * 的那条内容宽度），三者左右边缘对齐才是一条竖直线。上一轮误把宽度改成
+ * 「贴着图标条」，dock 就比横幅窄了一圈——老师要的不是这个。
+ *
+ * 要加长的是**纵向**：4x2 保留 64dp / 14dp，关闭通知后的 4x3 放宽到
+ * 68dp / 18dp；横向仍然铺满 contentWidth。
+ */
+internal data class SideScreenShortcutGridSpec(
+    val maxIconSizeDp: Int,
+    val spacingDp: Int,
+)
+
+internal enum class SideScreenShortcutSelection {
+    ADD_OPEN_APP,
+    CHOOSE_ACTION,
+}
+
+internal fun sideScreenShortcutSelection(shortcutCount: Int): SideScreenShortcutSelection =
+    if (shortcutCount > 0) {
+        SideScreenShortcutSelection.CHOOSE_ACTION
+    } else {
+        SideScreenShortcutSelection.ADD_OPEN_APP
+    }
+
+internal fun sideScreenShortcutGridSpec(rows: Int): SideScreenShortcutGridSpec =
+    if (rows >= 3) {
+        SideScreenShortcutGridSpec(maxIconSizeDp = 68, spacingDp = 18)
+    } else {
+        SideScreenShortcutGridSpec(maxIconSizeDp = 64, spacingDp = 14)
+    }
+
+/** 纵向内边距单独给，比横向大一档，dock 才「高」起来而不是「胖」起来。 */
+private val QUICK_DOCK_PADDING_HORIZONTAL = 12.dp
+private val QUICK_DOCK_PADDING_VERTICAL = 18.dp
+
+@Composable private fun QuickPanel(
+    items: List<AppInfo?>,
+    slotCenters: MutableMap<Int, Offset>,
+    /** 与通知横幅/音乐卡同源的内容宽度，dock 必须与它们左右对齐。 */
+    dockWidth: Dp,
+    glassHighlightEnabled: Boolean,
+    onAdd: (Int) -> Unit,
+    onOpenActions: (Int, AppInfo) -> Unit,
+    onCloseActions: () -> Unit,
+    onSwap: (Int, Int) -> Unit,
+    onClickApp: (Int, AppInfo) -> Unit,
+    rows: Int,
+    columns: Int,
+) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val dragThresholdPx = with(density) { 10.dp.toPx() }
+    val dropThresholdPx = with(density) { 68.dp.toPx() }
+    val visibleSlots = remember(items.size) { items.indices.toSet() }
+    val gridSpec = remember(rows) { sideScreenShortcutGridSpec(rows) }
+    val iconSpacing = gridSpec.spacingDp.dp
+    var draggingSlot by remember { mutableStateOf<Int?>(null) }
+    var pressedSlot by remember { mutableStateOf<Int?>(null) }
+    var dragOffset by remember { mutableStateOf(Offset.Zero) }
+    var dragMoved by remember { mutableStateOf(false) }
+    /**
+     * 拖动过程中当前会落到哪一格。以前这个判定只在**松手那一刻**做一次，所以整段拖动里
+     * 其余图标一动不动，落手前完全看不出会换到哪 —— 老师报的「负一屏快捷启动，拖动的
+     * 时候也要有避让动画」。
+     */
+    var hoverSlot by remember { mutableStateOf<Int?>(null) }
+    // 落点判定抽成一份，拖动过程与松手共用。两处各写一遍的话，预览给出的格子和真正
+    // 提交的格子会在阈值边界上不一致 —— 那比没有预览更糟。
+    val resolveDropTarget: (Int, Offset) -> Int? = { fromSlot, offset ->
+        slotCenters[fromSlot]?.let { origin ->
+            val pointer = origin + offset
+            slotCenters
+                .filterKeys { it != fromSlot && it in visibleSlots }
+                .minByOrNull { (_, center) -> (center - pointer).getDistance() }
+                ?.takeIf { (_, center) -> (center - pointer).getDistance() <= dropThresholdPx }
+                ?.key
+        }
+    }
+    val dockShape = LauncherTheme.style.panelShape
+    // 宽度由调用方给（= contentWidth），这里只按它反算图标尺寸：图标条
+    // 铺满可用宽度，多余空白归零，同时纵向内边距把 dock 撑高。
+    run {
+        val usable = dockWidth - QUICK_DOCK_PADDING_HORIZONTAL * 2 -
+            iconSpacing * (columns - 1)
+        val iconSize = (usable / columns).coerceAtMost(gridSpec.maxIconSizeDp.dp)
+        Column(
+            Modifier
+                .width(dockWidth)
+                // 原先这里写死白 0.13→0.06 填充 + 白 0.18→0.04 描边；那套实测配方
+                // 现在提成了 glass 令牌，三套风格与通知条共用同一份，取值不变。
+                .glassSurface(
+                    dockShape,
+                    LauncherTheme.style.glass,
+                    highlightEnabled = glassHighlightEnabled,
+                )
+                .padding(
+                    horizontal = QUICK_DOCK_PADDING_HORIZONTAL,
+                    vertical = QUICK_DOCK_PADDING_VERTICAL,
+                ),
+            verticalArrangement = Arrangement.spacedBy(iconSpacing),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items.chunked(columns).forEachIndexed { rowIndex, row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(iconSpacing)) {
+                    row.forEachIndexed { colIndex, item ->
+                        val slot = rowIndex * columns + colIndex
+                        // 避让位移：正在被拖过来的那一格，朝**被拖图标的原位**挪过去。
+                        //
+                        // 直接演示交换结果，而不是含糊地推一小段 —— 这个 dock 的落手动作
+                        // 就是 onSwap（两格互换），把结果原样画出来才是「所见即所得」；
+                        // 推一小段只能表达「有事要发生」，说不清是插入还是交换。
+                        val dragOrigin = draggingSlot?.takeIf { dragMoved }
+                        val avoidTarget = if (dragOrigin != null && hoverSlot == slot && slot != dragOrigin) {
+                            val here = slotCenters[slot]
+                            val there = slotCenters[dragOrigin]
+                            if (here != null && there != null) there - here else Offset.Zero
+                        } else {
+                            Offset.Zero
+                        }
+                        // 两轴分开 animate：Offset 版的 animateXAsState 在这个 Compose
+                        // 版本下没有对应的 spring 重载，拆成两条等价且更好调。
+                        val avoidSpec = spring<Float>(dampingRatio = 0.78f, stiffness = 620f)
+                        val avoidX by animateFloatAsState(avoidTarget.x, avoidSpec, label = "dock_avoid_x")
+                        val avoidY by animateFloatAsState(avoidTarget.y, avoidSpec, label = "dock_avoid_y")
+                        Box(
+                            Modifier
+                                .onGloballyPositioned { c -> val p = c.positionInRoot(); slotCenters[slot] = Offset(p.x + c.size.width / 2f, p.y + c.size.height / 2f) }
+                                // 位移只走 graphicsLayer：改布局会让 onGloballyPositioned
+                                // 重新上报中心点，而落点判定读的正是它 —— 那是一个帧率级
+                                // 反馈回路（避让把中心挪走 → 判定改目标 → 避让又变）。
+                                .graphicsLayer {
+                                    translationX = avoidX
+                                    translationY = avoidY
+                                },
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            when (item) {
+                                null -> {
+                                    // 空位的加号走圆形，不跟 QuickDockIconShape 的 squircle。
+                                    //
+                                    // dock 里真图标的位图现在是**圆的**（见 AppRepository
+                                    // 那次统一：包里的成品图与模板合成图都过 circularIfLegacy），
+                                    // 外面这层 28% 圆角方只是个不裁到边的外框，视觉上留下的
+                                    // 就是那个圆。空位却把外框本身画了出来 —— 于是同一条 dock
+                                    // 上「已添加是圆、空位是圆角方」（老师报的那条）。
+                                    AddBubble(size = iconSize, shape = CircleShape) { onAdd(slot) }
+                                }
+                                else -> {
+                                    val dragModifier = Modifier.pointerInput(item.componentKey, slot, slotCenters) {
+                                        awaitEachGesture {
+                                            val down = awaitPrimaryDown()
+                                            // 按压反馈老 bug 修复：按下即刻标记 pressedSlot，
+                                            // 让图标在整个按住过程都有缩放反馈。
+                                            pressedSlot = slot
+                                            when (val hold = awaitLongPressOrRelease(
+                                                pointerId = down.id,
+                                                downPosition = down.position,
+                                                timeoutMillis = SIDE_SCREEN_SHORTCUT_MENU_TRIGGER_MS
+                                            )) {
+                                                PressHoldResult.Cancelled -> {
+                                                    pressedSlot = null
+                                                }
+                                                PressHoldResult.Released -> {
+                                                    pressedSlot = null
+                                                    onClickApp(slot, item)
+                                                }
+                                                is PressHoldResult.LongPress -> {
+                                                    pressedSlot = null
+                                                    vibrateHaptic(context)
+                                                    hold.change.consume()
+                                                    dragOffset = Offset.Zero
+                                                    dragMoved = false
+                                                    onOpenActions(slot, item)
+
+                                                    while (true) {
+                                                        val event = awaitPointerEvent()
+                                                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                                        if (!change.pressed) {
+                                                            change.consume()
+                                                            break
+                                                        }
+                                                        val delta = change.positionChange()
+                                                        if (delta != Offset.Zero) {
+                                                            dragOffset += delta
+                                                            if (!dragMoved && dragOffset.getDistance() > dragThresholdPx) {
+                                                                dragMoved = true
+                                                                draggingSlot = slot
+                                                                onCloseActions()
+                                                            }
+                                                            // 每一帧更新落点，让目标格实时让位。
+                                                            if (dragMoved) {
+                                                                hoverSlot = resolveDropTarget(slot, dragOffset)
+                                                            }
+                                                            change.consume()
+                                                        }
+                                                    }
+
+                                                    val target = resolveDropTarget(slot, dragOffset)
+                                                    if (dragMoved && target != null) {
+                                                        onSwap(slot, target)
+                                                    }
+                                                    draggingSlot = null
+                                                    hoverSlot = null
+                                                    dragOffset = Offset.Zero
+                                                    dragMoved = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                    val itemDragOffset = if (draggingSlot == slot) dragOffset else Offset.Zero
+                                    AppBubble(
+                                        item.cachedIcon,
+                                        iconSize,
+                                        onClick = {},
+                                        onLongClick = null,
+                                        forcePressed = draggingSlot == slot || pressedSlot == slot,
+                                        pressScaleTarget = 0.93f,
+                                        pressAnimationDurationMillis = 130,
+                                        gesturesEnabled = false,
+                                        shape = QuickDockIconShape,
+                                        modifier = dragModifier
+                                            .zIndex(if (draggingSlot == slot) 6f else 0f)
+                                            .graphicsLayer {
+                                                translationX = itemDragOffset.x
+                                                translationY = itemDragOffset.y
+                                                shadowElevation = if (draggingSlot == slot) 12.dp.toPx() else 0f
+                                            }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    repeat(columns - row.size) { Spacer(Modifier.size(iconSize)) }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun WidgetCard(
+    widget: WidgetInfo,
+    layout: WidgetSlotLayout,
+    cardWidth: Dp,
+    widgetRepository: WidgetRepository,
+    appWidgetHost: AppWidgetHost,
+    glassHighlightEnabled: Boolean = true,
+    bindingDecision: WidgetBindingDecision = WidgetBindingDecision.VALID,
+    recoveryInProgress: Boolean = false,
+    onRebind: (() -> Unit)? = null,
+    onLongPress: (() -> Unit)?,
+    onMeasuredHeight: (Int) -> Unit
+) {
+    val context = LocalContext.current
+    val launcherStyle = LauncherTheme.style
+    val providerInfo = remember(widgetRepository, widget.widgetKey) {
+        widgetRepository.findProviderInfo(widget.widgetKey)
+    }
+    val minWidgetHeight = WIDGET_CARD_MIN_HEIGHT_DP.dp
+    val widgetAspectRatio = remember(providerInfo) {
+        val minWidth = providerInfo?.minWidth?.takeIf { it > 0 } ?: 1
+        val minHeight = providerInfo?.minHeight?.takeIf { it > 0 } ?: 1
+        (minWidth.toFloat() / minHeight.toFloat()).coerceIn(0.5f, 2.5f)
+    }
+    val defaultHeight = if (layout.spanColumns == 1) {
+        cardWidth.value.roundToInt().coerceIn(WIDGET_CARD_MIN_HEIGHT_DP, WIDGET_CARD_MAX_HEIGHT_DP)
+    } else {
+        170
+    }
+    val targetHeight = (layout.heightDp ?: defaultHeight)
+        .coerceIn(WIDGET_CARD_MIN_HEIGHT_DP, WIDGET_CARD_MAX_HEIGHT_DP)
+        .dp
+        .coerceAtLeast(minWidgetHeight)
+    val cardShape = launcherStyle.cardShape
+    val density = LocalDensity.current
+
+    fun updateMeasuredWidgetSize(container: View, hostView: AppWidgetHostView) {
+        // AndroidView.update can run before the first measure. Never publish a
+        // 1dp fallback to the provider: updateAppWidgetSize persists the value
+        // in widget options and can make a widget choose an undersized layout.
+        val widthPx = container.width
+        val heightPx = container.height
+        if (widthPx <= 0 || heightPx <= 0) return
+        val widthDp = with(density) { widthPx.toDp().value.roundToInt() }
+        val heightDp = with(density) { heightPx.toDp().value.roundToInt() }
+        if (widthDp <= 0 || heightDp <= 0) return
+        val resolvedProviderInfo = providerInfo ?: return
+        @Suppress("DEPRECATION")
+        hostView.updateAppWidgetSize(
+            buildWidgetBindOptions(resolvedProviderInfo),
+            widthDp,
+            heightDp,
+            widthDp,
+            heightDp,
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(targetHeight)
+            .onGloballyPositioned { coordinates -> onMeasuredHeight(coordinates.size.height) }
+            .graphicsLayer {
+                shape = cardShape
+                clip = true
+            }
+            .then(
+                if (glassHighlightEnabled) {
+                    Modifier.glassSurface(
+                        cardShape,
+                        launcherStyle.glass,
+                        highlightEnabled = true,
+                    )
+                } else {
+                    Modifier.clip(cardShape).background(launcherStyle.cardColor)
+                },
+            )
+    ) {
+        if (
+            providerInfo != null &&
+            widget.widgetId > 0 &&
+            bindingDecision == WidgetBindingDecision.VALID
+        ) {
+            val widgetBindTag = remember(widget.widgetId, providerInfo) {
+                "${widget.widgetId}|${providerInfo.provider.flattenToString()}|${providerInfo.minWidth}x${providerInfo.minHeight}"
+            }
+            AndroidView(
+                factory = { viewContext ->
+                    val radiusPx = with(density) { 24.dp.toPx() }
+                    val container = FrameLayout(viewContext).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        clipChildren = true
+                        clipToPadding = true
+                        clipToOutline = true
+                        // AppWidgetHostView adds the provider's default launcher
+                        // padding. That leaves the RemoteViews' own square root
+                        // background inset from our rounded outer mask, so its
+                        // right-angle corners stay visible. Let the provider fill
+                        // this rounded host and clip at the single outer boundary.
+                        setPadding(0, 0, 0, 0)
+                        outlineProvider = object : ViewOutlineProvider() {
+                            override fun getOutline(view: View, outline: Outline) {
+                                outline.setRoundRect(0, 0, view.width, view.height, radiusPx)
+                            }
+                        }
+                        addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                            view.invalidateOutline()
+                        }
+                    }
+                    val hostView = appWidgetHost.createView(viewContext, widget.widgetId, providerInfo).apply {
+                        setAppWidget(widget.widgetId, providerInfo)
+                        tag = widgetBindTag
+                        setPadding(0, 0, 0, 0)
+                        clipToOutline = true
+                        outlineProvider = object : ViewOutlineProvider() {
+                            override fun getOutline(view: View, outline: Outline) {
+                                outline.setRoundRect(0, 0, view.width, view.height, radiusPx)
+                            }
+                        }
+                        addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                            view.invalidateOutline()
+                        }
+                        layoutParams = FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT
+                        )
+                        if (onLongPress != null) {
+                            setOnLongClickListener {
+                                vibrateHaptic(context)
+                                onLongPress()
+                                true
+                            }
+                        } else {
+                            setOnLongClickListener(null)
+                        }
+                    }
+                    container.tag = WidgetHostTag(widgetBindTag, hostView)
+                    container.addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+                        view.invalidateOutline()
+                        updateMeasuredWidgetSize(view, hostView)
+                    }
+                    container.addView(hostView)
+                    container
+                },
+                update = { container ->
+                    container.setPadding(0, 0, 0, 0)
+                    container.invalidateOutline()
+                    val tag = container.tag as? WidgetHostTag
+                    val hostView = tag?.hostView
+                    if (tag?.bindTag != widgetBindTag && hostView != null) {
+                        @Suppress("DEPRECATION")
+                        hostView.setAppWidget(widget.widgetId, providerInfo)
+                        container.tag = WidgetHostTag(widgetBindTag, hostView)
+                    }
+                    hostView?.let { view ->
+                        view.setPadding(0, 0, 0, 0)
+                        view.invalidateOutline()
+                        if (onLongPress != null) {
+                            view.setOnLongClickListener {
+                                vibrateHaptic(context)
+                                onLongPress()
+                                true
+                            }
+                        } else {
+                            view.setOnLongClickListener(null)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(targetHeight)
+                    .graphicsLayer {
+                        shape = cardShape
+                        clip = true
+                        // 第三方 RemoteViews 常直接画不透明白底。MIUIX 下让
+                        // 宿主内容轻微透出后面的玻璃层，普通态与编辑态一致。
+                        alpha = if (glassHighlightEnabled) 0.84f else 1f
+                    }
+                    .clip(cardShape)
+            )
+        } else {
+            val interactionSource = remember { MutableInteractionSource() }
+            val isPressed by interactionSource.collectIsPressedAsState()
+            val scale by animateFloatAsState(
+                if (isPressed) 0.988f else 1f,
+                spring(stiffness = 860f, dampingRatio = 0.78f),
+                label = "widget_unavailable_scale"
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(targetHeight)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    .clip(cardShape)
+                    .then(
+                        if (glassHighlightEnabled) {
+                            Modifier.glassSurface(
+                                cardShape,
+                                launcherStyle.glass,
+                                highlightEnabled = true,
+                            )
+                        } else {
+                            Modifier.clip(cardShape).background(launcherStyle.cardColor)
+                        },
+                    )
+                    .combinedClickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = { onRebind?.invoke() },
+                        onLongClick = {
+                            if (onLongPress != null) {
+                                vibrateHaptic(context)
+                                onLongPress()
+                            }
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                ) {
+                    Text(
+                        text = if (recoveryInProgress) {
+                            stringResource(R.string.widget_recovering)
+                        } else {
+                            stringResource(R.string.widget_unavailable)
+                        },
+                        color = WatchColors.TextSecondary,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                    if (!recoveryInProgress && onRebind != null) {
+                        Text(
+                            text = stringResource(R.string.widget_rebind),
+                            color = launcherStyle.accentColor,
+                            fontSize = 12.sp,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyWidgetCard(width: Dp) {
+    val launcherStyle = LauncherTheme.style
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(96.dp)
+            .clip(launcherStyle.cardShape)
+            .background(launcherStyle.cardColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.widget_empty),
+            color = WatchColors.TextSecondary,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+    }
+}
+
+@Composable private fun AddBubble(size: Dp = 58.dp, shape: Shape = CircleShape, onClick: () -> Unit) {
+    val launcherStyle = LauncherTheme.style
+    val pressed = rememberPressedState(); val isPressed by pressed
+    val scale by animateFloatAsState(if (isPressed) 0.958f else 1f, spring(stiffness = 860f, dampingRatio = 0.72f), label = "side_add")
+    Box(Modifier.size(size).graphicsLayer { scaleX = scale; scaleY = scale }.clip(shape).background(launcherStyle.topBarChipColor).instantPressGesture(pressed, onClick = onClick), contentAlignment = Alignment.Center) {
+        Icon(MiuixIcons.Add, null, tint = launcherStyle.topBarTextColor, modifier = Modifier.size(24.dp))
+    }
+}
+
+@Composable private fun PreviewInfoCard(
+    title: String,
+    subtitle: String,
+    glassHighlightEnabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val fake = NotificationEntryUi("info", "", null, title, title, subtitle, 0L, null, false, false, false, false)
+    PreviewPill(fake, onClick, glassHighlightEnabled = glassHighlightEnabled)
+}
+
+@Composable private fun PreviewPill(
+    entry: NotificationEntryUi,
+    onClick: () -> Unit,
+    onMeasuredHeight: ((Int) -> Unit)? = null,
+    glassHighlightEnabled: Boolean = true
+) {
+    val launcherStyle = LauncherTheme.style
+    val pressed = rememberPressedState(); val isPressed by pressed
+    val scale by animateFloatAsState(if (isPressed) 0.968f else 1f, spring(stiffness = 860f, dampingRatio = 0.72f), label = "preview_scale")
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .onGloballyPositioned { coordinates ->
+                onMeasuredHeight?.invoke(coordinates.size.height)
+            }
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            // 通知条原来走 cardColor，且半透明时被强制刷成不透明 #353535 ——
+            // 上面那栏快捷启动是玻璃，它是实色板，两者材质断层。改成同一份
+            // glass 令牌；形状换 cardShape，三套风格各自的圆角语言仍然保留。
+            .glassSurface(
+                launcherStyle.cardShape,
+                launcherStyle.glass,
+                highlightEnabled = glassHighlightEnabled,
+            )
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            NotificationIcon(entry.icon)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(entry.title.ifBlank { entry.appLabel }, color = launcherStyle.titleColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(2.dp))
+                Text(entry.text.ifBlank { entry.title.ifBlank { entry.appLabel } }, color = WatchColors.TextSecondary, fontSize = 13.sp, maxLines = 2)
+            }
+            if (entry.time > 0L) {
+                Spacer(Modifier.width(10.dp))
+                Text(formatClockTime(entry.time), color = launcherStyle.bodyColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}
+
+@Composable private fun StackedPreviewCard(
+    entry: NotificationEntryUi,
+    hiddenCount: Int,
+    glassHighlightEnabled: Boolean,
+    onClick: () -> Unit
+) {
+    val stackStrength by animateFloatAsState(
+        targetValue = if (hiddenCount > 0) 1f else 0f,
+        animationSpec = spring(stiffness = 620f, dampingRatio = 0.82f),
+        label = "preview_stack_strength"
+    )
+    var frontCardHeight by remember { mutableIntStateOf(72) }
+    val density = LocalDensity.current
+    val stackBaseColor = rememberNotificationStackBaseColor()
+    val stackCardHeight: Dp = with(density) { frontCardHeight.toDp() }
+    Box(Modifier.fillMaxWidth()) {
+        repeat(hiddenCount.coerceIn(0, 2)) { index ->
+            Box(
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .graphicsLayer {
+                        translationY = with(density) { ((STACKED_PREVIEW_TRANSLATION_DP - 6) * (index + 1)).dp.toPx() } * stackStrength
+                        scaleX = 1f - (index + 1) * 0.012f * stackStrength
+                        scaleY = 1f - (index + 1) * 0.012f * stackStrength
+                        alpha = 1f - index * 0.10f
+                    }
+                    .padding(horizontal = STACKED_PREVIEW_HORIZONTAL_INSET_DP.dp)
+                    .fillMaxWidth()
+                    .height(stackCardHeight)
+                    // 堆叠层跟顶卡同形状同源色，否则「顶卡玻璃、下面实色灰」。
+                    .clip(LauncherTheme.style.cardShape)
+                    .background(notificationStackBackColor(stackBaseColor, index))
+            )
+        }
+        Column(modifier = Modifier.padding(bottom = 2.dp)) {
+            PreviewPill(
+                entry = entry,
+                onClick = onClick,
+                glassHighlightEnabled = glassHighlightEnabled,
+                onMeasuredHeight = { heightPx ->
+                    if (heightPx > 0 && frontCardHeight != heightPx) {
+                        frontCardHeight = heightPx
+                    }
+                }
+            )
+            Text(
+                stringResource(R.string.side_hidden_messages_fmt, hiddenCount),
+                color = WatchColors.TextTertiary,
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp),
+            )
+        }
+    }
+}
+
+@Composable private fun NotificationIcon(icon: ImageBitmap?) {
+    Box(Modifier.size(46.dp).clip(CircleShape).background(Color(0xFFD9D9D9)), contentAlignment = Alignment.Center) {
+        if (icon != null) Image(icon, null, modifier = Modifier.fillMaxSize().clip(CircleShape), filterQuality = FilterQuality.Medium, contentScale = ContentScale.Crop)
+        else Icon(
+            painter = painterResource(R.drawable.ic_fluly_notification_round),
+            contentDescription = null,
+            tint = Color(0xFF2B2B2B),
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+@Composable
+private fun ShortcutPickerOverlay(
+    apps: List<AppInfo>,
+    onQueryShortcuts: suspend (AppInfo) -> List<ShortcutInfo>,
+    onSelectOpenApp: (AppInfo) -> Unit,
+    onSelectShortcut: suspend (ShortcutInfo) -> Boolean,
+    onDismiss: () -> Unit
+) {
+    val appPickerItems = remember(apps) {
+        apps.asSequence()
+            .filterNot { it.isFolder }
+            .filterNot { it.isAppListShortcut }
+            .map { app ->
+                ShortcutPickerItem(
+                    componentKey = app.componentKey,
+                    label = app.label,
+                    packageName = app.packageName,
+                    icon = app.cachedIcon,
+                    source = app
+                )
+            }
+            .toList()
+    }
+    var selectedApp by remember { mutableStateOf<AppInfo?>(null) }
+    var selectedShortcuts by remember { mutableStateOf<List<ShortcutInfo>>(emptyList()) }
+    var loadingPackage by remember { mutableStateOf<String?>(null) }
+    var selectionFailed by remember { mutableStateOf(false) }
+    var appListReturnIndex by remember { mutableIntStateOf(0) }
+    var appListReturnOffset by remember { mutableIntStateOf(0) }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(selectedApp?.packageName) {
+        if (selectedApp == null) {
+            listState.scrollToItem(appListReturnIndex, appListReturnOffset)
+        } else {
+            listState.scrollToItem(0)
+        }
+    }
+    BackHandler(enabled = selectedApp != null) {
+        selectedApp = null
+        selectedShortcuts = emptyList()
+        selectionFailed = false
+    }
+    ModalShell(onDismiss, backHandlerEnabled = selectedApp == null) { dismiss ->
+        Column(Modifier.fillMaxWidth(0.82f).heightIn(max = 420.dp).clip(LauncherTheme.style.panelShape).background(Color(0xFF1E1E1E)).padding(vertical = 12.dp)) {
+            Text(
+                selectedApp?.label ?: stringResource(R.string.side_add_shortcut),
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 10.dp),
+            )
+            AnimatedContent(
+                targetState = selectedApp,
+                transitionSpec = {
+                    val forward = initialState == null && targetState != null
+                    val enter = slideInHorizontally(
+                        animationSpec = tween(220),
+                        initialOffsetX = { width -> if (forward) width / 3 else -width / 3 },
+                    ) + fadeIn(tween(160))
+                    val exit = slideOutHorizontally(
+                        animationSpec = tween(220),
+                        targetOffsetX = { width -> if (forward) -width / 3 else width / 3 },
+                    ) + fadeOut(tween(140))
+                    enter togetherWith exit using SizeTransform(clip = false)
+                },
+                label = "shortcut_picker_level",
+                modifier = Modifier.weight(1f, fill = false),
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxWidth().flulyOverscroll(listState),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (it == null) {
+                        items(
+                            items = appPickerItems,
+                            key = { item -> item.componentKey },
+                            contentType = { "shortcut_picker_app" },
+                        ) { app ->
+                            ShortcutPickerRow(
+                                item = app,
+                                busy = loadingPackage == app.packageName,
+                                onClick = {
+                                    if (loadingPackage != null) return@ShortcutPickerRow
+                                    scope.launch {
+                                        appListReturnIndex = listState.firstVisibleItemIndex
+                                        appListReturnOffset = listState.firstVisibleItemScrollOffset
+                                        loadingPackage = app.packageName
+                                        val shortcuts = onQueryShortcuts(app.source)
+                                        loadingPackage = null
+                                        when (sideScreenShortcutSelection(shortcuts.size)) {
+                                            SideScreenShortcutSelection.ADD_OPEN_APP -> {
+                                                onSelectOpenApp(app.source)
+                                                dismiss()
+                                            }
+                                            SideScreenShortcutSelection.CHOOSE_ACTION -> {
+                                                selectedShortcuts = shortcuts
+                                                selectedApp = app.source
+                                            }
+                                        }
+                                    }
+                                },
+                            )
+                        }
+                    } else {
+                        item("back_to_shortcut_apps") {
+                            ShortcutPickerBackRow(onClick = {
+                                selectedApp = null
+                                selectedShortcuts = emptyList()
+                                selectionFailed = false
+                            })
+                        }
+                        item("open_app") {
+                            ShortcutActionRow(
+                                label = stringResource(R.string.side_shortcut_open_app),
+                                subtitle = it.label,
+                                icon = it.cachedIcon,
+                                enabled = true,
+                                onClick = {
+                                    onSelectOpenApp(it)
+                                    dismiss()
+                                },
+                            )
+                        }
+                        items(
+                            items = selectedShortcuts,
+                            key = { shortcut -> shortcut.id },
+                            contentType = { "shortcut_action" },
+                        ) { shortcut ->
+                            val label = shortcut.shortLabel?.toString()?.takeIf(String::isNotBlank)
+                                ?: shortcut.longLabel?.toString()?.takeIf(String::isNotBlank)
+                                ?: shortcut.id
+                            val disabledReason = shortcut.disabledMessage?.toString()?.takeIf(String::isNotBlank)
+                            ShortcutActionRow(
+                                label = label,
+                                subtitle = disabledReason ?: it.label,
+                                shortcut = shortcut,
+                                fallbackIcon = it.cachedIcon,
+                                enabled = shortcut.isEnabled,
+                                onClick = {
+                                    scope.launch {
+                                        selectionFailed = false
+                                        if (onSelectShortcut(shortcut)) dismiss() else selectionFailed = true
+                                    }
+                                },
+                            )
+                        }
+                        if (selectionFailed) {
+                            item("shortcut_selection_failed") {
+                                Text(
+                                    stringResource(R.string.side_shortcut_unavailable),
+                                    color = Color(0xFFFF6B66),
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WidgetPickerOverlay(
+    apps: List<AppInfo>,
+    widgetRepository: WidgetRepository,
+    onSelectWidget: (WidgetInfo) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val widgetPickerItems = remember(widgetRepository) { widgetRepository.getAllWidgets() }
+    val launcherAppsByPackage = remember(apps) {
+        apps.filterNot { it.isBuiltInSettingsEntry }
+            .groupBy { it.packageName }
+            .mapValues { it.value.minByOrNull { app -> app.label.length } ?: it.value.first() }
+    }
+    val pickerApps = remember(widgetPickerItems, launcherAppsByPackage) {
+        widgetPickerItems
+            .groupBy { it.packageName }
+            .map { (packageName, widgets) ->
+                val launcherApp = launcherAppsByPackage[packageName]
+                val representativeWidget = widgets.first()
+                WidgetPickerApp(
+                    packageName = packageName,
+                    label = launcherApp?.label ?: representativeWidget.appLabel,
+                    icon = launcherApp?.iconForDisplay(blurred = false),
+                    widgets = widgets.sortedBy { it.label.lowercase(Locale.getDefault()) }
+                )
+            }
+            .sortedBy { it.label.lowercase(Locale.getDefault()) }
+    }
+    var selectedPackage by remember { mutableStateOf<String?>(null) }
+    var appListReturnIndex by remember { mutableIntStateOf(0) }
+    var appListReturnOffset by remember { mutableIntStateOf(0) }
+    val selectedApp = selectedPackage?.let { selected ->
+        pickerApps.firstOrNull { it.packageName == selected }
+    }
+    val listState = rememberLazyListState()
+    LaunchedEffect(selectedPackage) {
+        if (selectedPackage == null) {
+            listState.scrollToItem(appListReturnIndex, appListReturnOffset)
+        } else {
+            listState.scrollToItem(0)
+        }
+    }
+    BackHandler(enabled = selectedPackage != null) {
+        selectedPackage = null
+    }
+    ModalShell(onDismiss, backHandlerEnabled = selectedPackage == null) { dismiss ->
+        Column(Modifier.fillMaxWidth(0.82f).heightIn(max = 420.dp).clip(LauncherTheme.style.panelShape).background(Color(0xFF1E1E1E)).padding(vertical = 12.dp)) {
+            Text(
+                selectedApp?.label ?: stringResource(R.string.widget_add_widget),
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(bottom = 10.dp)
+            )
+            AnimatedContent(
+                targetState = selectedApp,
+                transitionSpec = {
+                    val forward = initialState == null && targetState != null
+                    val enter = slideInHorizontally(
+                        animationSpec = tween(220),
+                        initialOffsetX = { width -> if (forward) width / 3 else -width / 3 }
+                    ) + fadeIn(tween(160))
+                    val exit = slideOutHorizontally(
+                        animationSpec = tween(220),
+                        targetOffsetX = { width -> if (forward) -width / 3 else width / 3 }
+                    ) + fadeOut(tween(140))
+                    enter togetherWith exit using SizeTransform(clip = false)
+                },
+                label = "widget_picker_level",
+                modifier = Modifier.weight(1f, fill = false)
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .flulyOverscroll(listState),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (widgetPickerItems.isEmpty()) {
+                        item {
+                            Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+                                Text(
+                                    stringResource(R.string.widget_no_results),
+                                    color = WatchColors.TextTertiary,
+                                    fontSize = 14.sp,
+                                )
+                            }
+                        }
+                    } else if (it == null) {
+                        items(
+                            items = pickerApps,
+                            key = { app -> app.packageName },
+                            contentType = { "widget_app_picker" }
+                        ) { app ->
+                            WidgetPickerAppRow(
+                                app = app,
+                                widgetRepository = widgetRepository,
+                                onClick = {
+                                    appListReturnIndex = listState.firstVisibleItemIndex
+                                    appListReturnOffset = listState.firstVisibleItemScrollOffset
+                                    selectedPackage = app.packageName
+                                }
+                            )
+                        }
+                    } else {
+                        item("back_to_widget_apps") {
+                            WidgetPickerBackRow(onClick = { selectedPackage = null })
+                        }
+                        items(
+                            items = it.widgets,
+                            key = { widget -> widget.widgetKey },
+                            contentType = { "widget_picker" }
+                        ) { widget ->
+                            WidgetPickerRow(
+                                widget = widget,
+                                widgetRepository = widgetRepository,
+                                onClick = {
+                                    onSelectWidget(widget)
+                                    dismiss()
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun WidgetPickerBackRow(onClick: () -> Unit) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(if (isPressed) Color(0xFF3A3A3A) else Color(0xFF2B2B2D))
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            MiuixIcons.Back,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(Modifier.width(9.dp))
+        Text(
+            stringResource(R.string.widget_back_to_apps),
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+@Composable
+private fun ShortcutPickerBackRow(onClick: () -> Unit) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(if (isPressed) Color(0xFF3A3A3A) else Color(0xFF2B2B2D))
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(MiuixIcons.Back, null, Modifier.size(18.dp), tint = Color.White)
+        Spacer(Modifier.width(9.dp))
+        Text(
+            stringResource(R.string.side_shortcut_back_to_apps),
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+    }
+}
+
+@Composable
+private fun ShortcutActionRow(
+    label: String,
+    subtitle: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    icon: ImageBitmap? = null,
+    shortcut: ShortcutInfo? = null,
+    fallbackIcon: ImageBitmap? = null,
+) {
+    val context = LocalContext.current
+    val rowIcon by produceState<ImageBitmap?>(
+        initialValue = icon ?: fallbackIcon,
+        shortcut?.id,
+        shortcut?.lastChangedTimestamp,
+    ) {
+        if (shortcut != null) {
+            value = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.getSystemService(LauncherApps::class.java)
+                        ?.getShortcutIconDrawable(shortcut, context.resources.displayMetrics.densityDpi)
+                        ?.toBitmap(width = 96, height = 96)
+                        ?.asImageBitmap()
+                }.getOrNull() ?: fallbackIcon
+            }
+        }
+    }
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val scale by animateFloatAsState(
+        if (isPressed && enabled) 0.985f else 1f,
+        spring(stiffness = 880f, dampingRatio = 0.8f),
+        label = "shortcut_action_row",
+    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(62.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                alpha = if (enabled) 1f else 0.46f
+            }
+            .clip(LauncherTheme.style.rowShape)
+            .background(if (isPressed && enabled) Color(0xFF303030) else Color.Transparent)
+            .then(if (enabled) Modifier.instantPressGesture(pressed, onClick = onClick) else Modifier)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        rowIcon?.let { bitmap ->
+            Image(
+                bitmap,
+                contentDescription = label,
+                modifier = Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Text(subtitle, color = WatchColors.TextTertiary, fontSize = 11.sp, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+private fun WidgetPickerAppRow(
+    app: WidgetPickerApp,
+    widgetRepository: WidgetRepository,
+    onClick: () -> Unit
+) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val rowIcon by produceState<ImageBitmap?>(initialValue = app.icon, app.packageName, widgetRepository) {
+        if (value == null) {
+            value = withContext(Dispatchers.IO) {
+                widgetRepository.loadProviderPackageIcon(app.packageName)
+            }
+        }
+    }
+    val scale by animateFloatAsState(
+        if (isPressed) 0.985f else 1f,
+        spring(stiffness = 880f, dampingRatio = 0.8f),
+        label = "widget_app_picker_row"
+    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(LauncherTheme.style.rowShape)
+            .background(if (isPressed) Color(0xFF303030) else Color.Transparent)
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (rowIcon != null) {
+            Image(
+                bitmap = rowIcon!!,
+                contentDescription = app.label,
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF007AFF)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(app.label.take(1), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(app.label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(R.string.widget_count_fmt, app.widgets.size),
+                color = WatchColors.TextTertiary,
+                fontSize = 11.sp,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable
+private fun WidgetPickerRow(
+    widget: WidgetInfo,
+    widgetRepository: WidgetRepository,
+    onClick: () -> Unit
+) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val preview by produceState<ImageBitmap?>(initialValue = widget.previewImage ?: widget.appIcon, widget.widgetKey, widgetRepository) {
+        if (value == null) {
+            value = withContext(Dispatchers.IO) {
+                widgetRepository.loadWidgetPreviewImage(widget)
+                    ?: widgetRepository.loadProviderPackageIcon(widget.packageName)
+            }
+        }
+    }
+    val previewBitmap = preview
+    val scale by animateFloatAsState(
+        if (isPressed) 0.985f else 1f,
+        spring(stiffness = 880f, dampingRatio = 0.8f),
+        label = "widget_picker_row"
+    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(62.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(LauncherTheme.style.rowShape)
+            .background(if (isPressed) Color(0xFF303030) else Color.Transparent)
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier
+                .size(52.dp, 42.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF2A3444)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (previewBitmap != null) {
+                Image(
+                    bitmap = previewBitmap,
+                    contentDescription = widget.label,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(widget.label.take(1), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(widget.label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(widget.appLabel, color = WatchColors.TextTertiary, fontSize = 11.sp, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+private fun TypeTab(
+    modifier: Modifier,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    Box(
+        modifier
+            .height(40.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(if (selected) Color(0xFF007AFF) else Color.Transparent)
+            .instantPressGesture(pressed, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            label,
+            color = if (selected) Color.White else WatchColors.TextSecondary,
+            fontSize = 14.sp,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+private fun ShortcutPickerRow(
+    item: ShortcutPickerItem,
+    busy: Boolean,
+    onClick: () -> Unit
+) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val scale by animateFloatAsState(
+        if (isPressed) 0.985f else 1f,
+        spring(stiffness = 880f, dampingRatio = 0.8f),
+        label = "picker_row"
+    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(62.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(LauncherTheme.style.rowShape)
+            .background(if (isPressed) Color(0xFF303030) else Color.Transparent)
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            item.icon,
+            null,
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop,
+            filterQuality = FilterQuality.Low
+        )
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(item.label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                if (busy) stringResource(R.string.side_shortcut_reading) else item.packageName,
+                color = WatchColors.TextTertiary,
+                fontSize = 11.sp,
+                maxLines = 1,
+            )
+        }
+    }
+}
+
+@Composable private fun RemoveOverlay(app: AppInfo?, widget: WidgetInfo?, onRemove: () -> Unit, onDismiss: () -> Unit) {
+    val scrollState = rememberScrollState()
+    ModalShell(onDismiss) { dismiss ->
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth(0.74f)
+                .flulyOverscroll(scrollState)
+                .verticalScroll(scrollState),
+        ) {
+            Column(Modifier.fillMaxWidth().clip(LauncherTheme.style.cardShape).background(Color(0xFF2C2C2E))) {
+                Box(Modifier.fillMaxWidth().clickable { onRemove(); dismiss() }.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                    Text(
+                        stringResource(R.string.action_remove),
+                        color = Color(0xFFFF453A),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.W500,
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+            if (app != null) {
+                Image(app.cachedIcon, null, modifier = Modifier.size(88.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+                Spacer(Modifier.height(6.dp))
+                Text(app.label, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.W600)
+            } else if (widget != null) {
+                Box(
+                    Modifier.size(88.dp).clip(CircleShape).background(Color(0xFF007AFF)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(widget.label.take(1), color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(widget.label, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.W600)
+            }
+        }
+    }
+}
+
+@Composable private fun ModalShell(
+    onDismissRequest: () -> Unit,
+    backHandlerEnabled: Boolean = true,
+    content: @Composable (dismiss: () -> Unit) -> Unit
+) {
+    val dismissInteraction = remember { MutableInteractionSource() }
+    var visible by remember { mutableStateOf(false) }
+    fun dismiss() { visible = false }
+    LaunchedEffect(Unit) { visible = true }
+    BackHandler(enabled = backHandlerEnabled) { dismiss() }
+    LaunchedEffect(visible) { if (!visible) { delay(220); onDismissRequest() } }
+    val alpha by animateFloatAsState(if (visible) 1f else 0f, spring(stiffness = 720f, dampingRatio = 0.85f), label = "modal_alpha")
+    val scale by animateFloatAsState(if (visible) 1f else 0.84f, spring(stiffness = 700f, dampingRatio = 0.8f), label = "modal_scale")
+    Box(
+        Modifier
+            .fillMaxSize()
+            .graphicsLayer { this.alpha = alpha }
+            .background(Color.Black.copy(alpha = 0.72f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .clickable(indication = null, interactionSource = dismissInteraction) { dismiss() }
+        )
+        Box(
+            Modifier
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+        ) {
+            content(::dismiss)
+        }
+    }
+}
+
+private suspend fun AwaitPointerEventScope.awaitLongPressOrRelease(
+    pointerId: PointerId,
+    downPosition: Offset,
+    timeoutMillis: Long
+): PressHoldResult {
+    val result = withTimeoutOrNull(timeoutMillis) {
+        while (true) {
+            val event = awaitPointerEvent()
+            val change = event.changes.firstOrNull { it.id == pointerId }
+                ?: return@withTimeoutOrNull PressHoldResult.Cancelled
+            if (!change.pressed) {
+                return@withTimeoutOrNull PressHoldResult.Released
+            }
+            if ((change.position - downPosition).getDistance() > viewConfiguration.touchSlop) {
+                return@withTimeoutOrNull PressHoldResult.Cancelled
+            }
+        }
+        @Suppress("UNREACHABLE_CODE")
+        PressHoldResult.Cancelled
+    }
+    if (result != null) return result
+    val current = currentEvent.changes.firstOrNull { it.id == pointerId && it.pressed }
+    return current?.let(PressHoldResult::LongPress) ?: PressHoldResult.Cancelled
+}
+
+private suspend fun AwaitPointerEventScope.awaitPrimaryDown(): PointerInputChange {
+    while (true) {
+        val event = awaitPointerEvent()
+        val change = event.changes.firstOrNull { it.pressed }
+        if (change != null) return change
+    }
+}
+
+@Composable private fun rememberClockSnapshot(contentVisible: Boolean = true): SideScreenClockSnapshot {
+    val context = LocalContext.current
+    val locale = context.resources.configuration.locales[0] ?: Locale.getDefault()
+    var snapshot by remember { mutableStateOf(SideScreenClockSnapshot("--:--", "--")) }
+    // 负一屏常驻组合，不可见时停掉秒级轮询，重新可见的首帧立即刷新。
+    LaunchedEffect(locale, contentVisible) {
+        if (!contentVisible) return@LaunchedEffect
+        val datePattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "MMMdEEEE")
+        val dateFormatter = SimpleDateFormat(datePattern, locale)
+        val timeFormatter = android.text.format.DateFormat.getTimeFormat(context)
+        while (true) {
+            val now = Date()
+            snapshot = SideScreenClockSnapshot(
+                timeFormatter.format(now),
+                dateFormatter.format(now),
+            )
+            delay(1000)
+        }
+    }
+    return snapshot
+}
+
+@Composable private fun rememberBatterySnapshot(): BatterySnapshot {
+    val context = LocalContext.current
+    var level by remember(context) { mutableIntStateOf(0) }
+    var charging by remember(context) { mutableStateOf(false) }
+    DisposableEffect(context) {
+        fun readLevel(): Int = (context.getSystemService(BatteryManager::class.java)?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 0).coerceIn(0, 100)
+        fun readCharging(intent: Intent?): Boolean {
+            val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+            return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
+        }
+        level = readLevel()
+        val stickyIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        charging = readCharging(stickyIntent)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: android.content.Context?, intent: Intent?) {
+                level = readLevel()
+                charging = readCharging(intent)
+            }
+        }
+        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        onDispose { runCatching { context.unregisterReceiver(receiver) } }
+    }
+    return BatterySnapshot(level = level, charging = charging)
+}
+
+@Composable
+private fun WatchBatteryAndStepsPill(
+    level: Int,
+    charging: Boolean,
+    steps: Int?,
+    showSteps: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val launcherStyle = LauncherTheme.style
+    val formattedSteps = remember(steps) {
+        steps?.let {
+            NumberFormat.getIntegerInstance(Locale.getDefault()).format(it)
+        } ?: "--"
+    }
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        WatchBatteryPill(
+            level = level,
+            charging = charging,
+        )
+        if (showSteps) {
+            // 24dp 间距 + graphicsLayer 放大曾让整条 pill 在圆屏上溢出约 28dp；
+            // 真实尺寸 + 收紧间距后两端可留出安全弦宽。
+            Spacer(Modifier.width(12.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = MiuixIcons.Location,
+                    contentDescription = null,
+                    tint = launcherStyle.bodyColor,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = formattedSteps,
+                    color = launcherStyle.bodyColor,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun rememberActivityRecognitionPermission(showSteps: Boolean): Boolean {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return true
+    val context = LocalContext.current
+    var granted by remember(context) {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) ==
+                PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { allowed ->
+        granted = allowed
+    }
+    LaunchedEffect(showSteps, context) {
+        val latest = ContextCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) ==
+            PackageManager.PERMISSION_GRANTED
+        granted = latest
+        if (showSteps && !latest) {
+            launcher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
+    }
+    return granted
+}
+
+@Composable
+private fun rememberStepSnapshot(
+    showSteps: Boolean,
+    permissionGranted: Boolean
+): StepSnapshot {
+    val context = LocalContext.current
+    var steps by remember(showSteps, permissionGranted) { mutableStateOf<Int?>(null) }
+    DisposableEffect(context, showSteps, permissionGranted) {
+        if (!showSteps || !permissionGranted) {
+            steps = null
+            return@DisposableEffect onDispose { }
+        }
+        val sensorManager = context.getSystemService(SensorManager::class.java)
+        val stepCounter = sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+        if (sensorManager == null || stepCounter == null) {
+            steps = null
+            return@DisposableEffect onDispose { }
+        }
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent?) {
+                val value = event?.values?.firstOrNull() ?: return
+                steps = value.toInt().coerceAtLeast(0)
+            }
+
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+        }
+        val registered = runCatching {
+            sensorManager.registerListener(listener, stepCounter, SensorManager.SENSOR_DELAY_NORMAL)
+        }.getOrDefault(false)
+        if (!registered) {
+            steps = null
+        }
+        onDispose {
+            runCatching { sensorManager.unregisterListener(listener) }
+        }
+    }
+    return StepSnapshot(steps = steps)
+}
+private fun buildPreviewRows(groups: List<NotificationGroupUi>, maxRows: Int): List<PreviewRow> {
+    val safeMaxRows = maxRows.coerceAtLeast(0)
+    if (safeMaxRows == 0) return emptyList()
+
+    val totalNotificationCount = groups.sumOf { it.entries.size }
+    val distinctGroupCount = groups.size
+
+    if (distinctGroupCount > 1 && totalNotificationCount > 1) {
+        val leadEntry = groups.firstOrNull()?.entries?.firstOrNull() ?: return emptyList()
+        return listOf(
+            PreviewRow.Aggregate(
+                leadEntry = leadEntry,
+                hiddenCount = (totalNotificationCount - 1).coerceAtLeast(0)
+            )
+        )
+    }
+
+    return groups.take(safeMaxRows).map { group ->
+        if (group.entries.size > 1) {
+            PreviewRow.Group(group, listOf(group.entries.first()), group.entries.size - 1)
+        } else {
+            PreviewRow.Group(group, group.entries, 0)
+        }
+    }
+}
+
+private fun buildWidgetBindOptions(providerInfo: AppWidgetProviderInfo): Bundle {
+    return Bundle().apply {
+        putInt(
+            AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,
+            providerInfo.minWidth.coerceAtLeast(120)
+        )
+        putInt(
+            AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,
+            providerInfo.minHeight.coerceAtLeast(120)
+        )
+        putInt(
+            AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,
+            providerInfo.minResizeWidth.takeIf { it > 0 } ?: providerInfo.minWidth.coerceAtLeast(120)
+        )
+        putInt(
+            AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,
+            providerInfo.minResizeHeight.takeIf { it > 0 } ?: providerInfo.minHeight.coerceAtLeast(120)
+        )
+    }
+}
+
+private fun Context.findActivity(): Activity? {
+    var current: Context? = this
+    while (current is android.content.ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return null
+}
+
+private fun formatClockTime(timestamp: Long): String = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun WidgetBubble(
+    widget: WidgetInfo,
+    size: Dp,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        if (isPressed) 0.958f else 1f,
+        spring(stiffness = 860f, dampingRatio = 0.72f),
+        label = "widget_bubble"
+    )
+    Box(
+        Modifier
+            .size(size)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .clip(CircleShape)
+            .background(Color(0xFF007AFF))
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = widget.label.take(2),
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}

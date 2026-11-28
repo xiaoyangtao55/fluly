@@ -26,6 +26,6 @@ push（含 `v*` 标签）和 PR 只运行 test。test 命令包含九模块的 `
 
 ## 本次静态验证范围
 
-只执行源码扫描、XML 解析与 `git diff --check`，不编译、不运行 Gradle/JVM 测试、不提交。初次九模块等价扫描读取 405 个 Kotlin 生产文件、176 个正则字面量：依赖边界与 ICU 扫描通过；初次发现 Studio 创作页新增原生 `AlertDialog`，生产代码负责人已替换为 `FlueAlertDialog` 并补同窗口 `FlueOverlayHost`；复扫 405 个 Kotlin 文件的瞬时提示/原生 Dialog/菜单策略为零违规，未增加白名单或放宽检测。
+只执行源码扫描、XML 解析与 `git diff --check`，不编译、不运行 Gradle/JVM 测试、不提交。初次九模块等价扫描读取 405 个 Kotlin 生产文件、176 个正则字面量：依赖边界与 ICU 扫描通过；初次发现 Studio 创作页新增原生 `AlertDialog`，生产代码负责人已替换为 `FlulyAlertDialog` 并补同窗口 `FlulyOverlayHost`；复扫 405 个 Kotlin 文件的瞬时提示/原生 Dialog/菜单策略为零违规，未增加白名单或放宽检测。
 
 合并前应重新执行静态策略扫描，并在允许构建的环境运行九模块 JVM 测试。静态等价检查不等于 Kotlin 编译或设备验证通过。

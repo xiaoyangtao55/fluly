@@ -20,7 +20,7 @@
 - Windows JDK 21 执行 `gradlew.bat :app:testDebugUnitTest :app:assembleRelease --no-daemon --console=plain` 成功，R8、lintVital 通过。
 - `apksigner.bat verify --verbose --print-certs` 验证成功，APK v2 签名有效；`git diff --check` 通过。
 - APK：`app/build/outputs/apk/release/app-release.apk`。
-- 包名 `com.flue.launcher`，版本 2.3.3，versionCode 28；大小 19855009 字节。
+- 包名 `com.fluly.launcher`，版本 2.3.3，versionCode 28；大小 19855009 字节。
 - SHA-256：`274504200BF095BCCBF11E13D9841619E790602B00FD386AFB592AA54422709B`。
 
 ## 设备验证边界

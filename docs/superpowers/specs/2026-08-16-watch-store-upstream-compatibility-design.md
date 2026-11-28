@@ -2,12 +2,12 @@
 
 ## 范围
 
-本次修改只同步上游契约到本地 Flue，不向 GitLab 仓库反向推送。保留当前工作区已有的 5 个未提交源码文件和 `.gradle-fresh/`，不把它们混入本次设计提交或后续无关修改。
+本次修改只同步上游契约到本地 Fluly，不向 GitLab 仓库反向推送。保留当前工作区已有的 5 个未提交源码文件和 `.gradle-fresh/`，不把它们混入本次设计提交或后续无关修改。
 
 目标是修复：
 
 1. 上传表盘请求命中旧接口而返回 404/`Watch store request failed`。
-2. `Gravity_Sim` 等合法 WatchMaker 动作被 Flue 显示为 `unsupported action`。
+2. `Gravity_Sim` 等合法 WatchMaker 动作被 Fluly 显示为 `unsupported action`。
 3. 工具设置缺少自定义表盘市场地址。
 4. 市场网络加载失败时仍展示本地已下载管理内容，导致用户误以为在线市场可用。
 

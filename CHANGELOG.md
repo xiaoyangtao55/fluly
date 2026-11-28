@@ -12,7 +12,7 @@
 
 - 仓库以 GPL-3.0 开源，补充 `LICENSE`、`THIRD_PARTY_NOTICES.md`、`CONTRIBUTING.md`、`SECURITY.md`
 - 发布签名不再进入版本库：`keystore.properties` 与密钥文件改为本地文件 + CI Secrets 注入
-- 表盘市场的默认地址改为构建期可覆盖：`-PflueWatchStoreBaseUrl=https://your-host/api`
+- 表盘市场的默认地址改为构建期可覆盖：`-PflulyWatchStoreBaseUrl=https://your-host/api`
 - 关于页的交流群入口改为复制群号（原来的邀请链接带一次性 `authKey`，会失效）
 - 接受外部 PR，补充贡献流程与改动前置讨论范围
 
@@ -23,7 +23,7 @@
 
 ### 修复
 
-- 无障碍权限说明文案此前声称“Flue 并不联网”，与实际行为不符，改为如实描述用途与能力边界
+- 无障碍权限说明文案此前声称“Fluly 并不联网”，与实际行为不符，改为如实描述用途与能力边界
 
 ### 工程
 

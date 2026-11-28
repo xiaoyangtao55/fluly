@@ -164,7 +164,7 @@ def export_watch(request):
         preview_buffer = io.BytesIO()
         backdrop.save(preview_buffer, format='JPEG', quality=92)
         preview_bytes = preview_buffer.getvalue()
-        # Native Flue catalogs read preview.jpg, with preview_dim.jpg as a fallback.
+        # Native Fluly catalogs read preview.jpg, with preview_dim.jpg as a fallback.
         existing = next((name for name in entries if name.casefold() == 'preview.jpg'), None)
         if existing:
             entries[existing] = preview_bytes
@@ -181,7 +181,7 @@ def export_watch(request):
             archive.writestr(name, content)
     if buf.tell() > MAX_ZIP:
         raise ValueError('Compressed watch export exceeds 25 MiB')
-    return {'data': base64.b64encode(buf.getvalue()).decode('ascii'), 'filename': 'flue-agent.watch'}
+    return {'data': base64.b64encode(buf.getvalue()).decode('ascii'), 'filename': 'fluly-agent.watch'}
 
 
 def runtime():
@@ -200,7 +200,7 @@ POST_ROUTES = {'/api/chat': providers.chat, '/api/test': test_connection, '/api/
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = 'FlueWatchface/0.1'
+    server_version = 'FlulyWatchface/0.1'
     sys_version = ''
 
     def log_message(self, *_args):
@@ -335,13 +335,13 @@ def create_server(port=8765):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run the local Flue watchface Agent prototype')
+    parser = argparse.ArgumentParser(description='Run the local Fluly watchface Agent prototype')
     parser.add_argument('--port', type=int, default=8765)
     args = parser.parse_args()
     if not 1 <= args.port <= 65535:
         parser.error('--port must be between 1 and 65535')
     server = create_server(args.port)
-    print(f'Flue watchface editor: http://127.0.0.1:{server.server_port}', flush=True)
+    print(f'Fluly watchface editor: http://127.0.0.1:{server.server_port}', flush=True)
     print('Ctrl+C stops the server. API keys are never saved by the backend.', flush=True)
     try:
         server.serve_forever()

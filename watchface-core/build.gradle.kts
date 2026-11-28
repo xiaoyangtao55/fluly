@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.flue.launcher.watchface.core"
+    namespace = "com.fluly.launcher.watchface.core"
     compileSdk = 36
 
     defaultConfig {

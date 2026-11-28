@@ -1,4 +1,4 @@
-# Flue Next
+# Fluly
 
 **An Android launcher (HOME app) for smartwatches**, written in Kotlin with Jetpack Compose.
 
@@ -7,7 +7,7 @@ notification center and control center live in one process, so gestures and tran
 continuous instead of bouncing between separate apps.
 
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
-[![CI](https://github.com/xumidcm/Flue-next/actions/workflows/ci.yml/badge.svg)](https://github.com/xumidcm/Flue-next/actions/workflows/ci.yml)
+[![CI](https://github.com/xiaoyangtao55/fluly/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaoyangtao55/fluly/actions/workflows/ci.yml)
 ![minSdk 27](https://img.shields.io/badge/minSdk-27-informational)
 
 Current version `2.4.0 (31)`. Beta: usable, still being polished.
@@ -18,8 +18,8 @@ Current version `2.4.0 (31)`. Beta: usable, still being polished.
 
 | | Standard | CYTJ OS custom |
 |---|---|---|
-| Branch | `main` | [`cytj-os`](https://github.com/xumidcm/Flue-next/tree/cytj-os) |
-| Package | `com.flue.launcher` | `com.dw.launcher` (both can be installed side by side) |
+| Branch | `main` | [`cytj-os`](https://github.com/xiaoyangtao55/fluly/tree/cytj-os) |
+| Package | `com.fluly.launcher` | `com.dw.launcher` (both can be installed side by side) |
 | Target | Generic, adapts to vendor watch ROMs | Tuned for CYTJ OS devices |
 
 Both are developed in the open in this repository. The custom edition merges from `main`
@@ -30,7 +30,7 @@ periodically but its releases are not kept in lockstep.
 - **Watch face home** — built-in digital clock face, image and video faces with
   automatic color extraction, plus scanning and switching of installed third-party faces.
 - **Watch face runtimes (interoperability)** — `.watch` (WatchMaker-compatible) with Lua scripts
-  executed inside a Flue-owned whitelist sandbox, JB watch faces, ClockSkin faces. XML and zip
+  executed inside a Fluly-owned whitelist sandbox, JB watch faces, ClockSkin faces. XML and zip
   parsing disables DTDs and external entities.
 - **App drawer** — honeycomb and list layouts, ADW icon pack support, fisheye and "time warp"
   animations, palette derived from the current watch face.
@@ -52,9 +52,9 @@ periodically but its releases are not kept in lockstep.
 
 ## Install
 
-1. Download the APK from [Releases](https://github.com/xumidcm/Flue-next/releases).
-2. `adb install -r Flue-release.apk`, or open it from a file manager on the watch.
-3. Set Flue as the default home app when the system asks.
+1. Download the APK from [Releases](https://github.com/xiaoyangtao55/fluly/releases).
+2. `adb install -r Fluly-release.apk`, or open it from a file manager on the watch.
+3. Set Fluly as the default home app when the system asks.
 
 Verify the signature before installing:
 
@@ -63,10 +63,10 @@ certificate SHA-256: 62bd781c365503b33b12b59b7874e6b4f919d41231ac5715e0b6e851fb2
 ```
 
 ```bash
-apksigner verify --print-certs Flue-release.apk
+apksigner verify --print-certs Fluly-release.apk
 ```
 
-Flue ships no in-app updater, so builds with a different fingerprint are not official.
+Fluly ships no in-app updater, so builds with a different fingerprint are not official.
 
 ## Permissions
 
@@ -87,25 +87,25 @@ Everything stays on the device. See [SECURITY.md](SECURITY.md).
 ```
 
 Release signing is read from `keystore.properties` (local, never committed) or the
-`FLUE_SIGNING_STORE_FILE` / `FLUE_SIGNING_STORE_PASSWORD` / `FLUE_SIGNING_KEY_ALIAS` /
-`FLUE_SIGNING_KEY_PASSWORD` environment variables.
+`FLULY_SIGNING_STORE_FILE` / `FLULY_SIGNING_STORE_PASSWORD` / `FLULY_SIGNING_KEY_ALIAS` /
+`FLULY_SIGNING_KEY_PASSWORD` environment variables.
 
 Point the marketplace client at your own server without touching source:
 
 ```bash
-./gradlew :app:assembleRelease -PflueWatchStoreBaseUrl=https://your-host/api
+./gradlew :app:assembleRelease -PflulyWatchStoreBaseUrl=https://your-host/api
 ```
 
 ## Layout
 
 ```text
-app/src/main/kotlin/        app code (package com.flue.launcher)
+app/src/main/kotlin/        app code (package com.fluly.launcher)
   ui/home, ui/drawer,       UI layers
   ui/smartstack, ui/notification, ui/controlcenter
   service/                  notification listener, accessibility, device admin
   watchface/agent           experimental AI agent
   watchface/store           marketplace client
-app/src/main/java/com/flue/launcher/watchface/   watch face runtimes
+app/src/main/java/com/fluly/launcher/watchface/   watch face runtimes
 app/src/main/jniLibs/       PRoot binaries (see third_party/proot)
 app/src/test/               JVM + Robolectric tests (250+ files)
 docs/                       design documents and validation records
@@ -131,7 +131,7 @@ face format semantics, or anything that adds permissions.
 ## Security
 
 Report vulnerabilities through
-[private reporting](https://github.com/xumidcm/Flue-next/security/advisories/new), not a public issue.
+[private reporting](https://github.com/xiaoyangtao55/fluly/security/advisories/new), not a public issue.
 
 ## License
 
@@ -139,5 +139,5 @@ Report vulnerabilities through
 the complete corresponding source.
 
 Bundled third-party components (PRoot, FFmpegKit, and others) keep their own licenses — see
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Flue is not affiliated with WatchMaker, JB, or
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Fluly is not affiliated with WatchMaker, JB, or
 any other watch face platform; their names and trademarks belong to their owners.

@@ -16,7 +16,7 @@ export const TOOLS=[
   tool('read_document','读取完整 watch.xml 或 scripts/script.txt，返回 revision。',{path:{type:'string',enum:['watch.xml','scripts/script.txt']}},['path']),
   tool('edit_document','精确替换表盘文档中的一段文本。old_text 必须唯一匹配。保留无关字段。XML 需语法有效。',{path:{type:'string',enum:['watch.xml','scripts/script.txt']},old_text:string('需要替换的完整原文，必须先读取'),new_text:string('替换后的文本'),base_revision:number('先前读取的版本号')},['path','old_text','new_text','base_revision']),
   tool('write_document','创建/整体替换表盘文档。现有文件优先局部修改。',{path:{type:'string',enum:['watch.xml','scripts/script.txt']},content:string('完整文件内容'),base_revision:number('当前版本号')},['path','content','base_revision']),
-  tool('search_knowledge','检索内置 WatchMaker 格式、真实属性/标签、Flue 网页预览能力和 Python 图像工具说明。',{query:string('查询词，例如 ring angle 或 Studio Ambient')},['query']),
+  tool('search_knowledge','检索内置 WatchMaker 格式、真实属性/标签、Fluly 网页预览能力和 Python 图像工具说明。',{query:string('查询词，例如 ring angle 或 Studio Ambient')},['query']),
   tool('validate_face','检查当前 XML 结构、资源与网页兼容性，区分错误和不支持的行为。'),
   tool('preview_face','渲染当前表盘或某个图层，返回真实 PNG 和诊断。target 使用 inspect_face 返回的 ref，或 face。视觉开关开启时图像会直接反馈给模型。',{target:string('face 或 layer-0 等图层 ref'),mode:{type:'string',enum:['in_context','isolated']},time:string('HH:MM:SS'),battery:number('0–100'),display:{type:'string',enum:['bright','dim']}},[]),
   tool('generate_image','调用已配置的图片 API，生成背景或装饰素材。将真实图片存入素材列表，并返回可用于 XML path 的文件名。',{prompt:string('详细素材要求，不画死动态时间和数据'),name:string('建议文件名，例如 forest.png'),transparent:{type:'boolean'},edit_asset:string('可选：已有素材完整路径；提供则用图片编辑 API')},['prompt']),

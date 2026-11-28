@@ -1,0 +1,491 @@
+﻿package com.fluly.launcher
+
+import com.fluly.launcher.i18n.FlulyComponentActivity
+
+import android.Manifest
+import android.content.ContentUris
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.sqlite.SQLiteException
+import android.graphics.Bitmap
+import android.net.Uri
+import android.media.MediaMetadataRetriever
+import android.os.Build
+import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Size
+import android.util.LruCache
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.fluly.launcher.ui.style.FlulyLoadingIndicator
+import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.fluly.launcher.ui.input.flulyRotaryScrollable
+import com.fluly.launcher.ui.input.ROTARY_SCROLL_MULTIPLIER
+import com.fluly.launcher.ui.input.requestFocusAfterFirstFrame
+import com.fluly.launcher.ui.style.flulyOverscroll
+import com.fluly.launcher.ui.theme.LauncherTheme
+import com.fluly.launcher.ui.theme.ProvideGlobalUiScale
+import com.fluly.launcher.ui.theme.WatchColors
+import com.fluly.launcher.ui.theme.WatchLauncherTheme
+import com.fluly.launcher.util.RecentsVisibility
+import com.fluly.launcher.viewmodel.LauncherViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+const val EXTRA_FILE_MANAGER_MODE = "file_manager_mode"
+const val EXTRA_FILE_MANAGER_RESULT_URI = "file_manager_result_uri"
+const val FILE_MANAGER_MODE_IMAGE = "image"
+const val FILE_MANAGER_MODE_VIDEO = "video"
+
+class BuiltInFileManagerActivity : FlulyComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        RecentsVisibility.apply(this)
+        val mode = intent.getStringExtra(EXTRA_FILE_MANAGER_MODE)
+            ?.takeIf { it == FILE_MANAGER_MODE_IMAGE || it == FILE_MANAGER_MODE_VIDEO }
+            ?: FILE_MANAGER_MODE_IMAGE
+        val requiredPermission = storagePermissionForMode(mode)
+        val hasPermission = requiredPermission == null || ContextCompat.checkSelfPermission(
+            this,
+            requiredPermission
+        ) == PackageManager.PERMISSION_GRANTED
+        val permissionState = mutableStateOf(hasPermission)
+        val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            permissionState.value = granted
+        }
+
+        setContent {
+            val viewModel: LauncherViewModel = viewModel()
+            val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+            val uiStyle by viewModel.uiStyle.collectAsStateWithLifecycle()
+            val globalUiScalePercent by viewModel.globalUiScalePercent.collectAsStateWithLifecycle()
+            WatchLauncherTheme(themeMode = themeMode, uiStyle = uiStyle) {
+                ProvideGlobalUiScale(globalUiScalePercent) {
+                    BuiltInFileManagerScreen(
+                        mode = mode,
+                        hasPermission = permissionState.value,
+                        onRequestPermission = {
+                            if (requiredPermission != null) {
+                                permissionLauncher.launch(requiredPermission)
+                            }
+                        },
+                        onPick = { uri ->
+                            setResult(RESULT_OK, Intent().putExtra(EXTRA_FILE_MANAGER_RESULT_URI, uri.toString()))
+                            finish()
+                        },
+                        onBack = { finish() }
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun storagePermissionForMode(mode: String): String? {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        return if (mode == FILE_MANAGER_MODE_VIDEO) Manifest.permission.READ_MEDIA_VIDEO
+        else Manifest.permission.READ_MEDIA_IMAGES
+    }
+    return Manifest.permission.READ_EXTERNAL_STORAGE
+}
+
+@Composable
+private fun BuiltInFileManagerScreen(
+    mode: String,
+    hasPermission: Boolean,
+    onRequestPermission: () -> Unit,
+    onPick: (Uri) -> Unit,
+    onBack: () -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val vm: LauncherViewModel = viewModel()
+    val showThumbnails by vm.builtInManagerThumbnails.collectAsStateWithLifecycle()
+    val launcherStyle = LauncherTheme.style
+    val unnamedFileLabel = stringResource(R.string.file_manager_unnamed_file)
+    val unknownPathLabel = stringResource(R.string.file_manager_unknown_path)
+    val unknownTimeLabel = stringResource(R.string.file_manager_unknown_time)
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+    val mediaList by produceState<List<MediaItem>?>(
+        initialValue = null,
+        mode,
+        hasPermission,
+        unnamedFileLabel,
+        unknownPathLabel,
+    ) {
+        value = if (hasPermission) {
+            withContext(Dispatchers.IO) {
+                queryMedia(
+                    context = context,
+                    mode = mode,
+                    unnamedFileLabel = unnamedFileLabel,
+                    unknownPathLabel = unknownPathLabel,
+                )
+            }
+        } else {
+            emptyList()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocusAfterFirstFrame()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(launcherStyle.screenBackground)
+            .padding(16.dp)
+            .flulyRotaryScrollable(focusRequester, ROTARY_SCROLL_MULTIPLIER) { rotaryDelta ->
+                scope.launch { listState.scrollBy(-rotaryDelta) }
+            }
+    ) {
+        Text(
+            text = stringResource(
+                if (mode == FILE_MANAGER_MODE_VIDEO) R.string.file_manager_video_title
+                else R.string.file_manager_image_title,
+            ),
+            color = launcherStyle.titleColor,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        if (!hasPermission) {
+            Text(
+                text = stringResource(R.string.file_manager_permission_required),
+                color = WatchColors.TextTertiary,
+                fontSize = 13.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            FileManagerActionButton(
+                text = stringResource(R.string.file_manager_request_permission),
+                onClick = onRequestPermission,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            FileManagerActionButton(text = stringResource(R.string.common_back), onClick = onBack)
+            return
+        }
+
+        if (mediaList == null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FlulyLoadingIndicator()
+            }
+        } else if (mediaList!!.isEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(
+                        if (mode == FILE_MANAGER_MODE_VIDEO) R.string.file_manager_empty_videos
+                        else R.string.file_manager_empty_images,
+                    ),
+                    color = WatchColors.TextTertiary,
+                    fontSize = 13.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .flulyOverscroll(listState),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(mediaList!!, key = { it.uri.toString() }) { item ->
+                    val subTitle = remember(item) {
+                        val createdLabel = item.createdAtMillis?.let(::formatMediaCreatedAt)
+                            ?: unknownTimeLabel
+                        "$createdLabel\n${item.path}"
+                    }
+                    val interaction = remember(item.uri) { MutableInteractionSource() }
+                    val pressed by interaction.collectIsPressedAsState()
+                    val pressScale by animateFloatAsState(
+                        if (pressed) 0.958f else 1f,
+                        animationSpec = androidx.compose.animation.core.tween(durationMillis = 170),
+                        label = "manager_item_press_scale"
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            // 这里**不做鱼眼**（老师定：改成平铺）。原来有一份私有 itemFisheye
+                            // 把中心线以下的项缩到 0.86 并压暗到 0.6 alpha —— 在一个「选文件」
+                            // 列表上那只是让下半屏的缩略图和文件名变小变淡、更难认。
+                            // 按压缩放留着，那是点击反馈不是鱼眼。
+                            .graphicsLayer {
+                                scaleX = pressScale
+                                scaleY = pressScale
+                            }
+                            .background(WatchColors.SurfaceGlass, RoundedCornerShape(12.dp))
+                            .clickable(interactionSource = interaction, indication = null) { onPick(item.uri) }
+                            .padding(horizontal = 14.dp, vertical = 12.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (showThumbnails) {
+                                MediaThumb(uri = item.uri, isVideo = mode == FILE_MANAGER_MODE_VIDEO)
+                                Spacer(modifier = Modifier.size(10.dp))
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = item.displayName, color = launcherStyle.bodyColor, fontSize = 14.sp)
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(text = subTitle, color = WatchColors.TextTertiary, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        FileManagerActionButton(text = stringResource(R.string.common_back), onClick = onBack)
+    }
+}
+
+@Composable
+private fun MediaThumb(uri: Uri, isVideo: Boolean) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val launcherStyle = LauncherTheme.style
+    val cacheKey = remember(uri, isVideo) { "${if (isVideo) "v" else "i"}:${uri}" }
+    val thumbnail by produceState<Bitmap?>(initialValue = MediaThumbCache.get(cacheKey), cacheKey, uri, isVideo) {
+        if (value != null) return@produceState
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    context.contentResolver.loadThumbnail(uri, Size(88, 88), null)
+                } else if (isVideo) {
+                    decodeVideoFrameThumbnail(context, uri, 96)
+                } else {
+                    decodeSampledBitmap(context, uri, 96)
+                }
+            }.getOrNull()?.also { MediaThumbCache.put(cacheKey, it) }
+        }
+    }
+    if (thumbnail != null) {
+        Image(
+            bitmap = thumbnail!!.asImageBitmap(),
+            contentDescription = null,
+            modifier = Modifier
+                .size(42.dp)
+                .background(launcherStyle.cardColor, RoundedCornerShape(10.dp))
+        )
+    } else {
+        Spacer(
+            modifier = Modifier
+                .size(42.dp)
+                .background(launcherStyle.cardColor, RoundedCornerShape(10.dp))
+        )
+    }
+}
+
+private object MediaThumbCache {
+    private val cache = object : LruCache<String, Bitmap>(90) {}
+
+    fun get(key: String): Bitmap? = synchronized(cache) { cache.get(key) }
+
+    fun put(key: String, bitmap: Bitmap) {
+        synchronized(cache) { cache.put(key, bitmap) }
+    }
+}
+
+private fun decodeVideoFrameThumbnail(context: Context, uri: Uri, reqSize: Int): Bitmap? {
+    val retriever = MediaMetadataRetriever()
+    return runCatching {
+        retriever.setDataSource(context, uri)
+        // getScaledFrameAtTime 在解码时直接输出目标尺寸；原来的 frameAtTime
+        // 会先解出视频原始分辨率的一帧（4K 就是 33MB）再缩放，raw 只能等 GC。
+        retriever.getScaledFrameAtTime(0L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, reqSize, reqSize)
+    }.getOrNull().also {
+        runCatching { retriever.release() }
+    }
+}
+
+private fun decodeSampledBitmap(context: Context, uri: Uri, reqSize: Int): android.graphics.Bitmap? {
+    val resolver = context.contentResolver
+    val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    resolver.openInputStream(uri)?.use { android.graphics.BitmapFactory.decodeStream(it, null, bounds) }
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+    var sampleSize = 1
+    while (bounds.outWidth / sampleSize >= reqSize * 2 && bounds.outHeight / sampleSize >= reqSize * 2) {
+        sampleSize *= 2
+    }
+
+    val opts = android.graphics.BitmapFactory.Options().apply {
+        inSampleSize = sampleSize.coerceAtLeast(1)
+        inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
+    }
+    return resolver.openInputStream(uri)?.use { android.graphics.BitmapFactory.decodeStream(it, null, opts) }
+}
+
+private data class MediaItem(
+    val uri: Uri,
+    val displayName: String,
+    val createdAtMillis: Long?,
+    val path: String
+)
+
+private fun queryMedia(
+    context: Context,
+    mode: String,
+    unnamedFileLabel: String,
+    unknownPathLabel: String,
+): List<MediaItem> {
+    val resolver = context.contentResolver
+    val baseUri = if (mode == FILE_MANAGER_MODE_VIDEO) {
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+    } else {
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    }
+    val pathColumn = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.MediaColumns.RELATIVE_PATH
+    } else {
+        MediaStore.MediaColumns.DATA
+    }
+    val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+    val items = mutableListOf<MediaItem>()
+
+    fun collectItems(projection: Array<String>) {
+        resolver.query(baseUri, projection, null, null, sortOrder)?.use { cursor ->
+            val idIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+            val nameIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+            val dateAddedIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DATE_ADDED)
+            val pathIndex = cursor.getColumnIndex(pathColumn)
+            while (cursor.moveToNext() && items.size < 300) {
+                val id = cursor.getLong(idIndex)
+                val name = cursor.getString(nameIndex).orEmpty()
+                val dateAddedSeconds = if (dateAddedIndex >= 0) cursor.getLong(dateAddedIndex) else 0L
+                val path = if (pathIndex >= 0) cursor.getString(pathIndex).orEmpty() else ""
+                items += MediaItem(
+                    uri = ContentUris.withAppendedId(baseUri, id),
+                    displayName = name.ifBlank { unnamedFileLabel },
+                    createdAtMillis = dateAddedSeconds.takeIf { it > 0L }?.times(1000L),
+                    path = path.ifBlank { unknownPathLabel },
+                )
+            }
+        }
+    }
+
+    try {
+        collectItems(
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DATE_ADDED,
+                pathColumn
+            )
+        )
+    } catch (_: SQLiteException) {
+        items.clear()
+        collectItems(
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DATE_ADDED
+            )
+        )
+    } catch (_: IllegalArgumentException) {
+        items.clear()
+        collectItems(
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DATE_ADDED
+            )
+        )
+    }
+
+    return items
+}
+
+private fun formatMediaCreatedAt(timestampMillis: Long): String {
+    val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return formatter.format(Date(timestampMillis))
+}
+
+@Composable
+private fun FileManagerActionButton(
+    text: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        if (pressed) 0.958f else 1f,
+        animationSpec = androidx.compose.animation.core.tween(durationMillis = 170),
+        label = "manager_action_press_scale"
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer { scaleX = pressScale; scaleY = pressScale }
+            .background(if (enabled) WatchColors.SurfaceGlass else WatchColors.InactiveGray, RoundedCornerShape(12.dp))
+            .clickable(interactionSource = interaction, indication = null, enabled = enabled, onClick = onClick)
+            .padding(vertical = 12.dp),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = text,
+            color = if (enabled) WatchColors.ActiveCyan else WatchColors.TextTertiary,
+            fontSize = 14.sp
+        )
+    }
+}

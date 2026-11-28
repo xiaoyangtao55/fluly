@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.flue.launcher.watchface.store.ui"
+    namespace = "com.fluly.launcher.watchface.store.ui"
     compileSdk = 36
     defaultConfig { minSdk = 27 }
     compileOptions {

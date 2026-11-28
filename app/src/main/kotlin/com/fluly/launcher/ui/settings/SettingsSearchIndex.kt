@@ -1,0 +1,186 @@
+package com.fluly.launcher.ui.settings
+
+import android.content.Context
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.runtime.key
+import androidx.compose.ui.draw.shadow
+import com.fluly.launcher.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+/**
+ * 设置搜索索引：标题 / 描述 / 关键词（含拼音首字母与英文别名）。
+ *
+ * itemKey 必须和目标页 LazyColumn 里 `item("...")` 的 key 逐字一致——搜索
+ * 结果就是靠它跳到具体那一行的（见 SettingsPageScaffold 的 searchTarget
+ * 定位逻辑）。以前这里有几个 key 是凭印象写的（advanced_material /
+ * edge_blur / ui_style / screen_shape / watchface_date_locale），页面里
+ * 并不存在，点进去只能落在页顶。
+ *
+ * 覆盖原则：每一个开关 / 滑块都要有自己的条目，不能只索引到分组页。
+ */
+internal fun buildSettingsSearchIndex(context: Context): List<SettingsSearchEntry> {
+    fun s(id: Int): String = context.getString(id)
+    return listOf(
+    SettingsSearchEntry("APPEARANCE", null, s(R.string.settings_appearance), s(R.string.search_d_appearance), listOf("xsywg", "appearance", "theme", "zhuti", "fengge")),
+    SettingsSearchEntry("APPEARANCE", "layout_honeycomb", s(R.string.settings_layout_honeycomb), s(R.string.search_d_layout_honeycomb), listOf("fwbj", "honeycomb", "fengwo")),
+    SettingsSearchEntry("APPEARANCE", "layout_list", s(R.string.settings_layout_list), s(R.string.search_d_layout_list), listOf("lbbj", "list", "liebiao")),
+    SettingsSearchEntry("APPEARANCE", "layout_grid", s(R.string.settings_layout_grid), s(R.string.settings_layout_grid_sub), listOf("wgbj", "grid", "wangge", "miji")),
+    SettingsSearchEntry("APPEARANCE", "layout_flow", s(R.string.settings_layout_flow), s(R.string.settings_layout_flow_sub), listOf("xlbj", "flow", "xinliu", "yueya", "crescent")),
+    SettingsSearchEntry("APPEARANCE", "layout_ring", s(R.string.settings_layout_ring), s(R.string.settings_layout_ring_sub), listOf("xhbj", "ring", "xinghuan", "huanxing", "shoulong", "dome")),
+    SettingsSearchEntry("APPEARANCE", "transition_motion_scale", s(R.string.settings_transition_motion_scale), s(R.string.search_d_transition_motion), listOf("sfdh", "zoom", "suofang", "donghua", "animation")),
+    SettingsSearchEntry("APPEARANCE", "transition_motion_slide", s(R.string.settings_transition_motion_slide), s(R.string.search_d_transition_motion), listOf("pydh", "slide", "pingyi", "donghua", "animation")),
+    SettingsSearchEntry("APPEARANCE", "screen_shape_auto", s(R.string.settings_screen_shape_auto), s(R.string.settings_screen_shape_auto_sub), listOf("zdsb", "auto", "zidong")),
+    SettingsSearchEntry("APPEARANCE", "screen_shape_round", s(R.string.settings_screen_shape_round), s(R.string.settings_screen_shape_override_sub), listOf("yp", "round", "yuanping")),
+    SettingsSearchEntry("APPEARANCE", "screen_shape_square", s(R.string.settings_screen_shape_square), s(R.string.settings_screen_shape_override_sub), listOf("fp", "square", "fangping")),
+    SettingsSearchEntry("APPEARANCE", "theme_mode_system", s(R.string.search_t_theme_system), s(R.string.search_d_theme_mode), listOf("gssx", "system theme", "shenqian")),
+    SettingsSearchEntry("APPEARANCE", "theme_mode_dark", s(R.string.settings_theme_dark), s(R.string.search_d_theme_mode), listOf("ssms", "dark", "shense")),
+    SettingsSearchEntry("APPEARANCE", "theme_mode_light", s(R.string.settings_theme_light), s(R.string.search_d_theme_mode), listOf("qsms", "light", "qianse")),
+    SettingsSearchEntry("APPEARANCE", "screen_shape_header", s(R.string.settings_screen_shape_header), s(R.string.search_d_screen_shape), listOf("pmxz", "round", "yuanping", "fangping")),
+    SettingsSearchEntry("APPEARANCE", "overlay_mask_corner_radius", s(R.string.settings_overlay_mask_corner_radius), s(R.string.search_d_overlay_mask_corner_radius), listOf("zzj", "zhezhao yuanjiao", "mask corner", "corner radius", "yuanjiao")),
+    SettingsSearchEntry("APPEARANCE", "blur_toggle", s(R.string.settings_blur), s(R.string.search_d_blur), listOf("gjcz", "blur", "mohu", "boli")),
+    SettingsSearchEntry("APPEARANCE", "edge_blur_toggle", s(R.string.search_t_edge_blur), s(R.string.search_d_edge_blur), listOf("bymh", "edge blur")),
+    SettingsSearchEntry("APPEARANCE", "edge_blur_radius", s(R.string.settings_edge_blur_radius), s(R.string.search_d_edge_blur_radius), listOf("bymhbj", "blur radius", "banjing")),
+    SettingsSearchEntry("APPEARANCE", "top_fade", s(R.string.settings_top_fade), s(R.string.search_d_top_fade), listOf("dbjy", "top fade", "jianyin")),
+    SettingsSearchEntry("APPEARANCE", "bottom_fade", s(R.string.settings_bottom_fade), s(R.string.search_d_bottom_fade), listOf("dbjy", "bottom fade")),
+    SettingsSearchEntry("APPEARANCE", "splash_toggle", s(R.string.settings_splash), s(R.string.settings_splash_sub), listOf("qdzz", "splash", "zhezhao")),
+    SettingsSearchEntry("APPEARANCE", "direct_launch_app_list", s(R.string.settings_direct_launch_app_list), s(R.string.search_d_direct_launch), listOf("zjjr", "direct launch")),
+    SettingsSearchEntry("APPEARANCE", "splash_delay", s(R.string.search_t_splash_delay), s(R.string.search_d_splash_delay), listOf("qdyc", "splash delay", "yanchi")),
+    SettingsSearchEntry("DISPLAY_SIZE", null, s(R.string.settings_display_fit), s(R.string.search_d_display_size), listOf("xssp", "size", "daxiao", "fisheye", "yuyan")),
+    SettingsSearchEntry("DISPLAY_SIZE", "global_ui_scale", s(R.string.settings_global_ui_size), s(R.string.search_d_global_ui_scale), listOf("qjdx", "scale", "suofang")),
+    SettingsSearchEntry("DISPLAY_SIZE", "honeycomb_cols", s(R.string.settings_honeycomb_cols), s(R.string.search_d_honeycomb_cols), listOf("fwls", "columns", "lieshu")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_scale", s(R.string.settings_app_list_size), s(R.string.search_d_app_list_scale), listOf("lbdx", "app list size")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_scroll_indicator", s(R.string.settings_scroll_indicator), s(R.string.settings_scroll_indicator_on), listOf("hdjdzsq", "scroll indicator", "gundong", "jindutiao", "scrollbar")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_edge_align", s(R.string.settings_app_list_edge_align), s(R.string.search_d_app_list_edge_align), listOf("tbdq", "edge align", "kaobian", "shouhang", "tieding", "juzhong")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_fisheye", s(R.string.settings_fisheye), s(R.string.search_d_fisheye), listOf("yyxg", "fisheye", "yuyan")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_fisheye_range_rows", s(R.string.settings_fisheye_range), s(R.string.search_d_fisheye_range), listOf("yysx", "fisheye range")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_fisheye_strength", s(R.string.settings_fisheye_strength), s(R.string.search_d_fisheye_strength), listOf("yyqd", "fisheye strength")),
+    SettingsSearchEntry("DISPLAY_SIZE", "material_honeycomb_top_fisheye", s(R.string.settings_fisheye_top_row), s(R.string.settings_fisheye_top_row_sub), listOf("dyphy", "top row fisheye", "shouhang")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_grid_icon_plate", s(R.string.settings_grid_icon_plate), s(R.string.settings_grid_icon_plate_on), listOf("dbtbzz", "icon plate", "icon backplate", "zhezhao", "dise", "wangge")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_flow_crescent_direction", s(R.string.settings_flow_crescent_direction), s(R.string.settings_flow_crescent_direction_right), listOf("yyfx", "crescent", "yueya", "flow direction")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_flow_crescent_bulge", s(R.string.settings_flow_crescent_bulge), s(R.string.settings_flow_crescent_bulge_sub), listOf("yyhd", "crescent bulge", "yueya", "gubao")),
+    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_header", s(R.string.settings_layout_profile_header), s(R.string.settings_layout_profile_preset), listOf("bjda", "layout profile", "dangan", "buju")),
+    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_copy", s(R.string.settings_layout_profile_copy), s(R.string.settings_layout_profile_copy_sub), listOf("fzda", "copy profile", "fuzhi")),
+    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_reset", s(R.string.settings_layout_profile_reset), s(R.string.settings_layout_profile_reset_sub), listOf("czda", "reset profile", "chongzhi")),
+    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_delete", s(R.string.settings_layout_profile_delete), s(R.string.settings_layout_profile_delete_sub), listOf("scda", "delete profile", "shanchu")),
+    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_export", s(R.string.settings_layout_profile_export), s(R.string.settings_layout_profile_export_sub), listOf("dcda", "export profile", "daochu")),
+    SettingsSearchEntry("DISPLAY_SIZE", "layout_profile_import", s(R.string.settings_layout_profile_import), s(R.string.settings_layout_profile_import_sub), listOf("drda", "import profile", "daoru")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_edge_spacing_compression", s(R.string.settings_edge_spacing), s(R.string.search_d_edge_spacing), listOf("byjj", "edge spacing")),
+    SettingsSearchEntry("DISPLAY_SIZE", "app_list_left_safe_inset", s(R.string.settings_left_safe_area), s(R.string.search_d_left_safe_area), listOf("zcaqq", "safe area", "anquanqu")),
+    SettingsSearchEntry("DISPLAY_SIZE", "rotary_haptics", s(R.string.settings_rotary_haptics), s(R.string.search_d_rotary_haptics), listOf("bgzd", "rotary haptics", "zhendong")),
+    SettingsSearchEntry("WATCH_FACES", null, s(R.string.settings_watchfaces), s(R.string.search_d_watchfaces), listOf("bp", "watchface", "biaopan")),
+    SettingsSearchEntry("WATCH_FACES", "watchface_store", s(R.string.search_t_watchface_store), s(R.string.search_d_watchface_store), listOf("bpsd", "store", "shangdian")),
+    SettingsSearchEntry("WATCH_FACES", "watchface_editor_new", s(R.string.search_t_watchface_editor_new), s(R.string.search_d_watchface_editor_new), listOf("xjbp", "editor", "bianjiqi")),
+    SettingsSearchEntry("WATCH_FACES", "watchface_import_archive", s(R.string.search_t_watchface_import), s(R.string.search_d_watchface_import), listOf("drbp", "import", "daoru", "watch")),
+    SettingsSearchEntry("WATCH_FACES", "watchface_refresh", s(R.string.settings_watchface_refresh), s(R.string.settings_watchface_refresh_sub), listOf("smbp", "rescan", "shuaxin", "refresh")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_tap_haptics", s(R.string.settings_watchface_tap_haptics), s(R.string.settings_watchface_tap_haptics_sub), listOf("djzd", "zhendong", "tap haptics", "vibration", "振动", "震动")),
+    SettingsSearchEntry("WATCH_FACE_MORE", null, s(R.string.search_t_watchface_more), s(R.string.search_d_watchface_more), listOf("bpgd", "xinlv", "riqi", "date")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_long_press_mode", s(R.string.settings_watchface_long_press_mode), s(R.string.settings_watchface_long_press_mode_cards_sub), listOf("chang an", "long press", "cards", "list", "kapian", "liebiao")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_header", s(R.string.settings_watch_weather), s(R.string.settings_watch_weather_sub), listOf("tq", "weather", "tianqi")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_manual_city", s(R.string.settings_watch_weather_city), s(R.string.settings_watch_weather_city_unset), listOf("cs", "city", "chengshi", "location")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_system_location", s(R.string.settings_watch_weather_use_system), s(R.string.settings_watch_weather_use_system_sub), listOf("xtdw", "system location", "dingwei", "gps")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_refresh", s(R.string.settings_watch_weather_refresh), s(R.string.settings_watch_weather_refresh_sub), listOf("sxtq", "refresh weather", "shuaxin")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watch_weather_unit_header", s(R.string.settings_watch_weather_unit), s(R.string.settings_watch_weather_celsius_sub), listOf("wd", "temperature", "celsius", "fahrenheit", "sheshi", "huashi")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_date_locale_header", s(R.string.settings_watchface_date_language), s(R.string.search_d_watchface_date_locale), listOf("rqyy", "date locale", "yuyan")),
+    // 「强制铺满」这一项已经搬进 CanvasAdjustActivity（设置页里那个 item key 早就没了，
+    // 旧索引指着它只能落在页顶）。改指向通往那一页的入口行 —— 搜得到、点进去也真能改到。
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_canvas_entry", s(R.string.settings_watchmaker_force_fill), s(R.string.search_d_force_fill), listOf("qzpm", "force fill", "puman")),
+    // 画布调节：整块搬进 CanvasAdjustActivity 之后，设置页只剩这一个入口行。
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_canvas_entry", s(R.string.settings_watchface_canvas_section), s(R.string.settings_watchface_canvas_entry_sub), listOf("hbtj", "canvas", "huabu", "zoom", "offset")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_gravity_parallax", s(R.string.settings_watchface_gravity_parallax), s(R.string.settings_watchface_gravity_parallax_on), listOf("景深", "gravity", "gyro", "parallax", "jing shen")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_gravity_backdrop_blur", s(R.string.settings_watchface_gravity_backdrop_blur), s(R.string.settings_watchface_gravity_backdrop_blur_on), listOf("模糊", "背景", "blur", "backdrop", "mo hu", "bei jing")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchmaker_body_sensors", s(R.string.settings_watchface_heart_rate), s(R.string.search_d_heart_rate), listOf("bpxl", "heart rate", "xinlv")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchmaker_calendar", s(R.string.settings_watchface_calendar), s(R.string.search_d_watchface_calendar), listOf("calendar", "event", "richeng", "rili")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_font", s(R.string.settings_watchface_font), s(R.string.search_d_watchface_font), listOf("bpzt", "font", "ziti")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_font_clear", s(R.string.settings_watchface_font_clear), s(R.string.settings_watchface_font_clear_sub), listOf("qcbpzt", "reset font", "qingchu", "ziti")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_bottom_fade", s(R.string.settings_watchface_bottom_fade), s(R.string.search_d_watchface_bottom_fade), listOf("bpdb", "bottom fade")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_text_entry_animation", s(R.string.settings_watchface_text_entry_animation), s(R.string.settings_watchface_text_entry_animation_sub), listOf("bpwz", "text animation", "fly in")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_text_exit_animation", s(R.string.settings_watchface_text_exit_animation), s(R.string.settings_watchface_text_exit_animation_sub), listOf("bpwz", "text exit animation", "fly out")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_status_indicators", s(R.string.settings_watchface_status), s(R.string.search_d_watchface_status), listOf("ztts", "indicator")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_dnd_indicator", s(R.string.settings_watchface_dnd_indicator), s(R.string.search_d_watchface_dnd_indicator), listOf("勿扰", "moon", "dnd", "do not disturb", "wurao")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "watchface_charging_power_text", s(R.string.settings_watchface_charging_power), s(R.string.search_d_charging_power), listOf("cdgl", "charging", "wattage")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "app_list_background_entry", s(R.string.settings_app_list_background), s(R.string.search_d_app_list_background), listOf("yylbbj", "app list background", "beijing", "bizhi", "wallpaper")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", null, s(R.string.settings_app_list_background), s(R.string.search_d_app_list_background), listOf("yylbbj", "app list background", "beijing", "bizhi", "wallpaper")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_solid_system", s(R.string.settings_app_list_background_solid_system), s(R.string.settings_app_list_background_solid_system_sub), listOf("cs", "solid", "chunse", "heibai")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_solid_custom", s(R.string.settings_app_list_background_solid_custom), s(R.string.settings_app_list_background_solid_custom_sub), listOf("zdyys", "custom colour", "yanse", "quse")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_pick_color", s(R.string.settings_app_list_background_color), s(R.string.settings_app_list_background_solid_custom_sub), listOf("bjys", "background colour", "yanse", "quse")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_watch_face", s(R.string.settings_app_list_background_watch_face), s(R.string.settings_app_list_background_watch_face_sub), listOf("gsbp", "follow watch face", "genshui", "biaopan")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_custom_image", s(R.string.settings_app_list_background_custom_image), s(R.string.settings_app_list_background_custom_image_sub), listOf("zdytp", "custom image", "tupian", "bizhi")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_pick_image", s(R.string.settings_app_list_background_pick_image), s(R.string.settings_app_list_background_pick_image_sub), listOf("xztp", "pick image", "xuanze", "tupian", "caijian", "crop")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_blur", s(R.string.settings_app_list_background_blur), s(R.string.settings_app_list_background_blur_sub), listOf("mhcd", "blur", "mohu")),
+    SettingsSearchEntry("APP_LIST_BACKGROUND", "app_list_background_scrim", s(R.string.settings_app_list_background_scrim), s(R.string.settings_app_list_background_scrim_sub), listOf("zzqd", "scrim", "zhezhao", "yadang")),
+    SettingsSearchEntry("ICON_PACKS", null, s(R.string.settings_icon_packs), s(R.string.search_d_icon_packs), listOf("tbb", "icon pack")),
+    SettingsSearchEntry("ICON_PACKS", "icon_pack_default", s(R.string.settings_icon_pack_default), s(R.string.settings_icon_pack_default_sub), listOf("mrtb", "default icons", "moren")),
+    SettingsSearchEntry("ICON_PACKS", "icon_pack_refresh", s(R.string.settings_icon_pack_refresh), s(R.string.settings_icon_pack_refresh_sub), listOf("sxtbb", "rescan icon packs", "shuaxin")),
+    SettingsSearchEntry("HIDDEN_APPS", null, s(R.string.settings_hidden_apps), s(R.string.search_d_hidden_apps), listOf("ycyy", "hidden", "yincang")),
+    SettingsSearchEntry("FEATURE_TOGGLES", null, s(R.string.settings_feature_toggles), s(R.string.search_d_feature_toggles), listOf("gnkg", "toggles")),
+    SettingsSearchEntry("FEATURE_TOGGLES", "glass_highlight_toggle", s(R.string.settings_glass_highlight), s(R.string.settings_glass_highlight_on), listOf("gaoguang", "glass", "highlight", "bianyuan")),
+    SettingsSearchEntry("SIDE_SCREEN", null, s(R.string.settings_side_screen_title), s(R.string.search_d_side_screen), listOf("fyp", "side screen", "fuyiping", "xiaozujian")),
+    SettingsSearchEntry("SIDE_SCREEN", "side_screen_toggle", s(R.string.settings_side_screen), s(R.string.search_d_side_screen_toggle), listOf("fyp", "side screen")),
+    SettingsSearchEntry("SIDE_SCREEN", "widget_center_toggle", s(R.string.search_t_widget_page), s(R.string.search_d_widget_page), listOf("xzjy", "widget")),
+    SettingsSearchEntry("SIDE_SCREEN", "widget_glass_highlight", s(R.string.settings_widget_glass_highlight), s(R.string.search_d_widget_glass_highlight), listOf("xzjy", "widget", "glass", "highlight", "gaoguang")),
+    SettingsSearchEntry("SIDE_SCREEN", "show_step_count", s(R.string.settings_show_steps), s(R.string.search_d_show_steps), listOf("xsbs", "steps", "bushu")),
+    SettingsSearchEntry("SIDE_SCREEN", "music_notification_swap_toggle", s(R.string.settings_swap_music_notifications), s(R.string.search_d_swap), listOf("hhzj", "swap")),
+    SettingsSearchEntry("SIDE_SCREEN", "music_controls_toggle", s(R.string.settings_show_music), s(R.string.search_d_show_music), listOf("yykz", "music", "yinyue")),
+    SettingsSearchEntry("SIDE_SCREEN", "media_custom_actions_toggle", s(R.string.settings_media_actions), s(R.string.search_d_media_actions), listOf("zdyaj", "media actions")),
+    SettingsSearchEntry("NOTIFICATION_SETTINGS", null, s(R.string.settings_notifications_title), s(R.string.search_d_notifications), listOf("tzzx", "notification", "tongzhi")),
+    SettingsSearchEntry("NOTIFICATION_SETTINGS", "notification_center_toggle", s(R.string.settings_show_notifications), s(R.string.search_d_show_notifications), listOf("xstz", "notifications")),
+    SettingsSearchEntry("NOTIFICATION_SETTINGS", "ongoing_notification_toggle", s(R.string.settings_show_ongoing), s(R.string.search_d_show_ongoing), listOf("czts", "ongoing")),
+    SettingsSearchEntry("GESTURE_SETTINGS", null, s(R.string.settings_gestures_title), s(R.string.search_d_gestures), listOf("ssaj", "gesture", "shoushi")),
+    SettingsSearchEntry("GESTURE_SETTINGS", "double_tap_lock_screen", s(R.string.settings_double_tap_lock), s(R.string.search_d_double_tap), listOf("sjxp", "double tap", "xiping")),
+    SettingsSearchEntry("GESTURE_SETTINGS", "face_ignores_back_key", s(R.string.settings_face_ignores_back), s(R.string.settings_face_ignores_back_sub), listOf("bpbxyfhj", "back key", "mitu", "mitou", "fanhui")),
+    SettingsSearchEntry("APP_LIST_BEHAVIOR", null, s(R.string.settings_app_list_behavior_title), s(R.string.search_d_app_list_behavior), listOf("yylb", "app list")),
+    SettingsSearchEntry("APP_LIST_BEHAVIOR", "app_list_folders_enabled", s(R.string.settings_allow_folders), s(R.string.search_d_folders), listOf("wjj", "folder", "wenjianjia")),
+    SettingsSearchEntry("APP_LIST_BEHAVIOR", "app_list_watchface_colors", s(R.string.settings_watchface_launch_mask), s(R.string.search_d_launch_mask), listOf("zzqs", "mask color")),
+    SettingsSearchEntry("APP_LIST_BEHAVIOR", "app_list_row_border", s(R.string.settings_list_row_bg), s(R.string.search_d_row_bg), listOf("dsmz", "row background")),
+    SettingsSearchEntry("PERFORMANCE", null, s(R.string.settings_performance), s(R.string.search_d_performance), listOf("xnydh", "performance", "donghua")),
+    // 性能页拆成三个二级子页后，锚点的 destinationName 必须跟着搬家。
+    // SettingsDestination.valueOf 外面裹着 runCatching，写错名字不会报错，
+    // 只会静默跳不过去——所以这里的名字与上面的 enum 必须逐条对齐。
+    SettingsSearchEntry("PERFORMANCE_RENDERING", null, s(R.string.settings_perf_group_rendering), s(R.string.settings_perf_group_rendering_sub), listOf("xrzl", "rendering", "zhiliang")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", null, s(R.string.settings_perf_group_motion), s(R.string.settings_perf_group_motion_sub), listOf("dhzc", "motion", "transition", "zhuanchang")),
+    SettingsSearchEntry("PERFORMANCE_SYSTEM", null, s(R.string.settings_perf_group_system), s(R.string.settings_perf_group_system_sub), listOf("xtwl", "system", "network", "wangluo")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "app_list_stagger", s(R.string.settings_stagger_entry), s(R.string.search_d_stagger), listOf("swrc", "stagger")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "legacy_app_list_transition", s(R.string.settings_legacy_transition), s(R.string.search_d_legacy), listOf("lzcd", "legacy")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "app_list_return_shrink", s(R.string.settings_app_list_shrink), s(R.string.search_d_app_list_shrink), listOf("sswd", "shrink")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "app_list_return_icon_float", s(R.string.settings_icon_float), s(R.string.search_d_icon_float), listOf("tbsf", "icon float")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "face_return_shrink", s(R.string.settings_face_shrink), s(R.string.search_d_face_shrink), listOf("bpss", "face shrink", "shousuo", "biaopan")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "reduce_dynamic_effects", s(R.string.settings_reduce_motion), s(R.string.search_d_reduce_motion), listOf("jrdt", "reduce motion", "jianruo", "huitan")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "anim_override", s(R.string.settings_launch_animation), s(R.string.search_d_launch_animation), listOf("qdfh", "launch animation")),
+    SettingsSearchEntry("PERFORMANCE_RENDERING", "icon_shadow", s(R.string.settings_icon_shadow), s(R.string.search_d_icon_shadow), listOf("tbyy", "shadow", "yinying")),
+    SettingsSearchEntry("PERFORMANCE_RENDERING", "low_res", s(R.string.settings_low_res_icons), s(R.string.search_d_low_res), listOf("dfbl", "low res", "fenbianlv")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "music_text_animation", s(R.string.settings_music_text_animation), s(R.string.search_d_music_text), listOf("yywz", "music text")),
+    SettingsSearchEntry("PERFORMANCE_SYSTEM", "hide_from_recents", s(R.string.settings_hide_recents), s(R.string.search_d_hide_recents), listOf("ychtkp", "recents", "houtai")),
+    SettingsSearchEntry("PERFORMANCE_SYSTEM", "watch_store_segmented_download", s(R.string.settings_watch_store_segmented_download), s(R.string.search_d_segmented_download), listOf("dxcfdxz", "segmented", "download", "xiazai", "duoxiancheng")),
+    SettingsSearchEntry("PERFORMANCE_RENDERING", "builtin_manager_thumbnails", s(R.string.settings_builtin_thumbnails), s(R.string.search_d_thumbnails), listOf("sltu", "thumbnails", "suoluetu")),
+    SettingsSearchEntry("PERFORMANCE_MOTION", "motion_profile", s(R.string.search_t_motion_profile_entry), s(R.string.search_d_motion_profile_entry), listOf("dhqx", "motion profile")),
+    SettingsSearchEntry("MOTION_PROFILE", null, s(R.string.settings_motion_profile_title), s(R.string.search_d_motion_profile), listOf("dhqx", "motion", "quxian", "spring")),
+    SettingsSearchEntry("MOTION_PROFILE", "motion_bounce", s(R.string.settings_motion_bounce), s(R.string.search_d_motion_bounce), listOf("cbht", "bounce", "huitan")),
+    SettingsSearchEntry("MOTION_PROFILE", "motion_edge_strength", s(R.string.settings_motion_bounce_strength), s(R.string.search_d_edge_strength), listOf("bjqd", "edge strength")),
+    SettingsSearchEntry("MOTION_PROFILE", "motion_copy", s(R.string.settings_motion_profile_copy), s(R.string.settings_motion_profile_copy_sub), listOf("fzqx", "copy curve", "fuzhi")),
+    SettingsSearchEntry("MOTION_PROFILE", "motion_delete", s(R.string.settings_motion_profile_delete), s(R.string.settings_motion_profile_delete_sub), listOf("scqx", "delete curve", "shanchu")),
+    SettingsSearchEntry("MOTION_PROFILE", "motion_export", s(R.string.settings_motion_export_curves), s(R.string.settings_motion_export_curves_sub), listOf("dcqx", "export curves", "daochu")),
+    SettingsSearchEntry("MOTION_PROFILE", "motion_import", s(R.string.settings_motion_import_curves), s(R.string.settings_motion_import_curves_sub), listOf("drqx", "import curves", "daoru")),
+    SettingsSearchEntry("MUSIC_TEXT_ANIMATION", null, s(R.string.search_t_music_text_anim), s(R.string.search_d_music_text), listOf("yywz", "music text")),
+    SettingsSearchEntry("TOOLS", null, s(R.string.settings_tools), s(R.string.search_d_tools), listOf("gj", "tools", "beifen")),
+    SettingsSearchEntry("TOOLS", "export_log", s(R.string.settings_export_log), s(R.string.search_d_export_log), listOf("dcrz", "export log", "rizhi")),
+    SettingsSearchEntry("TOOLS", "default_home_app", s(R.string.settings_default_home_app), s(R.string.search_d_default_home_app), listOf("zpmyy", "home app", "launcher", "zhupingmu", "moren", "default")),
+    SettingsSearchEntry("TOOLS", "watch_store_preview_cache", s(R.string.settings_clear_watch_store_cache), s(R.string.settings_clear_watch_store_cache_sub), listOf("qlhc", "cache", "fengmian", "biaopan shichang")),
+    SettingsSearchEntry("TOOLS", "watch_store_market_url", s(R.string.settings_watch_store_market_url), s(R.string.search_d_watchface_store), listOf("zdysc", "market url", "wangzhi", "shichang")),
+    SettingsSearchEntry("WATCH_FACE_MORE", "tap_actions", s(R.string.settings_tap_actions), s(R.string.settings_tap_actions_sub), listOf("bpdj", "tap action", "dianji dongzuo", "yinle", "music")),
+    SettingsSearchEntry("TOOLS", "web_zoom", s(R.string.settings_web_zoom), s(R.string.settings_web_zoom_sub), listOf("wysf", "web zoom", "suofang", "wangyeban")),
+    SettingsSearchEntry("TOOLS", "clear_web_data", s(R.string.settings_clear_web_data), s(R.string.settings_clear_web_data_sub), listOf("qlwy", "clear web", "cookie", "denglu")),
+    SettingsSearchEntry("TOOLS", "diagnostic_logging", s(R.string.settings_diagnostic_logging), s(R.string.search_d_diagnostic), listOf("zdrz", "diagnostic")),
+    SettingsSearchEntry("TOOLS", "reset_defaults", s(R.string.settings_reset_defaults), s(R.string.search_d_reset), listOf("hfmr", "reset", "moren")),
+    SettingsSearchEntry("BACKUP", null, s(R.string.search_t_backup), s(R.string.search_d_backup), listOf("bfyf", "backup")),
+    SettingsSearchEntry("BACKUP_EXPORT", null, s(R.string.settings_backup_export_page), s(R.string.settings_backup_export_page_sub), listOf("dcpz", "export config", "daochu", "beifen")),
+    SettingsSearchEntry("BACKUP_IMPORT", null, s(R.string.settings_backup_import_page), s(R.string.settings_backup_import_page_sub), listOf("drpz", "import config", "daoru", "huifu", "restore")),
+    SettingsSearchEntry("LANGUAGE", null, s(R.string.settings_language), s(R.string.search_d_language), listOf("yy", "language", "yuyan", "zhongwen", "english")),
+    SettingsSearchEntry("ABOUT", null, s(R.string.settings_about), s(R.string.search_d_about), listOf("gy", "about", "banben")),
+    SettingsSearchEntry("DONATE", null, s(R.string.search_t_donate), s(R.string.search_d_donate), listOf("jz", "donate", "juanzeng")),
+    )
+}

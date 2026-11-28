@@ -1,6 +1,6 @@
 export const SUPPORTED=['text','image','shape','rounded','ring','progress','markers','text_curved','text_ring','group'];
 export const DEFAULT_XML=`<?xml version="1.0" encoding="UTF-8"?>
-<Watch name="Quiet Hours" author="Flue Studio" shape="R" bg_color="111E1B" ucolor_default="C2E5CB">
+<Watch name="Quiet Hours" author="Fluly Studio" shape="R" bg_color="111E1B" ucolor_default="C2E5CB">
   <Layer type="ring" name="外圈轨道" radius_outer="237" radius_inner="236" angle_total="360" angle="360" color="344B43" x="0" y="0" />
   <Layer type="markers" name="分钟刻度" radius="224" m_count="60" m_width="2" m_height="5" color="52675D" />
   <Layer type="text" name="日期" text="{ddww}, {dnnn} {dd}" transform="uc" text_size="19" x="0" y="-125" color="AEC2B5" font="sans-serif" />

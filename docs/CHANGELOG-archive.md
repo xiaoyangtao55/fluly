@@ -190,8 +190,8 @@
 
 当前这轮修复提交对应的 GitHub Actions 已完成并成功产出 Release APK：
 
-- [PR 构建运行 24598848670](https://github.com/xumidcm/Flue/actions/runs/24598848670)
-- [Push 构建运行 24598847621](https://github.com/xumidcm/Flue/actions/runs/24598847621)
+- [PR 构建运行 24598848670](https://github.com/xumidcm/Fluly/actions/runs/24598848670)
+- [Push 构建运行 24598847621](https://github.com/xumidcm/Fluly/actions/runs/24598847621)
 
 ## 备注
 

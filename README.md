@@ -1,4 +1,4 @@
-# Flue Next
+# Fluly
 
 **Android 手表上的桌面启动器（HOME 应用）**，Kotlin + Jetpack Compose 实现。
 
@@ -8,7 +8,7 @@
 本地修改版已移除控制中心及表盘下拉入口；音乐卡片保留在副一屏，相关开关位于「负一屏设置」。
 
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
-[![CI](https://github.com/xumidcm/Flue-next/actions/workflows/ci.yml/badge.svg)](https://github.com/xumidcm/Flue-next/actions/workflows/ci.yml)
+[![CI](https://github.com/xiaoyangtao55/fluly/actions/workflows/ci.yml/badge.svg)](https://github.com/xiaoyangtao55/fluly/actions/workflows/ci.yml)
 ![minSdk 27](https://img.shields.io/badge/minSdk-27-informational)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3-7F52FF?logo=kotlin&logoColor=white)
 
@@ -18,9 +18,9 @@
 
 | | 标准版 | CYTJ OS 定制版 |
 |---|---|---|
-| 分支 | `main` | [`cytj-os`](https://github.com/xumidcm/Flue-next/tree/cytj-os) |
+| 分支 | `main` | [`cytj-os`](https://github.com/xiaoyangtao55/fluly/tree/cytj-os) |
 | 定位 | 通用版本，适配各家手表 ROM | 面向 CYTJ OS 的定制构建 |
-| 包名 | `com.flue.launcher` | `com.dw.launcher`（两个版本可以并存安装） |
+| 包名 | `com.fluly.launcher` | `com.dw.launcher`（两个版本可以并存安装） |
 | 差异 | 基线 | 桌面布局、动效与默认配置按 CYTJ OS 调整 |
 
 两个版本都在这个仓库里公开开发。定制版会定期从 `main` 合并，但不保证与标准版同步发布。
@@ -34,7 +34,7 @@
 - 扫描并切换设备上已安装的第三方表盘
 
 ### 表盘运行时（互操作实现）
-- `.watch` 格式（WatchMaker 兼容）：Lua 脚本在 Flue 自己的白名单沙箱里执行
+- `.watch` 格式（WatchMaker 兼容）：Lua 脚本在 Fluly 自己的白名单沙箱里执行
 - JB 表盘、ClockSkin 表盘的解析与渲染
 - XML / zip 解析走安全配置（禁用 DTD 与外部实体）
 - 静态图层烘焙 + tag 分桶，降低复杂表盘的掉帧
@@ -69,28 +69,28 @@
 
 ## 安装
 
-1. 从 [Releases](https://github.com/xumidcm/Flue-next/releases) 下载对应版本的 APK；
-2. `adb install -r Flue-release.apk`，或在手表上用文件管理器点开安装；
-3. 按系统提示把 Flue 设为默认桌面（设置 → 应用 → 默认应用 → 主屏幕）；
+1. 从 [Releases](https://github.com/xiaoyangtao55/fluly/releases) 下载对应版本的 APK；
+2. `adb install -r Fluly-release.apk`，或在手表上用文件管理器点开安装；
+3. 按系统提示把 Fluly 设为默认桌面（设置 → 应用 → 默认应用 → 主屏幕）；
 4. 需要通知中心就授予通知使用权，需要双击息屏就授予无障碍权限。
 
 ### 官方签名指纹
 
-Flue 没有内置更新器，安装包从 Releases 手动更新，所以请核对签名后再安装：
+Fluly 没有内置更新器，安装包从 Releases 手动更新，所以请核对签名后再安装：
 
 ```
 证书 SHA-256: 62bd781c365503b33b12b59b7874e6b4f919d41231ac5715e0b6e851fb2d82a6
 ```
 
 ```powershell
-apksigner verify --print-certs Flue-release.apk
+apksigner verify --print-certs Fluly-release.apk
 ```
 
 指纹不一致的包不是官方构建。
 
 ## 权限说明
 
-Flue 是桌面启动器，权限比普通应用多。每一项的用途和申请时机如下，代码里都能对上：
+Fluly 是桌面启动器，权限比普通应用多。每一项的用途和申请时机如下，代码里都能对上：
 
 | 权限 | 用途 | 何时生效 |
 |---|---|---|
@@ -124,13 +124,13 @@ Flue 是桌面启动器，权限比普通应用多。每一项的用途和申请
 签名通过根目录的 `keystore.properties`（本地文件，不入库）或环境变量提供：
 
 ```
-FLUE_SIGNING_STORE_FILE
-FLUE_SIGNING_STORE_PASSWORD
-FLUE_SIGNING_KEY_ALIAS
-FLUE_SIGNING_KEY_PASSWORD
+FLULY_SIGNING_STORE_FILE
+FLULY_SIGNING_STORE_PASSWORD
+FLULY_SIGNING_KEY_ALIAS
+FLULY_SIGNING_KEY_PASSWORD
 ```
 
-也可以用 Gradle 属性 `-PFLUE_SIGNING_STORE_FILE=...` 传。四个值齐全才会启用 release 签名。
+也可以用 Gradle 属性 `-PFLULY_SIGNING_STORE_FILE=...` 传。四个值齐全才会启用 release 签名。
 
 ### 构建 CYTJ OS 定制版
 
@@ -144,13 +144,13 @@ git switch cytj-os
 默认市场地址可以被 Gradle 属性覆盖，不需要改代码：
 
 ```powershell
-.\gradlew.bat :app:assembleRelease -PflueWatchStoreBaseUrl=https://your-host/api
+.\gradlew.bat :app:assembleRelease -PflulyWatchStoreBaseUrl=https://your-host/api
 ```
 
 ## 项目结构
 
 ```text
-app/src/main/kotlin/                  主代码（包名 com.flue.launcher）
+app/src/main/kotlin/                  主代码（包名 com.fluly.launcher）
   LauncherActivity.kt                 桌面入口（HOME）
   SettingsActivity.kt                 设置入口
   viewmodel/LauncherViewModel.kt      桌面状态与配置中心
@@ -161,7 +161,7 @@ app/src/main/kotlin/                  主代码（包名 com.flue.launcher）
   watchface/agent/                    实验性 AI Agent（工具宿主、Lua/XML 检查、工作区）
   watchface/store/                    表盘市场客户端
   watchface/editor/                   表盘编辑器
-app/src/main/java/com/flue/launcher/  watchface/ 下的表盘运行时
+app/src/main/java/com/fluly/launcher/  watchface/ 下的表盘运行时
   watchface/standard/                 .watch 解析、渲染、Lua 沙箱
   watchface/jbwatch/                  JB 表盘
   watchface/clockskin/                ClockSkin 表盘
@@ -204,7 +204,7 @@ tools/watchface-agent-web/            表盘 Agent 的浏览器侧辅助工具
 ## 反馈
 
 - Bug 与建议：用 issue 模板提交，请附设备型号与系统版本
-- 安全漏洞：请走 [私密报告](https://github.com/xumidcm/Flue-next/security/advisories/new)，不要开公开 issue
+- 安全漏洞：请走 [私密报告](https://github.com/xiaoyangtao55/fluly/security/advisories/new)，不要开公开 issue
 
 ## 许可证
 
@@ -214,7 +214,7 @@ tools/watchface-agent-web/            表盘 Agent 的浏览器侧辅助工具
 随项目分发的第三方组件（PRoot、FFmpegKit 等）遵循各自许可证，详见
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
-Flue 不是 WatchMaker、JB 或其他表盘平台的官方产品，相关名称与商标归各自所有者。
+Fluly 不是 WatchMaker、JB 或其他表盘平台的官方产品，相关名称与商标归各自所有者。
 
 ## 致谢
 

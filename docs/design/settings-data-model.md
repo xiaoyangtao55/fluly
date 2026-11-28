@@ -63,8 +63,8 @@
 判断符号该不该提，编译器的报错清单比 grep 可靠——它会精确指出「哪个文件第几行
 访问了哪个私有符号」。
 
-顺带把 `ui/settings/` 目录的包名统一成 `com.flue.launcher.ui.settings`：搬过来的
-组件原先在 `com.flue.launcher`（和 `SettingsActivity.kt` 同包），而目录里已有的
+顺带把 `ui/settings/` 目录的包名统一成 `com.fluly.launcher.ui.settings`：搬过来的
+组件原先在 `com.fluly.launcher`（和 `SettingsActivity.kt` 同包），而目录里已有的
 文件都是 `ui.settings` 包，`SettingsRoundLayoutPolicy.kt` 甚至也留着旧包名。
 包名与目录不一致不会编译失败，只会让「这个符号在哪」变成需要 grep 的问题。
 
@@ -154,14 +154,14 @@ WARN 从 61 降到 7，是因为脚本不再把「有意手写的整页」算成
 ## 四·五、布局语义：CardPlacement
 
 数据驱动最容易丢的不是值，是**卡片边界**。手写版用两种写法表达它：并卡的
-`flueSettingsGroup { row {} }` 与独立的裸 `item {}`。迁移到数据层后换成
+`flulySettingsGroup { row {} }` 与独立的裸 `item {}`。迁移到数据层后换成
 [CardPlacement]：
 
 | 值 | 含义 | 手写版对应 |
 | --- | --- | --- |
 | `AUTO` | 开关/滑块接前一张卡，动作/导航/单选各自独立 | 默认行为 |
-| `ALONE` | 独占一张卡，前后都断 | 单个 `flueSettingsGroup` / 裸 `item` |
-| `START` | 开一张新卡，后续可并入 | 新起一个 `flueSettingsGroup` |
+| `ALONE` | 独占一张卡，前后都断 | 单个 `flulySettingsGroup` / 裸 `item` |
+| `START` | 开一张新卡，后续可并入 | 新起一个 `flulySettingsGroup` |
 | `INLINE` | 强行并入当前卡 | 组内第二条 `row` |
 
 另外两个配套字段：
@@ -183,7 +183,7 @@ WARN 从 61 降到 7，是因为脚本不再把「有意手写的整页」算成
    （`app_list_behavior`），加进 `groups` 与 `renderedGroups`。
 3. 文案只写 `titleRes` / `subtitleRes`，`title` 留空；状态回显类开关必须同时给
    `subtitleOnRes` / `subtitleOffRes`。
-4. `SettingsActivity` 里把 `flueSettingsGroup { row(...) }` 换成
+4. `SettingsActivity` 里把 `flulySettingsGroup { row(...) }` 换成
    `settingsEntryGroup(entries = renderedGroup(...), binding = object : SettingsEntryBinding {...})`，
    `binding` 只保留「值从哪来、点了做什么、什么时候置灰」。
 5. 加契约测试：行 key 序列、`titleRes` 非空、双态文案、`prefKey` 不重复。

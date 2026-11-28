@@ -1,8 +1,8 @@
-# Flue 2.3.4 设置、表盘编辑器、Agent 及旧版模糊功能验收记录
+# Fluly 2.3.4 设置、表盘编辑器、Agent 及旧版模糊功能验收记录
 
 ## 1. 交付目标与版本信息
 
-- **应用包名**：`com.flue.launcher`
+- **应用包名**：`com.fluly.launcher`
 - **版本名称**：`2.3.4`
 - **版本代码**：`29`
 - **构建输出**：`app/build/outputs/apk/release/app-release.apk`

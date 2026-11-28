@@ -7,13 +7,13 @@
 | `libproot_exec.so` | `proot` 可执行文件 |
 | `libproot_loader.so` | `loader` / `loader32` 加载器 |
 
-重命名为 `lib*.so` 是为了让 Android 把它们当作原生库打包；因为 Flue 用
+重命名为 `lib*.so` 是为了让 Android 把它们当作原生库打包；因为 Fluly 用
 `ProcessBuilder` 直接执行 `libproot_exec.so`，所以 `app/build.gradle.kts` 里必须保留
 `jniLibs.useLegacyPackaging = true`，否则系统不会在 `nativeLibraryDir` 里落成可执行文件。
 
 ## 许可证
 
-PRoot 由 STMicroelectronics 以 GPL-2.0-or-later 发布。Flue 以 GPL-3.0 分发，
+PRoot 由 STMicroelectronics 以 GPL-2.0-or-later 发布。Fluly 以 GPL-3.0 分发，
 GPLv2-or-later 允许升级到 GPLv3，两者兼容。
 
 ## 对应源码

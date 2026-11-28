@@ -1,7 +1,7 @@
 # Third-Party Notices
 
-Flue 以 [GPL-3.0](LICENSE) 发布。下列第三方组件随本项目一同分发，各自遵循其原有许可证。
-如果你分发修改后的 Flue，必须同时保留本文件与 `LICENSE`。
+Fluly 以 [GPL-3.0](LICENSE) 发布。下列第三方组件随本项目一同分发，各自遵循其原有许可证。
+如果你分发修改后的 Fluly，必须同时保留本文件与 `LICENSE`。
 
 ## 随 APK 分发的二进制
 
@@ -11,8 +11,8 @@ Flue 以 [GPL-3.0](LICENSE) 发布。下列第三方组件随本项目一同分�
 - 版权：Copyright (C) 2015 STMicroelectronics
 - 许可证：GPL-2.0-or-later
 - 上游：<https://github.com/termux/proot>（基于 <https://proot.me>）
-- 说明：这是 Termux 打过补丁的 PRoot，由 Flue 通过 `ProcessBuilder` 作为独立进程启动，
-  用于在设备上运行 Agent 的 Linux rootfs。它不与 Flue 的 Kotlin 代码静态链接。
+- 说明：这是 Termux 打过补丁的 PRoot，由 Fluly 通过 `ProcessBuilder` 作为独立进程启动，
+  用于在设备上运行 Agent 的 Linux rootfs。它不与 Fluly 的 Kotlin 代码静态链接。
 - 对应源码：见 [`third_party/proot`](third_party/proot/README.md)。
   该目录记录精确的上游提交、Termux 补丁与 NDK 构建参数，是 GPLv2 §3 意义上的对应源码入口。
 
@@ -47,13 +47,13 @@ Flue 以 [GPL-3.0](LICENSE) 发布。下列第三方组件随本项目一同分�
 
 ## 兼容性与商标
 
-Flue 是独立的桌面启动器实现，**不是** WatchMaker、JB 表盘或其他表盘平台的官方产品。
+Fluly 是独立的桌面启动器实现，**不是** WatchMaker、JB 表盘或其他表盘平台的官方产品。
 项目中的兼容运行时（`watchface/standard`、`watchface/jbwatch`、`watchface/dingdingcat`）
 是按其公开的文件格式做互操作实现，相关名称与商标归各自所有者。
 
 ## 参考资料
 
-下列项目影响了 Flue 的表盘运行时与外部数据接口设计，用于行为对照而非直接引入代码：
+下列项目影响了 Fluly 的表盘运行时与外部数据接口设计，用于行为对照而非直接引入代码：
 
 - <https://gitlab.com/ailife8881/wftools>
 - <https://gitlab.com/ailife8881/watchmaker-definition>

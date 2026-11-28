@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flue Next</string>
+    <string name="app_name">Fluly</string>
     <string name="watchface_builtin_default_name">Default Watch Face</string>
     <string name="watchface_builtin_photo_name">Photo Watch Face</string>
     <string name="watchface_builtin_video_name">Video Watch Face</string>
@@ -8,9 +8,9 @@
     <string name="shortcut_settings">Launcher Settings</string>
     <string name="settings_title">Launcher Settings</string>
     <string name="internal_watchface_config_title">Built-in Watch Face Settings</string>
-    <string name="flue_accessibility_label">Flue Accessibility Control</string>
-    <string name="flue_accessibility_description">This permission is used only to control double-tap screen lock and open power options. It cannot read on-screen content and does not collect input.</string>
-    <string name="flue_device_admin_description">On Android 8.1, this permission is used only for double-tap screen lock. It cannot erase device data or change the lock-screen password.</string>
+    <string name="fluly_accessibility_label">Fluly Accessibility Control</string>
+    <string name="fluly_accessibility_description">This permission is used only to control double-tap screen lock and open power options. It cannot read on-screen content and does not collect input.</string>
+    <string name="fluly_device_admin_description">On Android 8.1, this permission is used only for double-tap screen lock. It cannot erase device data or change the lock-screen password.</string>
 
     <!-- General -->
     <string name="follow_system">Follow System</string>
@@ -35,7 +35,7 @@
     <string name="settings_display_fit_sub">Global UI, app list size, and safe area</string>
     <string name="settings_global_ui_size">Global UI Size</string>
     <string name="settings_global_ui_restart_hint">Restart if the display looks abnormal after adjustment.</string>
-    <string name="settings_global_ui_apply_restart">Apply and restart Flue</string>
+    <string name="settings_global_ui_apply_restart">Apply and restart Fluly</string>
     <string name="settings_honeycomb_cols">Grid Columns</string>
     <string name="settings_honeycomb_cols_fmt">%d columns</string>
     <string name="settings_app_list_size">App List Size</string>
@@ -109,7 +109,7 @@
     <string name="settings_edge_blur">Edge Blur</string>
     <string name="settings_edge_blur_sub">Apply extra blur near the top and bottom edges</string>
     <string name="settings_edge_blur_radius">Edge Blur Radius</string>
-    <string name="settings_direct_launch">Open Flue to App List</string>
+    <string name="settings_direct_launch">Open Fluly to App List</string>
     <string name="settings_direct_launch_on">Start in the app list and keep back navigation to the watch face</string>
     <string name="settings_direct_launch_off">Show the watch face first by default</string>
 
@@ -235,13 +235,13 @@
     <string name="settings_allow_folders_off">Disable drag-to-folder creation and keep reordering only</string>
     <string name="settings_icon_shadow">Icon Shadow</string>
     <string name="settings_icon_shadow_sub">Reduce shadow drawing for app icons and drag previews</string>
-    <string name="settings_direct_launch_app_list">Open Flue to App List</string>
+    <string name="settings_direct_launch_app_list">Open Fluly to App List</string>
     <string name="settings_direct_launch_app_list_on">Start in the app list and keep back navigation to the watch face</string>
     <string name="settings_direct_launch_app_list_off">Show the watch face first by default</string>
 
     <!-- Animations -->
-    <string name="settings_launch_animation">Flue Launch &amp; Return Animation</string>
-    <string name="settings_launch_animation_sub">Follow the system when off; use Flue mask and icon-origin motion when on</string>
+    <string name="settings_launch_animation">Fluly Launch &amp; Return Animation</string>
+    <string name="settings_launch_animation_sub">Follow the system when off; use Fluly mask and icon-origin motion when on</string>
     <string name="settings_app_list_shrink">App List Shrink Animation</string>
     <string name="settings_app_list_shrink_sub">Fade only when returning from an app; skip the list-wide scale</string>
     <string name="settings_icon_float">Icon Float on Return</string>
@@ -255,7 +255,7 @@
     <string name="settings_reduce_motion">Reduce Motion</string>
     <string name="settings_reduce_motion_sub">Remove the settle overshoot: transitions stop exactly at rest</string>
     <string name="settings_hide_recents">Hide Recents Card</string>
-    <string name="settings_hide_recents_sub">Hide Flue from the system recents screen</string>
+    <string name="settings_hide_recents_sub">Hide Fluly from the system recents screen</string>
     <string name="settings_watch_store_segmented_download">Segmented Downloads</string>
     <string name="settings_watch_store_segmented_download_sub">Fetch watch faces in parallel segments; falls back to a single stream when the server does not support it</string>
 
@@ -342,7 +342,7 @@
     <string name="search_d_icon_shadow">Platform elevation shadows</string>
     <string name="search_d_low_res">Reduce icon overhead for smoother performance</string>
     <string name="search_d_music_text">Song change text transition</string>
-    <string name="search_d_hide_recents">Hide Flue from the recents screen</string>
+    <string name="search_d_hide_recents">Hide Fluly from the recents screen</string>
     <string name="search_d_segmented_download">Download watch faces in parallel segments</string>
     <string name="search_d_thumbnails">Photo and video list preview images</string>
     <string name="search_d_motion_profile_entry">Go to the motion profile page</string>
@@ -361,7 +361,7 @@
 
     <!-- Common actions -->
     <string name="settings_language_restart_title">Restart Required</string>
-    <string name="settings_language_restart_message">Flue needs to restart for the language change to take full effect. Tap Confirm to restart now.</string>
+    <string name="settings_language_restart_message">Fluly needs to restart for the language change to take full effect. Tap Confirm to restart now.</string>
     <string name="settings_language_restart_confirm">Confirm</string>
     <string name="toast_language_save_failed">Could not save the language setting. Please try again.</string>
     <string name="action_delete">Delete</string>
@@ -374,7 +374,7 @@
     <string name="progress_import_watchface_detail">Detecting and importing a standard .watch / jb_watch face</string>
     <string name="progress_import_done">Import complete</string>
     <string name="progress_export_config">Exporting settings</string>
-    <string name="progress_export_config_detail">Writing the Flue backup ZIP</string>
+    <string name="progress_export_config_detail">Writing the Fluly backup ZIP</string>
     <string name="progress_export_done">Export complete</string>
     <string name="progress_read_config">Reading settings</string>
     <string name="progress_read_config_detail">Checking the backup ZIP</string>
@@ -389,11 +389,11 @@
     <string name="toast_read_failed_fmt">Read failed: %s</string>
     <string name="toast_delete_failed_fmt">Delete failed: %s</string>
     <string name="toast_deleted_fmt">Deleted %s</string>
-    <string name="toast_grant_accessibility">Grant Flue accessibility access in system settings</string>
-    <string name="toast_grant_overlay">Allow Flue to draw over other apps to cover their lock screens</string>
+    <string name="toast_grant_accessibility">Grant Fluly accessibility access in system settings</string>
+    <string name="toast_grant_overlay">Allow Fluly to draw over other apps to cover their lock screens</string>
     <string name="lock_screen_overlay_channel">Lock-screen watch face</string>
-    <string name="toast_accessibility_connecting">Flue accessibility is connecting. Try again shortly.</string>
-    <string name="toast_grant_device_admin">Grant Flue device administrator access for double-tap screen lock</string>
+    <string name="toast_accessibility_connecting">Fluly accessibility is connecting. Try again shortly.</string>
+    <string name="toast_grant_device_admin">Grant Fluly device administrator access for double-tap screen lock</string>
     <string name="toast_open_device_admin_failed">Unable to open device administrator settings</string>
     <string name="toast_no_custom_curves">No custom motion curves to export</string>
     <string name="toast_curves_exported">Motion curves exported</string>
@@ -409,7 +409,7 @@
     <string name="backup_unknown_location">Unknown location</string>
 
     <!-- Settings home -->
-    <string name="settings_root_title">Flue Settings</string>
+    <string name="settings_root_title">Fluly Settings</string>
     <string name="settings_search_empty">No matching settings</string>
     <string name="settings_search_placeholder">Search settings</string>
     <string name="action_clear">Clear</string>
@@ -432,7 +432,7 @@
     <string name="settings_tools">Tools</string>
     <string name="settings_tools_sub">Backups, log export and reset</string>
     <string name="settings_about">About</string>
-    <string name="settings_about_sub_fmt">Flue Next  %s</string>
+    <string name="settings_about_sub_fmt">Fluly %s</string>
 
     <!-- Watch faces -->
     <string name="settings_watchface_refresh">Rescan watch faces</string>
@@ -443,13 +443,13 @@
     <string name="watchface_cards_title">My watch faces</string>
     <string name="watchface_cards_store_subtitle">Find your next favorite watch face</string>
     <string name="watchface_cards_open_settings">Open watch face settings</string>
-    <string name="watchface_cards_builtin_author">Flue</string>
+    <string name="watchface_cards_builtin_author">Fluly</string>
     <string name="watchface_cards_unknown_author">Unknown author</string>
-    <string name="settings_watchface_store_sub">Browse the Watchmaker Community Store in Flue Studio, then import the .watch face</string>
+    <string name="settings_watchface_store_sub">Browse the Watchmaker Community Store in Fluly Studio, then import the .watch face</string>
     <string name="settings_watchface_editor_new">New .watch face</string>
-    <string name="settings_watchface_editor_new_sub">Create a face in Flue Studio with a live preview</string>
+    <string name="settings_watchface_editor_new_sub">Create a face in Fluly Studio with a live preview</string>
     <string name="settings_watchface_editor_current">Edit current standard face</string>
-    <string name="settings_watchface_editor_current_sub_fmt">Edit %s in Flue Studio and save as a new face</string>
+    <string name="settings_watchface_editor_current_sub_fmt">Edit %s in Fluly Studio and save as a new face</string>
     <string name="settings_watchface_more">More watch face options</string>
     <string name="settings_watchface_more_sub">Long-press action, built-in face font, and bottom fade</string>
     <string name="settings_watchface_long_press_mode">Long-press watch face action</string>
@@ -543,7 +543,7 @@
     <!-- About and Donate -->
     <string name="settings_about_title">About</string>
     <string name="settings_donate_title">Support development</string>
-    <string name="settings_donate_tip">Thank you so much for supporting Flue Next! Tap a QR code below to view it full screen.</string>
+    <string name="settings_donate_tip">Thank you so much for supporting Fluly! Tap a QR code below to view it full screen.</string>
     <string name="settings_donate_wechat">WeChat</string>
     <string name="settings_donate_preview_tap">Tap the thumbnail to view full screen</string>
     <string name="settings_donate_alipay">Alipay</string>
@@ -625,7 +625,7 @@
     <string name="music_text_anim_fade_out_left_fade_in_right_label">Fade left &amp; fade in from right</string>
     <string name="music_text_anim_fade_out_left_fade_in_right_subtitle">Old text fades left; new text fades in from the right</string>
     <string name="music_text_anim_fade_out_left_fade_in_up_label">Fade left &amp; fade up in</string>
-    <string name="music_text_anim_fade_out_left_fade_in_up_subtitle">The original Flue music text transition</string>
+    <string name="music_text_anim_fade_out_left_fade_in_up_subtitle">The original Fluly music text transition</string>
     <string name="music_text_anim_fade_out_left_zoom_in_label">Fade left &amp; zoom in</string>
     <string name="music_text_anim_fade_out_left_zoom_in_subtitle">Old text fades left; new text zooms in</string>
     <string name="music_text_anim_fade_out_left_landing_label">Fade left &amp; soft landing</string>
@@ -709,7 +709,7 @@
     <string name="settings_backup_menu">Import / export settings</string>
     <string name="settings_backup_menu_sub">Pick which items and watch face assets to back up</string>
     <string name="settings_export_log">Export logs</string>
-    <string name="settings_export_log_sub">Export the Flue summary, crash files and last 500 system log lines</string>
+    <string name="settings_export_log_sub">Export the Fluly summary, crash files and last 500 system log lines</string>
     <string name="settings_diagnostic_logging">Diagnostic logging</string>
     <string name="settings_diagnostic_logging_on">On, turns off automatically after 5 minutes</string>
     <string name="settings_diagnostic_logging_off">Off by default; temporarily allows diagnostic logs in release builds</string>
@@ -726,11 +726,11 @@
     <string name="settings_backup_export_page">Export settings</string>
     <string name="settings_backup_export_page_sub">Export settings, ordering and watch face assets as a ZIP</string>
     <string name="settings_backup_import_page">Import settings</string>
-    <string name="settings_backup_import_page_sub">Pick a Flue ZIP backup and restore selected items</string>
+    <string name="settings_backup_import_page_sub">Pick a Fluly ZIP backup and restore selected items</string>
     <string name="settings_backup_export_start">Start export</string>
     <string name="settings_backup_export_start_sub">Choose a location, then write the ZIP backup</string>
     <string name="settings_backup_import_pick">Pick a backup file</string>
-    <string name="settings_backup_import_pick_sub">Choose a Flue ZIP backup file</string>
+    <string name="settings_backup_import_pick_sub">Choose a Fluly ZIP backup file</string>
     <string name="settings_backup_preview_fmt">Backup version %1$s · %2$s</string>
     <string name="settings_backup_unknown_time">Unknown time</string>
     <string name="settings_backup_import_start">Start import</string>
@@ -760,9 +760,9 @@
 
     <!-- Delete watch face dialog -->
     <string name="dialog_delete_watchface_title">Delete watch face</string>
-    <string name="dialog_delete_watchmaker_fmt">Delete %s? This standard .watch face will be removed from Flue\'s private folder.</string>
-    <string name="dialog_delete_jbwatch_fmt">Delete %s? This jb_watch compatible face will be removed from Flue\'s private folder.</string>
-    <string name="dialog_delete_imported_fmt">Delete %s? This imported face will be removed from Flue\'s private folder.</string>
+    <string name="dialog_delete_watchmaker_fmt">Delete %s? This standard .watch face will be removed from Fluly\'s private folder.</string>
+    <string name="dialog_delete_jbwatch_fmt">Delete %s? This jb_watch compatible face will be removed from Fluly\'s private folder.</string>
+    <string name="dialog_delete_imported_fmt">Delete %s? This imported face will be removed from Fluly\'s private folder.</string>
     <string name="settings_overlay_mask_corner_radius">Mask corner radius</string>
     <string name="settings_overlay_mask_corner_radius_sub_fmt">Smart Stack and widgets · %1$d dp</string>
     <string name="dialog_overlay_mask_corner_title">Adjustment needed</string>
@@ -1014,7 +1014,7 @@
     <string name="watch_editor_canvas_matches_screen_suffix"> · Matches this device</string>
     <string name="watch_editor_canvas_size_description">Layer coordinates use the canvas center as origin. Changing canvas size preserves layer positions and only changes the design space.</string>
     <string name="watch_editor_change_canvas_size">Change canvas size</string>
-    <string name="watch_editor_default_watch_name">Flue Watch</string>
+    <string name="watch_editor_default_watch_name">Fluly Watch</string>
     <string name="watch_editor_draft_display_name">Editor draft</string>
     <string name="watch_editor_preview_summary_fmt">Editing preview · %1$d layers</string>
     <string name="watch_editor_attribute_x">X coordinate</string>
@@ -1426,7 +1426,7 @@
     <string name="watch_store_scan_warning_fmt">%1$d installation directories could not be scanned</string>
     <string name="watch_store_scan_warning_detail_fmt">%1$s; first failed directory: %2$s (%3$s)</string>
     <string name="watch_store_unknown_directory">Unknown directory</string>
-    <string name="watch_store_lua_script_warning">This watch face contains a Global Script (Lua). Flue runs it in a restricted sandbox.</string>
+    <string name="watch_store_lua_script_warning">This watch face contains a Global Script (Lua). Fluly runs it in a restricted sandbox.</string>
     <string name="watch_store_error_superseded_cleanup_fmt">The new revision was installed, but the old revision could not be removed: %1$s</string>
     <string name="watch_store_error_transaction_cleanup_fmt">Installation failed and its temporary transaction could not be removed: %1$s</string>
     <string name="watch_store_error_catalog_restore_after_install">The watch face is installed, but its store record has not been restored. Rescan and try again.</string>
@@ -1579,7 +1579,7 @@
     <string name="file_manager_unnamed_file">Unnamed file</string>
     <string name="file_manager_unknown_path">Unknown path</string>
     <string name="internal_file_browser_permission_title">Allow device file browsing</string>
-    <string name="internal_file_browser_permission_message">Wear OS often has no system file picker. To use Flue’s built-in browser, allow Flue to manage files on this device. Flue reads a file only when you choose it.</string>
+    <string name="internal_file_browser_permission_message">Wear OS often has no system file picker. To use Fluly’s built-in browser, allow Fluly to manage files on this device. Fluly reads a file only when you choose it.</string>
     <string name="internal_file_browser_grant">Open permission</string>
     <string name="internal_file_browser_back">Go up</string>
     <string name="internal_file_browser_loading">Reading files…</string>
@@ -1600,7 +1600,7 @@
     <string-array name="crash_titles">
         <item>Oops, it crashed Σ(ﾟДﾟ)</item>
         <item>Something went wrong (ﾟДﾟ;)</item>
-        <item>Flue took a tumble (⊙_⊙)</item>
+        <item>Fluly took a tumble (⊙_⊙)</item>
         <item>Unexpected crash</item>
     </string-array>
     <string-array name="crash_subtitles">
@@ -1700,5 +1700,5 @@
     <string name="watch_store_web_view_render_failed">The web store failed to load; opened in the system browser instead</string>
     <string name="settings_watchface_tap_haptics">Tap vibration</string>
     <string name="settings_watchface_tap_haptics_sub">Vibrate when tapping interactive buttons on .watch faces</string>
-    <string name="flue_studio_not_installed">Flue Studio is not installed; the editor and watch face store live there</string>
+    <string name="fluly_studio_not_installed">Fluly Studio is not installed; the editor and watch face store live there</string>
 </resources>

@@ -1,6 +1,6 @@
 # Git 工作流
 
-Flue 只保留一个长期分支：`main`。可发布、可回滚的版本使用 tag 保存，日常开发使用短期主题分支。
+Fluly 只保留一个长期分支：`main`。可发布、可回滚的版本使用 tag 保存，日常开发使用短期主题分支。
 
 ## 分支约定
 
@@ -32,7 +32,7 @@ git switch -c yzp/<topic>
 - tag 推送到 GitHub 后，才能删除它替代的版本分支或归档分支。
 
 ```powershell
-git tag -a v2.1.0 <commit> -m "发布 Flue 2.1.0"
+git tag -a v2.1.0 <commit> -m "发布 Fluly 2.1.0"
 git push origin v2.1.0
 ```
 

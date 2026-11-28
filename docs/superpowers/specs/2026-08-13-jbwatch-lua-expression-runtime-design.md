@@ -7,7 +7,7 @@
 
 修复 JBWatch 表盘中保存在 `watch.pxml` 图层属性里的 Lua 表达式无法执行的问题，使文字、数值和显示条件能按 WatchMaker 语义渲染，同时保持现有 JBWatch 普通标签、静态文字和旧表达式的兼容行为。
 
-实现复用 Flue 已有的 `WatchFaceLuaRuntime` 受限沙箱，不增加文件系统、Java 桥接、包加载、系统命令或网络能力，不为单个表盘名称、文件哈希或作者写特判。
+实现复用 Fluly 已有的 `WatchFaceLuaRuntime` 受限沙箱，不增加文件系统、Java 桥接、包加载、系统命令或网络能力，不为单个表盘名称、文件哈希或作者写特判。
 
 ## 样本与根因
 

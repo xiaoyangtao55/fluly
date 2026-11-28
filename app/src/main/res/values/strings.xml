@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Flue Next</string>
+    <string name="app_name">Fluly</string>
     <string name="watchface_builtin_default_name">默认表盘</string>
     <string name="watchface_builtin_photo_name">图片表盘</string>
     <string name="watchface_builtin_video_name">视频表盘</string>
@@ -8,9 +8,9 @@
     <string name="shortcut_settings">桌面设置</string>
     <string name="settings_title">桌面设置</string>
     <string name="internal_watchface_config_title">内置表盘设置</string>
-    <string name="flue_accessibility_label">Flue 辅助控制</string>
-    <string name="flue_accessibility_description">该权限仅用于控制双击息屏与打开电源选项，不会读取屏幕内容，也不会收集输入。</string>
-    <string name="flue_device_admin_description">Android 8.1 仅使用此权限执行双击息屏，不会擦除设备数据或更改锁屏密码。</string>
+    <string name="fluly_accessibility_label">Fluly 辅助控制</string>
+    <string name="fluly_accessibility_description">该权限仅用于控制双击息屏与打开电源选项，不会读取屏幕内容，也不会收集输入。</string>
+    <string name="fluly_device_admin_description">Android 8.1 仅使用此权限执行双击息屏，不会擦除设备数据或更改锁屏密码。</string>
 
     <!-- 通用 -->
     <string name="follow_system">跟随系统</string>
@@ -35,7 +35,7 @@
     <string name="settings_display_fit_sub">全局 UI、应用列表大小和安全区</string>
     <string name="settings_global_ui_size">全局 UI 大小</string>
     <string name="settings_global_ui_restart_hint">调整后如遇显示异常请重新启动。</string>
-    <string name="settings_global_ui_apply_restart">应用并重启 Flue</string>
+    <string name="settings_global_ui_apply_restart">应用并重启 Fluly</string>
     <string name="settings_honeycomb_cols">网格列数</string>
     <string name="settings_honeycomb_cols_fmt">%d 列</string>
     <string name="settings_app_list_size">应用列表整体大小</string>
@@ -109,7 +109,7 @@
     <string name="settings_edge_blur">边缘模糊</string>
     <string name="settings_edge_blur_sub">在顶部和底部边缘增加模糊，可能带来少量问题</string>
     <string name="settings_edge_blur_radius">边缘模糊半径</string>
-    <string name="settings_direct_launch">打开 Flue 直接进入应用列表</string>
+    <string name="settings_direct_launch">打开 Fluly 直接进入应用列表</string>
     <string name="settings_direct_launch_on">启动后自动进入应用列表，仍可返回表盘</string>
     <string name="settings_direct_launch_off">默认先显示表盘</string>
 
@@ -235,13 +235,13 @@
     <string name="settings_allow_folders_off">关闭拖动合成文件夹，只保留排序手势</string>
     <string name="settings_icon_shadow">图标阴影</string>
     <string name="settings_icon_shadow_sub">关闭后减少蜂窝与列表拖动时的阴影绘制</string>
-    <string name="settings_direct_launch_app_list">打开 Flue 直接进入应用列表</string>
+    <string name="settings_direct_launch_app_list">打开 Fluly 直接进入应用列表</string>
     <string name="settings_direct_launch_app_list_on">启动后自动进入应用列表，仍可返回表盘</string>
     <string name="settings_direct_launch_app_list_off">默认先显示表盘</string>
 
     <!-- 动画 -->
-    <string name="settings_launch_animation">Flue 启动与返回动画</string>
-    <string name="settings_launch_animation_sub">关闭后跟随系统；开启后使用 Flue 遮罩与图标来源动画</string>
+    <string name="settings_launch_animation">Fluly 启动与返回动画</string>
+    <string name="settings_launch_animation_sub">关闭后跟随系统；开启后使用 Fluly 遮罩与图标来源动画</string>
     <string name="settings_app_list_shrink">应用列表收缩动画</string>
     <string name="settings_app_list_shrink_sub">关闭后从应用返回列表时只做淡入淡出，不再整体缩放</string>
     <string name="settings_icon_float">返回时图标上浮</string>
@@ -255,7 +255,7 @@
     <string name="settings_reduce_motion">减弱动态效果</string>
     <string name="settings_reduce_motion_sub">去掉转场收尾的越界回弹：动画到位即停，不再弹一下</string>
     <string name="settings_hide_recents">隐藏后台卡片</string>
-    <string name="settings_hide_recents_sub">从最近任务中隐藏 Flue 的后台卡片</string>
+    <string name="settings_hide_recents_sub">从最近任务中隐藏 Fluly 的后台卡片</string>
     <string name="settings_watch_store_segmented_download">多线程分段下载</string>
     <string name="settings_watch_store_segmented_download_sub">下载表盘时分成多段并发拉取，服务器不支持时自动退回单线程</string>
 
@@ -342,7 +342,7 @@
     <string name="search_d_icon_shadow">平台高程阴影</string>
     <string name="search_d_low_res">降低图标开销提升流畅度</string>
     <string name="search_d_music_text">切歌文字过渡</string>
-    <string name="search_d_hide_recents">从最近任务隐藏 Flue</string>
+    <string name="search_d_hide_recents">从最近任务隐藏 Fluly</string>
     <string name="search_d_segmented_download">分段并发下载表盘</string>
     <string name="search_d_thumbnails">图片视频列表预览图</string>
     <string name="search_d_motion_profile_entry">进入动画曲线页</string>
@@ -361,7 +361,7 @@
 
     <!-- 通用动作 -->
     <string name="settings_language_restart_title">需要重启应用</string>
-    <string name="settings_language_restart_message">切换语言后需要重启 Flue 才能完全生效。点击确定立即重启。</string>
+    <string name="settings_language_restart_message">切换语言后需要重启 Fluly 才能完全生效。点击确定立即重启。</string>
     <string name="settings_language_restart_confirm">确定</string>
     <string name="toast_language_save_failed">保存语言设置失败，请重试</string>
     <string name="action_delete">删除</string>
@@ -375,7 +375,7 @@
     <string name="progress_import_watchface_detail">正在识别并导入标准 .watch / jb_watch 表盘</string>
     <string name="progress_import_done">导入完成</string>
     <string name="progress_export_config">导出配置</string>
-    <string name="progress_export_config_detail">正在写入 Flue 备份 ZIP</string>
+    <string name="progress_export_config_detail">正在写入 Fluly 备份 ZIP</string>
     <string name="progress_export_done">导出完成</string>
     <string name="progress_read_config">读取配置</string>
     <string name="progress_read_config_detail">正在检查备份 ZIP</string>
@@ -390,11 +390,11 @@
     <string name="toast_read_failed_fmt">读取失败：%s</string>
     <string name="toast_delete_failed_fmt">删除失败：%s</string>
     <string name="toast_deleted_fmt">已删除 %s</string>
-    <string name="toast_grant_accessibility">请在无障碍中授权 Flue 辅助控制</string>
-    <string name="toast_grant_overlay">要覆盖其他应用的锁屏，请授予 Flue 悬浮窗权限</string>
+    <string name="toast_grant_accessibility">请在无障碍中授权 Fluly 辅助控制</string>
+    <string name="toast_grant_overlay">要覆盖其他应用的锁屏，请授予 Fluly 悬浮窗权限</string>
     <string name="lock_screen_overlay_channel">锁屏表盘</string>
-    <string name="toast_accessibility_connecting">Flue 无障碍服务连接中，请稍后重试</string>
-    <string name="toast_grant_device_admin">请授权 Flue 设备管理员以使用双击息屏</string>
+    <string name="toast_accessibility_connecting">Fluly 无障碍服务连接中，请稍后重试</string>
+    <string name="toast_grant_device_admin">请授权 Fluly 设备管理员以使用双击息屏</string>
     <string name="toast_open_device_admin_failed">无法打开设备管理员授权页面</string>
     <string name="toast_no_custom_curves">没有可导出的自定义动画曲线</string>
     <string name="toast_curves_exported">动画曲线已导出</string>
@@ -410,7 +410,7 @@
     <string name="backup_unknown_location">未知位置</string>
 
     <!-- 设置首页 -->
-    <string name="settings_root_title">Flue设置</string>
+    <string name="settings_root_title">Fluly设置</string>
     <string name="settings_search_empty">没有匹配的设置</string>
     <string name="settings_search_placeholder">搜索设置</string>
     <string name="action_clear">清空</string>
@@ -433,7 +433,7 @@
     <string name="settings_tools">工具</string>
     <string name="settings_tools_sub">配置备份、导出日志与恢复默认</string>
     <string name="settings_about">关于</string>
-    <string name="settings_about_sub_fmt">Flue Next  %s</string>
+    <string name="settings_about_sub_fmt">Fluly %s</string>
 
     <!-- 表盘页 -->
     <string name="settings_watchface_refresh">重新扫描表盘</string>
@@ -444,13 +444,13 @@
     <string name="watchface_cards_title">我的表盘</string>
     <string name="watchface_cards_store_subtitle">发现下一款喜爱的表盘</string>
     <string name="watchface_cards_open_settings">进入表盘设置</string>
-    <string name="watchface_cards_builtin_author">Flue</string>
+    <string name="watchface_cards_builtin_author">Fluly</string>
     <string name="watchface_cards_unknown_author">未知作者</string>
-    <string name="settings_watchface_store_sub">在 Flue Studio 中浏览 Watchmaker Community Store，下载后导入 .watch 表盘</string>
+    <string name="settings_watchface_store_sub">在 Fluly Studio 中浏览 Watchmaker Community Store，下载后导入 .watch 表盘</string>
     <string name="settings_watchface_editor_new">新建 .watch 表盘</string>
-    <string name="settings_watchface_editor_new_sub">在 Flue Studio 中新建表盘，实时预览</string>
+    <string name="settings_watchface_editor_new_sub">在 Fluly Studio 中新建表盘，实时预览</string>
     <string name="settings_watchface_editor_current">编辑当前标准表盘</string>
-    <string name="settings_watchface_editor_current_sub_fmt">在 Flue Studio 中编辑 %s，另存为新表盘</string>
+    <string name="settings_watchface_editor_current_sub_fmt">在 Fluly Studio 中编辑 %s，另存为新表盘</string>
     <string name="settings_watchface_more">更多表盘选项</string>
     <string name="settings_watchface_more_sub">长按打开方式、表盘字体与底部渐隐</string>
     <string name="settings_watchface_long_press_mode">长按表盘打开方式</string>
@@ -504,7 +504,7 @@
     <string name="toast_body_sensors_permission_denied">系统未授予心率权限，可再次点击重试</string>
     <string name="toast_body_sensors_permission_settings">系统未显示授权窗口，正在打开应用权限设置</string>
     <string name="heart_rate_permission_rationale_title">心率数据与隐私</string>
-    <string name="heart_rate_permission_rationale_body">Flue 仅在表盘显示或预览期间读取设备心率传感器，用于在本机表盘上显示当前心率。心率数据不会上传到服务器，也不会写入表盘文件；退出相关表盘后会停止传感器监听。</string>
+    <string name="heart_rate_permission_rationale_body">Fluly 仅在表盘显示或预览期间读取设备心率传感器，用于在本机表盘上显示当前心率。心率数据不会上传到服务器，也不会写入表盘文件；退出相关表盘后会停止传感器监听。</string>
     <string name="heart_rate_permission_rationale_close">返回</string>
     <string name="settings_watch_weather">表盘天气</string>
     <string name="settings_watch_weather_sub">设置标准与 JB 表盘共用的天气位置和温度单位</string>
@@ -549,7 +549,7 @@
     <!-- About 与 Donate -->
     <string name="settings_about_title">关于</string>
     <string name="settings_donate_title">捐赠支持</string>
-    <string name="settings_donate_tip">真的很感谢你能支持 Flue Next 开发！点开下方二维码可全屏查看</string>
+    <string name="settings_donate_tip">真的很感谢你能支持 Fluly 开发！点开下方二维码可全屏查看</string>
     <string name="settings_donate_wechat">微信</string>
     <string name="settings_donate_preview_tap">点击预览图全屏查看</string>
     <string name="settings_donate_alipay">支付宝</string>
@@ -630,7 +630,7 @@
     <string name="music_text_anim_fade_out_left_fade_in_right_label">向左渐隐 &amp; 右侧渐现</string>
     <string name="music_text_anim_fade_out_left_fade_in_right_subtitle">旧文字向左渐隐，新文字从右侧渐现</string>
     <string name="music_text_anim_fade_out_left_fade_in_up_label">向左渐隐 &amp; 向上渐现</string>
-    <string name="music_text_anim_fade_out_left_fade_in_up_subtitle">Flue 原本的音乐文字切换效果</string>
+    <string name="music_text_anim_fade_out_left_fade_in_up_subtitle">Fluly 原本的音乐文字切换效果</string>
     <string name="music_text_anim_fade_out_left_zoom_in_label">向左渐隐 &amp; 缩放渐现</string>
     <string name="music_text_anim_fade_out_left_zoom_in_subtitle">旧文字向左渐隐，新文字缩放渐现</string>
     <string name="music_text_anim_fade_out_left_landing_label">向左渐隐 &amp; 柔缓着陆</string>
@@ -714,7 +714,7 @@
     <string name="settings_backup_menu">导入/导出配置</string>
     <string name="settings_backup_menu_sub">选择备份项目、导入项目和表盘资源</string>
     <string name="settings_export_log">导出日志</string>
-    <string name="settings_export_log_sub">导出 Flue 摘要、崩溃文件和最近 500 行系统日志</string>
+    <string name="settings_export_log_sub">导出 Fluly 摘要、崩溃文件和最近 500 行系统日志</string>
     <string name="settings_clear_watch_store_cache">清理表盘市场封面缓存</string>
     <string name="settings_clear_watch_store_cache_sub">删除已缓存的表盘封面，不影响已下载或正在使用的表盘</string>
     <string name="settings_clear_watch_store_cache_done">已清理 %1$d 个表盘封面缓存文件</string>
@@ -744,11 +744,11 @@
     <string name="settings_backup_export_page">导出配置</string>
     <string name="settings_backup_export_page_sub">导出设置、排序和表盘资源为 ZIP</string>
     <string name="settings_backup_import_page">导入配置</string>
-    <string name="settings_backup_import_page_sub">选择 Flue ZIP 备份并按项目恢复</string>
+    <string name="settings_backup_import_page_sub">选择 Fluly ZIP 备份并按项目恢复</string>
     <string name="settings_backup_export_start">开始导出</string>
     <string name="settings_backup_export_start_sub">选择保存位置后写入 ZIP 备份</string>
     <string name="settings_backup_import_pick">选择备份文件</string>
-    <string name="settings_backup_import_pick_sub">选择 Flue ZIP 备份文件</string>
+    <string name="settings_backup_import_pick_sub">选择 Fluly ZIP 备份文件</string>
     <string name="settings_backup_preview_fmt">备份版本 %1$s · %2$s</string>
     <string name="settings_backup_unknown_time">未知时间</string>
     <string name="settings_backup_import_start">开始导入</string>
@@ -778,9 +778,9 @@
 
     <!-- 删除表盘对话框 -->
     <string name="dialog_delete_watchface_title">删除表盘</string>
-    <string name="dialog_delete_watchmaker_fmt">删除 %s？这个标准 .watch 表盘会从 Flue 私有目录移除。</string>
-    <string name="dialog_delete_jbwatch_fmt">删除 %s？这个 jb_watch 兼容表盘会从 Flue 私有目录移除。</string>
-    <string name="dialog_delete_imported_fmt">删除 %s？这个导入表盘会从 Flue 私有目录移除。</string>
+    <string name="dialog_delete_watchmaker_fmt">删除 %s？这个标准 .watch 表盘会从 Fluly 私有目录移除。</string>
+    <string name="dialog_delete_jbwatch_fmt">删除 %s？这个 jb_watch 兼容表盘会从 Fluly 私有目录移除。</string>
+    <string name="dialog_delete_imported_fmt">删除 %s？这个导入表盘会从 Fluly 私有目录移除。</string>
     <string name="settings_overlay_mask_corner_radius">遮罩圆角</string>
     <string name="settings_overlay_mask_corner_radius_sub_fmt">负一屏和小组件页 · %1$d dp</string>
     <string name="search_d_overlay_mask_corner_radius">调整负一屏、通知中心和小组件页的遮罩圆角</string>
@@ -1058,7 +1058,7 @@
     <string name="watch_editor_script_bytes_fmt">UTF-8：%1$d / %2$d 字节</string>
     <string name="watch_editor_script_too_large">脚本超过 256 KiB，缩短后才能保存。</string>
     <string name="watch_editor_status_saving_script">正在保存全局脚本</string>
-    <string name="watch_editor_default_watch_name">Flue 表盘</string>
+    <string name="watch_editor_default_watch_name">Fluly 表盘</string>
     <string name="watch_store_community_subtitle" translatable="false">Watchmaker Community</string>
     <string name="watch_editor_draft_display_name">编辑器草稿</string>
     <string name="watch_editor_preview_summary_fmt">编辑预览 · %1$d 个图层</string>
@@ -1470,7 +1470,7 @@
     <string name="watch_store_scan_warning_fmt">有 %1$d 个安装目录未能扫描</string>
     <string name="watch_store_scan_warning_detail_fmt">%1$s；首个失败目录：%2$s（%3$s）</string>
     <string name="watch_store_unknown_directory">未知目录</string>
-    <string name="watch_store_lua_script_warning">该表盘含有 Global Script Lua 脚本，Flue 将在受限沙箱中运行</string>
+    <string name="watch_store_lua_script_warning">该表盘含有 Global Script Lua 脚本，Fluly 将在受限沙箱中运行</string>
     <string name="watch_store_error_superseded_cleanup_fmt">新版本已安装，但清理旧版本失败：%1$s</string>
     <string name="watch_store_error_transaction_cleanup_fmt">安装失败，且清理临时事务失败：%1$s</string>
     <string name="watch_store_error_catalog_restore_after_install">表盘已经安装，但市场记录尚未恢复；请重新扫描后再试</string>
@@ -1623,7 +1623,7 @@
     <string name="file_manager_unnamed_file">未命名文件</string>
     <string name="file_manager_unknown_path">未知路径</string>
     <string name="internal_file_browser_permission_title">允许浏览设备文件</string>
-    <string name="internal_file_browser_permission_message">Wear OS 通常没有系统文件选择器。要使用 Flue 内置文件浏览器，请允许 Flue 管理设备中的文件。Flue 只会在您主动选择文件时读取内容。</string>
+    <string name="internal_file_browser_permission_message">Wear OS 通常没有系统文件选择器。要使用 Fluly 内置文件浏览器，请允许 Fluly 管理设备中的文件。Fluly 只会在您主动选择文件时读取内容。</string>
     <string name="internal_file_browser_grant">前往授权</string>
     <string name="internal_file_browser_back">返回上一级</string>
     <string name="internal_file_browser_loading">正在读取文件…</string>
@@ -1739,5 +1739,5 @@
     <string name="watch_store_web_view_render_failed">网页版加载失败，已改用系统浏览器打开</string>
     <string name="settings_watchface_tap_haptics">点击震动</string>
     <string name="settings_watchface_tap_haptics_sub">点击 .watch 表盘互动按钮时提供震动反馈</string>
-    <string name="flue_studio_not_installed">Flue Studio 未安装，编辑器与表盘商店都在那里</string>
+    <string name="fluly_studio_not_installed">Fluly Studio 未安装，编辑器与表盘商店都在那里</string>
 </resources>

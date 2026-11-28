@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.FlueStudio" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.FlulyStudio" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">#FF0B0B0D</item>
         <item name="android:statusBarColor">#FF0B0B0D</item>
         <item name="android:navigationBarColor">#FF0B0B0D</item>
     </style>
 
-    <style name="Theme.FlueStudio.Editor" parent="Theme.FlueStudio">
+    <style name="Theme.FlulyStudio.Editor" parent="Theme.FlulyStudio">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowAnimationStyle">@null</item>
     </style>

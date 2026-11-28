@@ -6,7 +6,7 @@ plugins {
 
 android {
     // 与源码包名一致，模块内的 R 才能直接解析（运行时有 4 条字符串资源）。
-    namespace = "com.flue.launcher.watchface.standard"
+    namespace = "com.fluly.launcher.watchface.standard"
     compileSdk = 36
 
     defaultConfig {

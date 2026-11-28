@@ -25,26 +25,26 @@ fun signingValue(key: String): String? {
         ?.trim()
 }
 
-val signingStoreFile = signingValue("FLUE_SIGNING_STORE_FILE")
-val signingStorePassword = signingValue("FLUE_SIGNING_STORE_PASSWORD")
-val signingKeyAlias = signingValue("FLUE_SIGNING_KEY_ALIAS")
-val signingKeyPassword = signingValue("FLUE_SIGNING_KEY_PASSWORD")
+val signingStoreFile = signingValue("FLULY_SIGNING_STORE_FILE")
+val signingStorePassword = signingValue("FLULY_SIGNING_STORE_PASSWORD")
+val signingKeyAlias = signingValue("FLULY_SIGNING_KEY_ALIAS")
+val signingKeyPassword = signingValue("FLULY_SIGNING_KEY_PASSWORD")
 val hasReleaseSigning = listOf(
     signingStoreFile,
     signingStorePassword,
     signingKeyAlias,
     signingKeyPassword
 ).all { !it.isNullOrBlank() }
-val disableReleaseMinify = providers.gradleProperty("flue.disableReleaseMinify")
+val disableReleaseMinify = providers.gradleProperty("fluly.disableReleaseMinify")
     .map { it.toBoolean() }
     .orElse(false)
 
 android {
-    namespace = "com.flue.launcher"
+    namespace = "com.fluly.launcher"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.flue.launcher"
+        applicationId = "com.fluly.launcher"
         minSdk = 27
         targetSdk = 36
         versionCode = 31
@@ -52,7 +52,7 @@ android {
         ndk { abiFilters += listOf("armeabi-v7a", "arm64-v8a") }
 
         // 商店默认地址现在由 :watchface-editor 的 buildConfigField 提供
-        // （-PflueWatchStoreBaseUrl=https://host/api 仍然有效），app 不再自己存一份。
+        // （-PflulyWatchStoreBaseUrl=https://host/api 仍然有效），app 不再自己存一份。
     }
 
     signingConfigs {
@@ -142,7 +142,7 @@ dependencies {
     implementation(libs.miuix.core)
     implementation(libs.miuix.icons)
     // 视频转码（ffmpeg-kit）只服务编辑器，已经随编辑器搬进 :watchface-editor。
-    // WatchMaker face scripts run inside a Flue-owned whitelist sandbox.  LuaJ is
+    // WatchMaker face scripts run inside a Fluly-owned whitelist sandbox.  LuaJ is
     // used only as the pure-Java VM/compiler; its file, package and Java bridge
     // libraries are never exposed to a face.
     implementation(libs.luaj.jse)

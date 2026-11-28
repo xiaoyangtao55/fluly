@@ -5,8 +5,8 @@ plugins {
 }
 
 android {
-    // 包名沿用 com.flue.launcher.ui.* ，模块本身不需要自己的 R。
-    namespace = "com.flue.launcher.uikit"
+    // 包名沿用 com.fluly.launcher.ui.* ，模块本身不需要自己的 R。
+    namespace = "com.fluly.launcher.uikit"
     compileSdk = 36
 
     defaultConfig {
@@ -39,7 +39,7 @@ kotlin {
  *
  * HOME、编辑器、商店、Studio 共用一套观感，所以这里只放「跟业务无关的 UI」：
  * 不认识 LauncherViewModel，也不认识表盘模型。需要宿主提供的东西一律走注入
- * （例如 [com.flue.launcher.ui.style.FlueOverlayPreferenceSource]）。
+ * （例如 [com.fluly.launcher.ui.style.FlulyOverlayPreferenceSource]）。
  */
 dependencies {
     // 图像裁剪覆层要用 :watchface-core 的裁剪几何与受限解码；core 是纯模型/算法，不反向依赖 UI。

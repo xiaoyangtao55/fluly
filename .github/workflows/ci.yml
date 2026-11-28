@@ -55,7 +55,7 @@ jobs:
           path: |
             */build/reports/tests/
             */build/test-results/
-            ${{ runner.temp }}/flue-gradle/
+            ${{ runner.temp }}/fluly-gradle/
           if-no-files-found: ignore
 
   # push / PR 只测试；手动触发时额外构建并上传两款应用的 APK。
@@ -125,7 +125,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: flue-${{ matrix.module }}-${{ matrix.variant }}
+          name: fluly-${{ matrix.module }}-${{ matrix.variant }}
           path: ${{ matrix.module }}/build/outputs/apk/**/*.apk
           if-no-files-found: error
 
@@ -158,14 +158,14 @@ jobs:
             echo "::error::FLUE_KEYSTORE_BASE64 is not configured; refusing to publish an unsigned build."
             exit 1
           fi
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/flue-release.jks"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/fluly-release.jks"
 
       - name: Build release APK
         env:
-          FLUE_SIGNING_STORE_FILE: ${{ runner.temp }}/flue-release.jks
-          FLUE_SIGNING_STORE_PASSWORD: ${{ secrets.FLUE_SIGNING_STORE_PASSWORD }}
-          FLUE_SIGNING_KEY_ALIAS: ${{ secrets.FLUE_SIGNING_KEY_ALIAS }}
-          FLUE_SIGNING_KEY_PASSWORD: ${{ secrets.FLUE_SIGNING_KEY_PASSWORD }}
+          FLULY_SIGNING_STORE_FILE: ${{ runner.temp }}/fluly-release.jks
+          FLULY_SIGNING_STORE_PASSWORD: ${{ secrets.FLUE_SIGNING_STORE_PASSWORD }}
+          FLULY_SIGNING_KEY_ALIAS: ${{ secrets.FLUE_SIGNING_KEY_ALIAS }}
+          FLULY_SIGNING_KEY_PASSWORD: ${{ secrets.FLUE_SIGNING_KEY_PASSWORD }}
         run: ./gradlew :app:assembleRelease --no-daemon --console=plain
 
       - name: Verify signature
@@ -179,7 +179,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Flue-release
+          name: Fluly-release
           path: |
             app/build/outputs/apk/release/*.apk
             SHA256SUMS.txt

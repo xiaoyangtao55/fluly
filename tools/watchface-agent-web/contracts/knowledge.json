@@ -18,7 +18,7 @@
     {
       "id": "capabilities",
       "title": "本原型的预览能力与限制",
-      "text": "这是独立 Canvas 网页预览器，不是 Android Flue/CloX 原生引擎。支持基础 text/image/shape/rounded/ring/progress/markers/text_curved/text_ring/group，基础父变换和 V2 Ambient 属性，透明度、旋转、锚点及 text/shape/rounded 的标准 Drop 阴影和 Outline 描边。支持整盘和单图层（原位置/独立放大）预览，固定时间、电量、步数、心率、天气和亮屏/息屏。视频、GIF 动画、3D、遮罩、复杂 shader、Flat/Glow 效果、全局 Lua、复杂 corner_type 不保证相同效果，必须提示。生成基础可验证表盘时优先使用支持的子集；导入表盘的未知字段和资源须保留。preview_face 工具会真实返回 PNG 及诊断，可发送给启用视觉输入的模型。"
+      "text": "这是独立 Canvas 网页预览器，不是 Android Fluly/CloX 原生引擎。支持基础 text/image/shape/rounded/ring/progress/markers/text_curved/text_ring/group，基础父变换和 V2 Ambient 属性，透明度、旋转、锚点及 text/shape/rounded 的标准 Drop 阴影和 Outline 描边。支持整盘和单图层（原位置/独立放大）预览，固定时间、电量、步数、心率、天气和亮屏/息屏。视频、GIF 动画、3D、遮罩、复杂 shader、Flat/Glow 效果、全局 Lua、复杂 corner_type 不保证相同效果，必须提示。生成基础可验证表盘时优先使用支持的子集；导入表盘的未知字段和资源须保留。preview_face 工具会真实返回 PNG 及诊断，可发送给启用视觉输入的模型。"
     },
     {
       "id": "assets",

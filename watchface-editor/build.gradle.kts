@@ -6,7 +6,7 @@ plugins {
 
 android {
     // Studio 创作编辑器；商店 UI 在独立模块，发布仅复用 client。
-    namespace = "com.flue.launcher.watchface.editor"
+    namespace = "com.fluly.launcher.watchface.editor"
     compileSdk = 36
 
     defaultConfig {
@@ -44,7 +44,7 @@ kotlin {
  * 这里**不**包含 HOME 的内置表盘配置页（`InternalWatchFaceConfigActivity` /
  * `CanvasAdjustActivity`）—— 那是桌面本体的一部分，留在 app。
  *
- * 对启动器的依赖一律走 [com.flue.launcher.watchface.editor.WatchEditorHost]：
+ * 对启动器的依赖一律走 [com.fluly.launcher.watchface.editor.WatchEditorHost]：
  * 主题偏好、表盘列表、安装 / 选择 / 删除都在宿主那边，模块本身不认识
  * LauncherViewModel。
  */

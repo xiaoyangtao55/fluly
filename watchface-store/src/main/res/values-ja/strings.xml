@@ -13,7 +13,7 @@
     <string name="watch_editor_back">戻る</string>
     <string name="watch_editor_cancel">キャンセル</string>
     <string name="watch_editor_confirm">決定</string>
-    <string name="watch_editor_default_watch_name">Flue 文字盤</string>
+    <string name="watch_editor_default_watch_name">Fluly 文字盤</string>
     <string name="watch_editor_delete">削除</string>
     <string name="watch_editor_rename">名前を変更</string>
     <string name="watch_editor_save">保存</string>
@@ -135,7 +135,7 @@
     <string name="watch_store_login_web_missing">Web 版のログイン情報を検出できません</string>
     <string name="watch_store_logout">ログアウト</string>
     <string name="watch_store_logout_confirm">この文字盤ストアアカウントからログアウトしますか？</string>
-    <string name="watch_store_lua_script_warning">この文字盤には Global Script（Lua）が含まれています。Flue は制限付きサンドボックスで実行します。</string>
+    <string name="watch_store_lua_script_warning">この文字盤には Global Script（Lua）が含まれています。Fluly は制限付きサンドボックスで実行します。</string>
     <string name="watch_store_more_options">その他のオプション</string>
     <string name="watch_store_my_collections">コレクション</string>
     <string name="watch_store_my_favorites">お気に入り</string>

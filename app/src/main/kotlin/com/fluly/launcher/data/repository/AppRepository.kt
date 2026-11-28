@@ -1,0 +1,1727 @@
+﻿package com.fluly.launcher.data.repository
+
+import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.LauncherApps
+import android.content.pm.ResolveInfo
+import android.content.pm.ShortcutInfo
+import android.os.Build
+import android.os.Process
+import android.os.SystemClock
+import android.os.UserHandle
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.BitmapShader
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RectF
+import android.graphics.Shader
+import android.graphics.drawable.AdaptiveIconDrawable
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.content.ContextCompat
+import com.fluly.launcher.R
+import com.fluly.launcher.data.model.APP_LIST_SHORTCUT_KEY_PREFIX
+import com.fluly.launcher.data.model.AppInfo
+import com.fluly.launcher.data.model.AppListItemType
+import com.fluly.launcher.data.model.BUILTIN_SETTINGS_ENTRY_COMPONENT
+import com.fluly.launcher.data.model.BUILTIN_SETTINGS_ENTRY_PACKAGE
+import com.fluly.launcher.iconpack.IconPackMapping
+import com.fluly.launcher.iconpack.IconPackMaskPolarity
+import com.fluly.launcher.iconpack.IconPackScanner
+import com.fluly.launcher.iconpack.iconPackMaskPolarity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
+import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.roundToInt
+
+class AppRepository(private val context: Context) {
+    private data class CachedIconSet(
+        val sharp: ImageBitmap,
+        val softened: ImageBitmap
+    )
+
+    private companion object {
+        private const val APP_LIST_CACHE_DIR = "app_list_cache"
+        private const val APP_LIST_CACHE_ICON_DIR = "icons"
+        private const val APP_LIST_CACHE_FILE = "snapshot.json"
+        private const val SHORTCUT_QUERY_CACHE_MILLIS = 30_000L
+
+        // 版本 4：自适应图标改为自绘抗锯齿裁剪，旧缓存位图带黑色锯齿边，必须整体重建。
+        // 版本 5：文件夹合成底板从 0.24 圆角矩形改为整圆，旧缓存里那张方底板
+        //         不会自己刷新，必须靠版本号顶掉。
+        // 版本 6：仅文件夹未打开时的四宫格预览子图标增加 MIUIX 圆角裁切；
+        //         已缓存的旧直角预览必须重建，文件夹弹层内的真实图标不受影响。
+        // 版本 7：iconmask 极性判定上线（反相 mask 不再把图标擦成黑壳）。已经用
+        //         图标包跑过的机器，磁盘快照里存的正是那批黑壳；不顶掉版本号的话
+        //         冷启动会先把它们贴出来，等全量扫描落地才自己纠正 —— 明知是坏图
+        //         还要闪一下没有道理。同版也顺带清掉双色图标留下的缓存条目。
+        // 版本 8：图标包两条路径（包里的成品图 / 模板合成）改为统一裁圆，模板合成
+        //         也不再叠设备遮罩。磁盘快照里存的正是上一版那批圆角方与带白边的图，
+        //         同理必须顶掉。
+        private const val APP_LIST_CACHE_VERSION = 8
+
+        /** 自适应图标图层与可见区域的比例（108/72）。 */
+        private const val ADAPTIVE_ICON_LAYER_SCALE = 108f / 72f
+
+        /**
+         * 裁形时向内收缩的比例。列表侧还会用不抗锯齿的 clipPath 复裁一次，
+         * 轻微内缩可让抗锯齿边完整落在裁剪路径内部，不被再次切出锯齿。
+         */
+        private const val ICON_MASK_EDGE_INSET_FRACTION = 0.005f
+    }
+
+    private val _allApps = MutableStateFlow<List<AppInfo>>(emptyList())
+    val allApps: StateFlow<List<AppInfo>> = _allApps.asStateFlow()
+
+    private val _allSelectableApps = MutableStateFlow<List<AppInfo>>(emptyList())
+    val allSelectableApps: StateFlow<List<AppInfo>> = _allSelectableApps.asStateFlow()
+
+    private val _apps = MutableStateFlow<List<AppInfo>>(emptyList())
+    val apps: StateFlow<List<AppInfo>> = _apps.asStateFlow()
+
+    private data class CustomOrderSnapshot(
+        val order: List<String>,
+        val indexByKey: Map<String, Int>,
+    )
+
+    private val customOrderMonitor = Any()
+    private var customOrderSnapshot = CustomOrderSnapshot(
+        order = emptyList(),
+        indexByKey = emptyMap(),
+    )
+    private var hiddenComponents: Set<String> = emptySet()
+    private var currentIconSize = 128
+    private var iconPackPackage: String? = null
+    private var useLegacyCircularIcons = true
+    private var refreshGeneration = 0
+    @Volatile
+    private var freshScanPublished = false
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val refreshMonitor = Any()
+    // 快照恢复（后台）与全量刷新都写 catalogData；发布走同一个监视器，
+    // 让「恢复让位给刷新」的判断与写入原子化，旧数据不会反向覆盖新扫描。
+    private val catalogPublishMonitor = Any()
+    private var refreshJob: Job? = null
+    private var packageRefreshJob: Job? = null
+    // 当前挂起的 refreshJob 是否是「执行时才读图标参数」的初始扫描；
+    // true 期间收集器加载持久化图标偏好可以直接改参数，不必另起一轮扫描。
+    @Volatile
+    private var pendingInitialScan = false
+    private val installTimeCache = mutableMapOf<String, Long>()
+    private val iconLocks = ConcurrentHashMap<String, Any>()
+    private val itemStorage = AppListItemStorage(context)
+    // 两个目录恒成对更新；快照恢复与全量刷新可能在不同线程先后落地，
+    // 读写两侧都取这一个 volatile 快照，避免看到两字段错配的中间态。
+    private class CatalogData(
+        val items: Map<String, AppInfo> = emptyMap(),
+        val folders: List<StoredAppListFolder> = emptyList(),
+    )
+
+    @Volatile
+    private var catalogData = CatalogData()
+    private val iconCache = object : LinkedHashMap<String, CachedIconSet>(160, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedIconSet>?): Boolean {
+            return size > 160
+        }
+    }
+
+    private data class CachedShortcutQuery(
+        val loadedAtElapsedMillis: Long,
+        val shortcuts: List<ShortcutInfo>,
+    )
+
+    private val launcherAppsService = context.getSystemService(LauncherApps::class.java)
+    private val shortcutQueryCache = ConcurrentHashMap<String, CachedShortcutQuery>()
+    private val launcherAppsCallback = object : LauncherApps.Callback() {
+        override fun onPackageAdded(packageName: String, user: UserHandle) = invalidateShortcuts(packageName)
+        override fun onPackageChanged(packageName: String, user: UserHandle) = invalidateShortcuts(packageName)
+        override fun onPackageRemoved(packageName: String, user: UserHandle) = invalidateShortcuts(packageName)
+        override fun onPackagesAvailable(packageNames: Array<out String>, user: UserHandle, replacing: Boolean) =
+            packageNames.forEach(::invalidateShortcuts)
+        override fun onPackagesUnavailable(packageNames: Array<out String>, user: UserHandle, replacing: Boolean) =
+            packageNames.forEach(::invalidateShortcuts)
+        override fun onShortcutsChanged(packageName: String, shortcuts: List<ShortcutInfo>, user: UserHandle) {
+            invalidateShortcuts(packageName)
+            pruneMissingPinnedShortcuts(packageName, shortcuts)
+        }
+    }
+
+    private val packageReceiver = object : BroadcastReceiver() {
+        override fun onReceive(ctx: Context?, intent: Intent?) {
+            intent?.data?.schemeSpecificPart?.let(::invalidateShortcuts)
+            synchronized(refreshMonitor) {
+                packageRefreshJob?.cancel()
+                packageRefreshJob = scope.launch {
+                    kotlinx.coroutines.delay(350)
+                    refreshAsync()
+                }
+            }
+        }
+    }
+
+    init {
+        // 快照恢复不再占用主线程：原来在 init 里同步读 JSON 并逐应用解码最多
+        // 4 张 PNG（百级应用 ≈ 数百次解码），全在首帧之前，弱设备上是明显的
+        // 启动黑窗。改为后台恢复：恢复完成前列表为空，落地后增量填充；
+        // 恢复与刷新的发布顺序由 catalogPublishMonitor 保证（见 restoreCachedSnapshot）。
+        scope.launch {
+            val cachedSnapshotLoaded = restoreCachedSnapshot()
+            refreshAsync(
+                initialDelayMs = if (cachedSnapshotLoaded) 1_400L else 0L,
+                liveIconOptions = true,
+            )
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_CHANGED)
+            addDataScheme("package")
+        }
+        context.registerReceiver(packageReceiver, filter)
+        runCatching { launcherAppsService?.registerCallback(launcherAppsCallback) }
+    }
+
+    fun setCustomOrder(order: List<String>) {
+        val ownedOrder = order.toList()
+        synchronized(customOrderMonitor) {
+            val snapshot = CustomOrderSnapshot(
+                order = ownedOrder,
+                indexByKey = ownedOrder.withIndex().associate { it.value to it.index },
+            )
+            customOrderSnapshot = snapshot
+            reorder(snapshot)
+        }
+    }
+
+    fun setHiddenComponents(components: Set<String>) {
+        if (hiddenComponents == components) return
+        hiddenComponents = components
+        applyFilters()
+    }
+
+    fun setIconPackPackage(packageName: String?) {
+        setIconRenderingOptions(packageName = packageName)
+    }
+
+    fun setLegacyCircularIconsEnabled(enabled: Boolean) {
+        setIconRenderingOptions(legacyCircular = enabled)
+    }
+
+    fun setIconRenderingOptions(
+        packageName: String? = iconPackPackage,
+        legacyCircular: Boolean = useLegacyCircularIcons,
+        iconSize: Int = currentIconSize
+    ) {
+        val normalized = packageName?.takeIf { it.isNotBlank() }
+        val nextIconSize = iconSize.coerceAtLeast(1)
+        val changed = iconPackPackage != normalized ||
+            useLegacyCircularIcons != legacyCircular ||
+            currentIconSize != nextIconSize
+        if (!changed) return
+        iconPackPackage = normalized
+        useLegacyCircularIcons = legacyCircular
+        currentIconSize = nextIconSize
+        refreshAsync(nextIconSize)
+    }
+
+    /**
+     * 与 [setIconRenderingOptions] 相同，但初始全量扫描还在延迟等待时只更新
+     * 参数、不另起扫描：等待中的那轮扫描执行时会读最新参数（[refreshAsync] 的
+     * liveIconOptions 路径）。冷启动收集器首次加载持久化图标偏好（图标包、
+     * 低清图标）走这条路径，把「初始扫描 + 参数重扫」合并成一次。
+     */
+    fun setIconRenderingOptionsDeferrable(
+        packageName: String? = iconPackPackage,
+        legacyCircular: Boolean = useLegacyCircularIcons,
+        iconSize: Int = currentIconSize
+    ) {
+        val normalized = packageName?.takeIf { it.isNotBlank() }
+        val nextIconSize = iconSize.coerceAtLeast(1)
+        val changed = iconPackPackage != normalized ||
+            useLegacyCircularIcons != legacyCircular ||
+            currentIconSize != nextIconSize
+        if (!changed) return
+        synchronized(refreshMonitor) {
+            if (pendingInitialScan) {
+                iconPackPackage = normalized
+                useLegacyCircularIcons = legacyCircular
+                currentIconSize = nextIconSize
+                return
+            }
+        }
+        setIconRenderingOptions(packageName = normalized, legacyCircular = legacyCircular, iconSize = nextIconSize)
+    }
+
+    private fun reorder(orderSnapshot: CustomOrderSnapshot) {
+        _allSelectableApps.value = sortApps(_allSelectableApps.value, orderSnapshot)
+        _allApps.value = sortApps(_allApps.value, orderSnapshot)
+        applyFilters()
+    }
+
+    fun refresh(iconSize: Int = currentIconSize) {
+        val generation = synchronized(this) {
+            refreshGeneration += 1
+            refreshGeneration
+        }
+        val previousIconSize = currentIconSize
+        currentIconSize = iconSize
+        if (previousIconSize != iconSize) {
+            synchronized(iconCache) { iconCache.clear() }
+        }
+        val iconPackPackageSnapshot = iconPackPackage
+        val useLegacyCircularIconsSnapshot = useLegacyCircularIcons
+        val pm = context.packageManager
+        val mainIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        val resolveInfos: List<ResolveInfo> = pm.queryIntentActivities(mainIntent, 0)
+        val myPackage = context.packageName
+
+        val iconPackMapping: IconPackMapping? = iconPackPackageSnapshot?.let { IconPackScanner.loadMapping(context, it) }
+
+        val resolveList = resolveInfos
+            .filter { ri ->
+                !(ri.activityInfo.packageName == myPackage &&
+                    ri.activityInfo.name in setOf(
+                        "com.fluly.launcher.LauncherActivity",
+                        "com.fluly.launcher.SettingsActivity"
+                    ))
+            }
+            .distinctBy { "${it.activityInfo.packageName}/${it.activityInfo.name}" }
+        val loadedApps = ArrayList<AppInfo>(resolveList.size + 1)
+
+        resolveList.forEach { ri ->
+            if (!isCurrentRefresh(generation)) return
+            val packageName = ri.activityInfo.packageName
+            val componentKey = "$packageName/${ri.activityInfo.name}"
+            val plainIconCacheKey = "${iconPackPackageSnapshot ?: "sys"}|plain|$componentKey|$iconSize"
+            val iconCacheKey = if (useLegacyCircularIconsSnapshot) {
+                "${iconPackPackageSnapshot ?: "sys"}|$componentKey|$iconSize|legacy"
+            } else {
+                plainIconCacheKey
+            }
+            val cachedIcons = getOrCreateIconSet(iconCacheKey) {
+                createIconSet(
+                    componentKey = componentKey,
+                    iconPackMapping = iconPackMapping,
+                    sourceDrawable = ri.loadIcon(pm),
+                    iconSize = iconSize,
+                    useLegacyCircularIcons = useLegacyCircularIconsSnapshot
+                )
+            }
+            val plainIcons = if (!useLegacyCircularIconsSnapshot) {
+                cachedIcons
+            } else {
+                getOrCreateIconSet(plainIconCacheKey) {
+                    createIconSet(
+                        componentKey = componentKey,
+                        iconPackMapping = iconPackMapping,
+                        sourceDrawable = ri.loadIcon(pm),
+                        iconSize = iconSize,
+                        useLegacyCircularIcons = false
+                    )
+                }
+            }
+            loadedApps += AppInfo(
+                label = ri.loadLabel(pm).toString(),
+                packageName = packageName,
+                activityName = ri.activityInfo.name,
+                cachedIcon = cachedIcons.sharp,
+                cachedBlurredIcon = cachedIcons.softened,
+                cachedPlainIcon = plainIcons.sharp,
+                cachedPlainBlurredIcon = plainIcons.softened
+            )
+        }
+        createBuiltInSettingsEntry(iconSize)?.let(loadedApps::add)
+
+        val catalogItems = ArrayList<AppInfo>(loadedApps.size + 8)
+        catalogItems += loadedApps
+        itemStorage.loadShortcuts().forEach { shortcut ->
+            if (!isCurrentRefresh(generation)) return
+            createShortcutEntry(
+                shortcut = shortcut,
+                iconPackMapping = iconPackMapping,
+                iconSize = iconSize,
+                useLegacyCircularIcons = useLegacyCircularIconsSnapshot
+            )?.let(catalogItems::add)
+        }
+        val catalogMap = catalogItems.associateBy { it.componentKey }
+        val storedFolders = itemStorage.loadFolders()
+        val folderChildKeys = storedFolders.flatMap { folder -> folder.itemKeys }.toSet()
+        val folderEntries = storedFolders.mapNotNull { folder ->
+            val liveKeys = folder.itemKeys.filter { key -> catalogMap.containsKey(key) }
+            if (liveKeys.isEmpty()) {
+                null
+            } else {
+                createFolderEntry(
+                    folder = folder.copy(itemKeys = liveKeys),
+                    childItems = liveKeys.mapNotNull(catalogMap::get),
+                    iconSize = iconSize
+                )
+            }
+        }
+        val topLevelItems = ArrayList<AppInfo>(catalogItems.size + folderEntries.size)
+        topLevelItems += catalogItems.filterNot { it.componentKey in folderChildKeys }
+        topLevelItems += folderEntries
+
+        if (synchronized(this) { generation != refreshGeneration }) return
+
+        val knownPackages = catalogItems.mapTo(linkedSetOf()) { it.packageName }
+        synchronized(installTimeCache) {
+            installTimeCache.keys.retainAll(knownPackages)
+        }
+
+        synchronized(catalogPublishMonitor) {
+            freshScanPublished = true
+            catalogData = CatalogData(catalogMap + folderEntries.associateBy { it.componentKey }, storedFolders)
+        }
+        synchronized(customOrderMonitor) {
+            val orderSnapshot = customOrderSnapshot
+            _allSelectableApps.value = sortApps(catalogItems, orderSnapshot)
+            _allApps.value = sortApps(topLevelItems, orderSnapshot)
+            applyFilters()
+        }
+        saveCachedSnapshot(catalogItems)
+    }
+
+    /**
+     * 只重组文件夹与顶层排序，不碰 PackageManager。
+     *
+     * 文件夹增删改本质只改了一条归属关系，但以前一律走 [refresh]：那里会
+     * 重跑 queryIntentActivities 并对每个应用调 loadLabel(pm)（图标虽有缓存，
+     * label 没有），上百个应用就是用户看到的「放手后要等好一会儿文件夹才出来」。
+     *
+     * 这条路径复用已发布的 [catalogData]（AppInfo 里图标和标签都是现成的），
+     * 只重建文件夹合成图标 + 重算顶层列表，代价与应用数无关。
+     *
+     * 前提是已经有过一次完整扫描（[freshScanPublished]）；否则回落全量刷新。
+     */
+    private fun refreshFolderCompositionOnly(
+        iconSize: Int = currentIconSize,
+        persistCachedSnapshot: Boolean = true,
+    ) {
+        if (!freshScanPublished) {
+            refreshAsync(iconSize)
+            return
+        }
+        // 必须占用一个新 generation：refreshJob.cancel() 对 refresh() 是无效的
+        // （它是普通函数，体内没有挂起点，协程取消不会打断它），它唯一的退出
+        // 依据就是 isCurrentRefresh()。不推进 generation 的话，一个在文件夹
+        // 写盘之前就读过 loadFolders() 的全量刷新会在我们发布之后，带着「还
+        // 没有这个文件夹」的旧快照覆盖回来——文件夹刚出现又消失。
+        val generation = synchronized(this) {
+            refreshGeneration += 1
+            refreshGeneration
+        }
+        // 只取真实条目：目录里也混着上一轮合成的文件夹条目，
+        // 拿它们当子项会套娃。
+        val catalogItems = catalogData.items.values.filterNot { it.isFolder }
+        val catalogMap = catalogItems.associateBy { it.componentKey }
+        val storedFolders = itemStorage.loadFolders()
+        val folderChildKeys = storedFolders.flatMap { folder -> folder.itemKeys }.toSet()
+        val folderEntries = storedFolders.mapNotNull { folder ->
+            val liveKeys = folder.itemKeys.filter { key -> catalogMap.containsKey(key) }
+            if (liveKeys.isEmpty()) {
+                null
+            } else {
+                createFolderEntry(
+                    folder = folder.copy(itemKeys = liveKeys),
+                    childItems = liveKeys.mapNotNull(catalogMap::get),
+                    iconSize = iconSize,
+                )
+            }
+        }
+        val topLevelItems = ArrayList<AppInfo>(catalogItems.size + folderEntries.size)
+        topLevelItems += catalogItems.filterNot { it.componentKey in folderChildKeys }
+        topLevelItems += folderEntries
+
+        // A newer folder mutation or full refresh started while icons were being
+        // composed. It owns publication; letting this older snapshot through
+        // would briefly resurrect a child that has already been moved out.
+        if (synchronized(this) { generation != refreshGeneration }) return
+
+        catalogData = CatalogData(catalogMap + folderEntries.associateBy { it.componentKey }, storedFolders)
+        synchronized(customOrderMonitor) {
+            val orderSnapshot = customOrderSnapshot
+            _allSelectableApps.value = sortApps(catalogItems, orderSnapshot)
+            _allApps.value = sortApps(topLevelItems, orderSnapshot)
+            applyFilters()
+        }
+        if (persistCachedSnapshot) saveCachedSnapshot(catalogItems)
+    }
+
+    /** 文件夹类改动的异步轻量刷新，避免在拖动收尾的主线程上做合成。 */
+    private fun refreshFolderCompositionAsync() {
+        synchronized(refreshMonitor) {
+            refreshJob?.cancel()
+            refreshJob = scope.launch { refreshFolderCompositionOnly() }
+        }
+    }
+
+    /**
+     * Publishes a move-out before the folder overlay starts fading away. The
+     * operation only rebuilds stored folder composition; it never scans
+     * PackageManager. Skipping the unchanged app snapshot write keeps this
+     * small synchronous hand-off suitable for the UI thread.
+     */
+    private fun refreshFolderCompositionImmediately() {
+        synchronized(refreshMonitor) {
+            refreshJob?.cancel()
+            refreshJob = null
+        }
+        refreshFolderCompositionOnly(persistCachedSnapshot = false)
+    }
+
+    fun launchApp(appInfo: AppInfo): Boolean {
+        if (appInfo.isFolder) return false
+        if (appInfo.isAppListShortcut) {
+            val pinnedShortcutId = appInfo.pinnedShortcutId
+            if (!pinnedShortcutId.isNullOrBlank() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val launcherApps = context.getSystemService(LauncherApps::class.java) ?: return false
+                return runCatching {
+                    launcherApps.startShortcut(
+                        appInfo.packageName,
+                        pinnedShortcutId,
+                        null,
+                        null,
+                        android.os.Process.myUserHandle()
+                    )
+                    true
+                }.getOrElse {
+                    refreshAsync()
+                    false
+                }
+            }
+            val intent = runCatching {
+                Intent.parseUri(appInfo.shortcutIntentUri.orEmpty(), Intent.URI_INTENT_SCHEME)
+            }.getOrNull() ?: return false
+            // 这条 URI 来自外部应用，parseUri 会把作恶的 flag 一并还原。
+            // 其中 FLAG_GRANT_* 等于把我们自己持有的 URI 权限转授给目标应用，快捷方式用不到，
+            // 一律清掉。其余 flag（NEW_TASK / CLEAR_TOP 之类）留给构造方。
+            intent.removeFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            return try {
+                context.startActivity(intent)
+                true
+            } catch (_: ActivityNotFoundException) {
+                refreshAsync()
+                false
+            } catch (_: SecurityException) {
+                refreshAsync()
+                false
+            }
+        }
+        if (appInfo.isBuiltInSettingsEntry) {
+            val settingsIntent = Intent(context, com.fluly.launcher.SettingsActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            return try {
+                context.startActivity(settingsIntent)
+                true
+            } catch (_: ActivityNotFoundException) {
+                false
+            } catch (_: SecurityException) {
+                false
+            }
+        }
+        if (appInfo.packageName == context.packageName) return false
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            component = ComponentName(appInfo.packageName, appInfo.activityName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        return try {
+            context.startActivity(intent)
+            true
+        } catch (_: ActivityNotFoundException) {
+            refreshAsync()
+            false
+        } catch (_: SecurityException) {
+            refreshAsync()
+            false
+        }
+    }
+
+    fun destroy() {
+        synchronized(refreshMonitor) {
+            packageRefreshJob?.cancel()
+            packageRefreshJob = null
+            refreshJob?.cancel()
+            refreshJob = null
+        }
+        scope.cancel()
+        synchronized(iconCache) { iconCache.clear() }
+        shortcutQueryCache.clear()
+        runCatching { launcherAppsService?.unregisterCallback(launcherAppsCallback) }
+        try {
+            context.unregisterReceiver(packageReceiver)
+        } catch (_: Exception) {
+        }
+    }
+
+    fun requestRefresh(iconSize: Int = currentIconSize) {
+        refreshAsync(iconSize)
+    }
+
+    fun folderItems(folderKey: String): List<AppInfo> {
+        val catalog = catalogData
+        val folder = catalog.folders.firstOrNull { it.componentKey == folderKey } ?: return emptyList()
+        return folder.itemKeys
+            .mapNotNull(catalog.items::get)
+            .filterNot(::isHiddenApp)
+    }
+
+    fun folderItemKeys(folderKey: String): List<String> {
+        return catalogData.folders.firstOrNull { it.componentKey == folderKey }?.itemKeys.orEmpty()
+    }
+
+    fun folderMembershipSnapshot(): Map<String, List<String>> {
+        return catalogData.folders.associate { it.componentKey to it.itemKeys }
+    }
+
+    fun itemsForKeys(keys: List<String>): List<AppInfo> {
+        val items = catalogData.items
+        return keys.mapNotNull(items::get)
+    }
+
+    fun itemForKey(key: String): AppInfo? {
+        return catalogData.items[key]
+    }
+
+    fun addLegacyShortcut(label: String?, intent: Intent?, icon: Bitmap?): Boolean {
+        val shortcutIntent = intent ?: return false
+        // 包名是这条记录唯一的锚点：图标兜底、去重、卸载后清理都靠它。
+        // 解析不出来就拒绝 —— 硬塞进去只会得到一个没图标、没归属的空条目，
+        // 下次重建目录时被 createShortcutEntry 静默丢掉，反而更难查。
+        val packageName = (shortcutIntent.component?.packageName ?: shortcutIntent.`package`)
+            ?.takeIf { it.isNotBlank() }
+            ?: return false
+        val safeLabel = label?.takeIf { it.isNotBlank() }
+            ?: runCatching {
+                val pm = context.packageManager
+                pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
+            }.getOrNull()?.takeIf { it.isNotBlank() }
+            ?: packageName
+        val uri = shortcutIntent.toUri(Intent.URI_INTENT_SCHEME)
+        itemStorage.addShortcut(
+            label = safeLabel,
+            packageName = packageName,
+            intentUri = uri,
+            icon = icon
+        )
+        refreshAsync()
+        return true
+    }
+
+    fun addPinnedShortcut(shortcutInfo: ShortcutInfo): Boolean {
+        return storePinnedShortcut(shortcutInfo, pinForLauncher = false) != null
+    }
+
+    /**
+     * Returns the launcher's public app-shortcut surface only: manifest,
+     * dynamic and already pinned entries. Exported activities are deliberately
+     * not enumerated.
+     */
+    fun queryLaunchableShortcuts(packageName: String): List<ShortcutInfo> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || packageName.isBlank()) return emptyList()
+        shortcutQueryCache[packageName]?.let { cached ->
+            if (SystemClock.elapsedRealtime() - cached.loadedAtElapsedMillis <= SHORTCUT_QUERY_CACHE_MILLIS) {
+                return cached.shortcuts
+            }
+        }
+        val launcherApps = launcherAppsService ?: return emptyList()
+        if (!launcherApps.hasShortcutHostPermission()) return emptyList()
+        val query = LauncherApps.ShortcutQuery()
+            .setPackage(packageName)
+            .setQueryFlags(
+                LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or
+                    LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
+                    LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED,
+            )
+        val shortcuts = runCatching {
+            launcherApps.getShortcuts(query, Process.myUserHandle()).orEmpty()
+                .distinctBy { it.id }
+                .sortedWith(
+                    compareBy<ShortcutInfo> { if (it.isEnabled) 0 else 1 }
+                        .thenBy { it.rank }
+                        .thenBy { shortcutLabel(it).lowercase() },
+                )
+        }.getOrDefault(emptyList())
+        shortcutQueryCache[packageName] = CachedShortcutQuery(SystemClock.elapsedRealtime(), shortcuts)
+        return shortcuts
+    }
+
+    /** Pins a user-selected shortcut and returns the stable catalog key used by the side screen. */
+    fun pinAndAddShortcut(shortcutInfo: ShortcutInfo): String? =
+        storePinnedShortcut(shortcutInfo, pinForLauncher = true)
+
+    private fun storePinnedShortcut(shortcutInfo: ShortcutInfo, pinForLauncher: Boolean): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
+        val packageName = shortcutInfo.safePackageName() ?: return null
+        val shortcutId = runCatching { shortcutInfo.id }.getOrNull()?.takeIf { it.isNotBlank() } ?: return null
+        if (pinForLauncher) {
+            val launcherApps = launcherAppsService ?: return null
+            if (!launcherApps.hasShortcutHostPermission()) return null
+            val pinnedIds = itemStorage.loadShortcuts()
+                .asSequence()
+                .filter { it.packageName == packageName }
+                .mapNotNull { it.pinnedShortcutId }
+                .plus(shortcutId)
+                .distinct()
+                .toList()
+            if (runCatching {
+                    launcherApps.pinShortcuts(packageName, pinnedIds, Process.myUserHandle())
+                }.isFailure
+            ) return null
+        }
+        val label = shortcutLabel(shortcutInfo)
+        val iconBitmap = runCatching {
+            val launcherApps = context.getSystemService(LauncherApps::class.java)
+            launcherApps?.getShortcutIconDrawable(shortcutInfo, context.resources.displayMetrics.densityDpi)
+                ?.let { renderIconBitmap(it, currentIconSize) }
+        }.getOrNull()
+        val stored = itemStorage.addShortcut(
+            label = label,
+            packageName = packageName,
+            intentUri = pinnedShortcutUri(packageName, shortcutId),
+            icon = iconBitmap,
+            pinnedShortcutId = shortcutId
+        )
+        invalidateShortcuts(packageName)
+        refreshAsync()
+        return stored.componentKey
+    }
+
+    private fun invalidateShortcuts(packageName: String) {
+        shortcutQueryCache.remove(packageName)
+    }
+
+    /**
+     * 应用更新后删掉的快捷方式，系统不再返回，但条目还留在列表里：点一下
+     * `startShortcut` 抛异常 → 触发一次 refresh → 条目依旧在，于是成了点不开
+     * 也删不掉的僵尸图标。
+     *
+     * [live] 是该包当前**完整**的可用清单（manifest + dynamic + pinned），所以
+     * 「清单里没有的 pinned id」就是已经失效的。
+     *
+     * 清单为空时不动手：应用刚更新、shortcut 还没重新发布的那一小段也可能给空列表，
+     * 那会儿删会把用户正常添加的条目一起抹掉。留一个僵尸，好过删掉一个还能用的。
+     */
+    private fun pruneMissingPinnedShortcuts(packageName: String, live: List<ShortcutInfo>) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (live.isEmpty()) return
+        val liveIds = live.asSequence().mapNotNull { runCatching { it.id }.getOrNull() }.toSet()
+        val stale = itemStorage.loadShortcuts().filter { shortcut ->
+            shortcut.packageName == packageName &&
+                !shortcut.pinnedShortcutId.isNullOrBlank() &&
+                shortcut.pinnedShortcutId !in liveIds
+        }
+        if (stale.isEmpty()) return
+        var removed = false
+        stale.forEach { shortcut ->
+            removed = itemStorage.removeShortcut(APP_LIST_SHORTCUT_KEY_PREFIX + shortcut.id) || removed
+        }
+        if (removed) refreshAsync()
+    }
+
+    private fun shortcutLabel(shortcutInfo: ShortcutInfo): String =
+        runCatching { shortcutInfo.shortLabel?.toString() }.getOrNull()?.takeIf(String::isNotBlank)
+            ?: runCatching { shortcutInfo.longLabel?.toString() }.getOrNull()?.takeIf(String::isNotBlank)
+            ?: runCatching { shortcutInfo.id }.getOrDefault("")
+
+    private fun ShortcutInfo.safePackageName(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return null
+        return runCatching { `package` }
+            .getOrNull()
+            ?.takeIf { it.isNotBlank() }
+    }
+
+    fun removeShortcut(componentKey: String): Boolean {
+        val removed = itemStorage.removeShortcut(componentKey)
+        if (removed) refreshAsync()
+        return removed
+    }
+
+    fun createFolder(sourceKey: String, targetKey: String): String? {
+        // 不再拿「被拖到的那个应用的名字」当文件夹名：把 A 拖到「音乐」上建出来的文件夹
+        // 会叫「音乐」，看起来像把应用改了名。名字交给 storage 取默认的
+        // 文件夹 / 文件夹1 / 文件夹2…（判重要在它的锁里做，见那边的注释）。
+        val folder = itemStorage.createFolder(sourceKey, targetKey) ?: return null
+        // 只重组文件夹，不重扫 PackageManager（放手后的长时间卡顿根因）。
+        refreshFolderCompositionAsync()
+        return folder.componentKey
+    }
+
+    fun renameFolder(folderKey: String, name: String): Boolean {
+        val renamed = itemStorage.renameFolder(folderKey, name)
+        if (renamed) refreshFolderCompositionAsync()
+        return renamed
+    }
+
+    fun dissolveFolder(folderKey: String): List<String> {
+        val keys = itemStorage.dissolveFolder(folderKey)
+        if (keys.isNotEmpty()) refreshFolderCompositionAsync()
+        return keys
+    }
+
+    fun moveItemOutOfFolder(folderKey: String, itemKey: String): FolderMutationResult {
+        val result = itemStorage.moveItemOutOfFolder(folderKey, itemKey)
+        if (result.succeeded) refreshFolderCompositionImmediately()
+        return result
+    }
+
+    fun addItemsToFolder(folderKey: String, itemKeys: List<String>): FolderMutationResult {
+        val result = itemStorage.addItemsToFolder(folderKey, itemKeys)
+        if (result.succeeded && result.itemKeys.isNotEmpty()) refreshFolderCompositionAsync()
+        return result
+    }
+
+    fun setFolderItems(folderKey: String, itemKeys: List<String>): FolderMutationResult {
+        val result = itemStorage.setFolderItems(folderKey, itemKeys)
+        if (result.succeeded) refreshFolderCompositionAsync()
+        return result
+    }
+
+    fun reorderFolderItems(folderKey: String, orderedKeys: List<String>): FolderMutationResult {
+        val result = itemStorage.reorderFolderItems(folderKey, orderedKeys)
+        if (result.succeeded && result.itemKeys.isNotEmpty()) refreshFolderCompositionAsync()
+        return result
+    }
+
+    fun loadDisplayIconForPackage(
+        packageName: String,
+        iconSize: Int = currentIconSize,
+        preferPlainIcon: Boolean = false
+    ): ImageBitmap? {
+        if (packageName.isBlank()) return null
+        return runCatching {
+            val pm = context.packageManager
+            val launchComponent = pm.getLaunchIntentForPackage(packageName)?.component
+            val componentKey = launchComponent?.let { "${it.packageName}/${it.className}" }
+                ?: "$packageName/$packageName"
+            val sourceDrawable = launchComponent?.let {
+                runCatching { pm.getActivityIcon(it) }.getOrNull()
+            } ?: pm.getApplicationIcon(packageName)
+            val iconPackPackageSnapshot = iconPackPackage
+            val useLegacyCircularIconsSnapshot = useLegacyCircularIcons && !preferPlainIcon
+            val iconPackMapping = iconPackPackageSnapshot?.let { IconPackScanner.loadMapping(context, it) }
+            val normalizedIconSize = iconSize.coerceAtLeast(1)
+            val iconCacheKey = "${iconPackPackageSnapshot ?: "sys"}|media|$componentKey|$normalizedIconSize|${if (useLegacyCircularIconsSnapshot) "legacy" else "plain"}"
+            val cachedIcons = getOrCreateIconSet(iconCacheKey) {
+                createIconSet(
+                    componentKey = componentKey,
+                    iconPackMapping = iconPackMapping,
+                    sourceDrawable = sourceDrawable,
+                    iconSize = normalizedIconSize,
+                    useLegacyCircularIcons = useLegacyCircularIconsSnapshot
+                )
+            }
+            cachedIcons.sharp
+        }.getOrNull()
+    }
+
+    private fun refreshAsync(
+        iconSize: Int = currentIconSize,
+        initialDelayMs: Long = 0L,
+        liveIconOptions: Boolean = false,
+    ) {
+        synchronized(refreshMonitor) {
+            refreshJob?.cancel()
+            // 只有「执行时读参数」的初始扫描在等待时，参数可以只改不扫；
+            // 任何新调度都会取代旧的等待任务，标志位随之重算。
+            pendingInitialScan = liveIconOptions
+            refreshJob = scope.launch {
+                if (initialDelayMs > 0L) {
+                    kotlinx.coroutines.delay(initialDelayMs)
+                }
+                pendingInitialScan = false
+                refresh(if (liveIconOptions) currentIconSize else iconSize)
+            }
+        }
+    }
+
+    private fun restoreCachedSnapshot(): Boolean {
+        val cacheRoot = appListCacheRoot()
+        val snapshotFile = File(cacheRoot, APP_LIST_CACHE_FILE)
+        if (!snapshotFile.isFile || freshScanPublished) return false
+        val catalogItems = runCatching {
+            val root = JSONObject(snapshotFile.readText(Charsets.UTF_8))
+            if (root.optInt("version") != APP_LIST_CACHE_VERSION) return@runCatching emptyList<AppInfo>()
+            val items = root.optJSONArray("items") ?: JSONArray()
+            buildList {
+                for (index in 0 until items.length()) {
+                    val item = items.optJSONObject(index) ?: continue
+                    readCachedSnapshotItem(cacheRoot, item)?.let(::add)
+                }
+            }
+        }.getOrDefault(emptyList())
+        if (catalogItems.isEmpty() || freshScanPublished) return false
+
+        val catalogMap = catalogItems.associateBy { it.componentKey }
+        val storedFolders = itemStorage.loadFolders()
+        val folderChildKeys = storedFolders.flatMap { folder -> folder.itemKeys }.toSet()
+        val folderEntries = storedFolders.mapNotNull { folder ->
+            val liveKeys = folder.itemKeys.filter { key -> catalogMap.containsKey(key) }
+            if (liveKeys.isEmpty()) {
+                null
+            } else {
+                createFolderEntry(
+                    folder = folder.copy(itemKeys = liveKeys),
+                    childItems = liveKeys.mapNotNull(catalogMap::get),
+                    iconSize = currentIconSize
+                )
+            }
+        }
+        if (freshScanPublished) return false
+        val topLevelItems = ArrayList<AppInfo>(catalogItems.size + folderEntries.size)
+        topLevelItems += catalogItems.filterNot { it.componentKey in folderChildKeys }
+        topLevelItems += folderEntries
+
+        synchronized(catalogPublishMonitor) {
+            // 后台恢复期间可能已有一轮全量刷新先发布（图标包/安装广播都会触发），
+            // 那条路径持有同一监视器置位并写入新目录，此处让位，避免缓存盖回新扫描。
+            if (freshScanPublished) return false
+            catalogData = CatalogData(catalogMap + folderEntries.associateBy { it.componentKey }, storedFolders)
+        }
+        synchronized(customOrderMonitor) {
+            val orderSnapshot = customOrderSnapshot
+            _allSelectableApps.value = sortApps(catalogItems, orderSnapshot)
+            _allApps.value = sortApps(topLevelItems, orderSnapshot)
+            applyFilters()
+        }
+        return true
+    }
+
+    private fun saveCachedSnapshot(catalogItems: List<AppInfo>) {
+        runCatching {
+            val cacheRoot = appListCacheRoot().apply { mkdirs() }
+            val iconDir = File(cacheRoot, APP_LIST_CACHE_ICON_DIR).apply { mkdirs() }
+            val items = JSONArray()
+            catalogItems
+                .asSequence()
+                .filterNot { it.isFolder }
+                .forEach { app ->
+                    val key = app.componentKey
+                    val stem = snapshotFileStem(key)
+                    val icon = writeCachedSnapshotIcon(cacheRoot, iconDir, stem, "icon", app.cachedIcon)
+                        ?: return@forEach
+                    val item = JSONObject().apply {
+                        put("label", app.label)
+                        put("packageName", app.packageName)
+                        put("activityName", app.activityName)
+                        put("itemType", app.itemType.name)
+                        put("builtIn", app.isBuiltInSettingsEntry)
+                        put("componentKey", key)
+                        put("installTime", synchronized(installTimeCache) {
+                            installTimeCache[app.packageName] ?: Long.MAX_VALUE
+                        })
+                        put("icon", icon)
+                        writeCachedSnapshotIcon(
+                            cacheRoot,
+                            iconDir,
+                            stem,
+                            "blur",
+                            app.cachedBlurredIcon
+                        )?.let { put("blur", it) }
+                        writeCachedSnapshotIcon(
+                            cacheRoot,
+                            iconDir,
+                            stem,
+                            "plain",
+                            app.cachedPlainIcon
+                        )?.let { put("plain", it) }
+                        writeCachedSnapshotIcon(
+                            cacheRoot,
+                            iconDir,
+                            stem,
+                            "plain_blur",
+                            app.cachedPlainBlurredIcon
+                        )?.let { put("plainBlur", it) }
+                        app.shortcutIntentUri?.let { put("shortcutIntentUri", it) }
+                        app.pinnedShortcutId?.let { put("pinnedShortcutId", it) }
+                    }
+                    items.put(item)
+                }
+            val root = JSONObject().apply {
+                put("version", APP_LIST_CACHE_VERSION)
+                put("generatedAt", System.currentTimeMillis())
+                put("items", items)
+            }
+            val output = File(cacheRoot, APP_LIST_CACHE_FILE)
+            val temp = File(cacheRoot, "$APP_LIST_CACHE_FILE.tmp")
+            temp.writeText(root.toString(), Charsets.UTF_8)
+            if (!temp.renameTo(output)) {
+                output.writeText(root.toString(), Charsets.UTF_8)
+                temp.delete()
+            }
+        }
+    }
+
+    private fun readCachedSnapshotItem(cacheRoot: File, item: JSONObject): AppInfo? {
+        val label = item.optString("label").takeIf(String::isNotBlank) ?: return null
+        val packageName = item.optString("packageName")
+        val activityName = item.optString("activityName").takeIf(String::isNotBlank) ?: return null
+        val itemType = runCatching {
+            AppListItemType.valueOf(item.optString("itemType", AppListItemType.APP.name))
+        }.getOrDefault(AppListItemType.APP)
+        if (itemType == AppListItemType.FOLDER) return null
+        val icon = readCachedSnapshotIcon(cacheRoot, item.optString("icon"))
+            ?: return null
+        val blurredIcon = readCachedSnapshotIcon(cacheRoot, item.optString("blur")) ?: icon
+        val installTime = item.optLong("installTime", Long.MAX_VALUE)
+        synchronized(installTimeCache) {
+            installTimeCache[packageName] = installTime
+        }
+        return AppInfo(
+            label = label,
+            packageName = packageName,
+            activityName = activityName,
+            cachedIcon = icon,
+            cachedBlurredIcon = blurredIcon,
+            cachedPlainIcon = readCachedSnapshotIcon(cacheRoot, item.optString("plain")),
+            cachedPlainBlurredIcon = readCachedSnapshotIcon(cacheRoot, item.optString("plainBlur")),
+            isBuiltInSettingsEntry = item.optBoolean("builtIn", false),
+            itemType = itemType,
+            shortcutIntentUri = item.optString("shortcutIntentUri").takeIf(String::isNotBlank),
+            pinnedShortcutId = item.optString("pinnedShortcutId").takeIf(String::isNotBlank)
+        )
+    }
+
+    private fun writeCachedSnapshotIcon(
+        cacheRoot: File,
+        iconDir: File,
+        stem: String,
+        role: String,
+        icon: ImageBitmap?
+    ): String? {
+        if (icon == null) return null
+        return runCatching {
+            val file = File(iconDir, "$stem-$role.png")
+            file.outputStream().use { output ->
+                icon.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, output)
+            }
+            "$APP_LIST_CACHE_ICON_DIR/${file.name}"
+        }.getOrNull()
+    }
+
+    private fun readCachedSnapshotIcon(cacheRoot: File, relativePath: String?): ImageBitmap? {
+        if (relativePath.isNullOrBlank()) return null
+        val file = File(cacheRoot, relativePath)
+        if (!file.isFile) return null
+        return runCatching {
+            BitmapFactory.decodeFile(file.absolutePath)?.asImageBitmap()
+        }.getOrNull()
+    }
+
+    private fun appListCacheRoot(): File = File(context.filesDir, APP_LIST_CACHE_DIR)
+
+    private fun snapshotFileStem(componentKey: String): String {
+        val readable = componentKey.map { char ->
+            if (char.isLetterOrDigit()) char else '_'
+        }.joinToString("").take(72).ifBlank { "item" }
+        return "$readable-${Integer.toHexString(componentKey.hashCode())}"
+    }
+
+    private fun isCurrentRefresh(generation: Int): Boolean =
+        synchronized(this) { generation == refreshGeneration }
+
+    private fun getOrCreateIconSet(key: String, producer: () -> CachedIconSet): CachedIconSet {
+        synchronized(iconCache) { iconCache[key]?.let { return it } }
+        val lock = iconLocks.getOrPut(key) { Any() }
+        return synchronized(lock) {
+            val existing = synchronized(iconCache) { iconCache[key] }
+            if (existing != null) {
+                existing
+            } else {
+                try {
+                    producer().also { iconSet ->
+                        synchronized(iconCache) {
+                            iconCache[key] = iconSet
+                        }
+                    }
+                } finally {
+                    iconLocks.remove(key)
+                }
+            }
+        }
+    }
+
+    private fun createIconSet(
+        componentKey: String,
+        iconPackMapping: IconPackMapping?,
+        sourceDrawable: Drawable,
+        iconSize: Int,
+        useLegacyCircularIcons: Boolean
+    ): CachedIconSet {
+        val packedIcon = iconPackMapping?.let { IconPackScanner.loadIconDrawable(context, it, componentKey) }
+        val fallbackBitmap = if (packedIcon == null && iconPackMapping != null) {
+            createIconPackTemplateBitmap(
+                mapping = iconPackMapping,
+                componentKey = componentKey,
+                sourceDrawable = sourceDrawable,
+                iconSize = iconSize
+            )
+        } else {
+            null
+        }
+        val baseBitmap = when {
+            // 图标包给的成品图与模板合成的结果同样要过圆形遮罩。
+            //
+            // 以前这两条直接原样返回，只有「包里没有、也合成不出来」的第三条才裁圆，
+            // 于是同一屏里两种形状并存：图标包覆盖到的应用是包里的圆角方，没覆盖到的
+            // 是圆 —— 就是老师报的「负一屏快捷启动图标有的变成圆角矩形」。列表侧的
+            // NativeAppListRowView 自己还会按风格再裁一次形状，所以那里看不出来；
+            // 负一屏、文件夹这些直接贴 bitmap 的地方才露出来。
+            //
+            // useLegacyCircularIcons 目前恒为 true（「圆形图标」是这个启动器的既定
+            // 形状语言），所以这里统一裁圆才是一致的做法。
+            packedIcon != null -> renderIconBitmap(packedIcon, iconSize).circularIfLegacy(
+                useLegacyCircularIcons,
+                iconSize,
+            )
+            fallbackBitmap != null -> stripEdgeBlackMatte(fallbackBitmap).circularIfLegacy(
+                useLegacyCircularIcons,
+                iconSize,
+            )
+            useLegacyCircularIcons -> if (sourceDrawable is AdaptiveIconDrawable) {
+                // 自适应图标直接用圆形遮罩自绘，避免“框架渲染成方图再裁圆”的二次采样。
+                createAdaptiveIconBitmap(
+                    drawable = sourceDrawable,
+                    size = iconSize,
+                    forceCircularMask = true,
+                    edgeInsetPx = iconSize * ICON_MASK_EDGE_INSET_FRACTION
+                )
+            } else {
+                createCircularBitmap(
+                    stripEdgeBlackMatte(drawableToBitmap(sourceDrawable, iconSize)),
+                    edgeInsetPx = iconSize * ICON_MASK_EDGE_INSET_FRACTION
+                )
+            }
+            else -> renderIconBitmap(sourceDrawable, iconSize)
+        }
+        return CachedIconSet(
+            sharp = baseBitmap.asImageBitmap(),
+            softened = createSoftenedBitmap(baseBitmap).asImageBitmap()
+        )
+    }
+
+    private fun createIconPackTemplateBitmap(
+        mapping: IconPackMapping,
+        componentKey: String,
+        sourceDrawable: Drawable,
+        iconSize: Int
+    ): Bitmap? {
+        val template = IconPackScanner.loadTemplateDrawables(context, mapping, componentKey) ?: return null
+        val output = Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        template.iconBack?.let { drawDrawable(it, canvas, 0, 0, iconSize, iconSize) }
+
+        val iconLayer = Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888)
+        val iconCanvas = Canvas(iconLayer)
+        val scaledSize = (iconSize * template.scale).roundToInt().coerceIn(1, iconSize * 2)
+        val inset = ((iconSize - scaledSize) / 2f).roundToInt()
+        if (sourceDrawable is AdaptiveIconDrawable) {
+            // 只叠图层、不裁形：形状权威是下面那道图标包 iconmask。以前这里调
+            // createAdaptiveIconBitmap（默认按**设备**遮罩裁一次），于是设备的圆角方
+            // 与图标包的圆角方两层半径不同的抗锯齿边界错开，漏出自适应图标的背景色
+            // 细边 —— 浅色背景的图标就是老师报的「边缘出现白边」。
+            val adaptiveBitmap = composeAdaptiveIconLayers(sourceDrawable, scaledSize)
+            val adaptivePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+            iconCanvas.drawBitmap(
+                adaptiveBitmap,
+                null,
+                RectF(
+                    inset.toFloat(),
+                    inset.toFloat(),
+                    (inset + scaledSize).toFloat(),
+                    (inset + scaledSize).toFloat()
+                ),
+                adaptivePaint
+            )
+        } else {
+            drawDrawable(sourceDrawable, iconCanvas, inset, inset, inset + scaledSize, inset + scaledSize)
+        }
+        template.iconMask?.let { maskDrawable ->
+            val maskBitmap = drawableToBitmap(maskDrawable, iconSize)
+            val polarity = iconPackMaskPolarity(
+                centerAlpha = maskBitmap.alphaAt(iconSize / 2, iconSize / 2),
+                cornerAlpha = maskBitmap.cornerMeanAlpha(),
+            )
+            val blendMode = when (polarity) {
+                // 常规约定：mask 不透明处保留图标。
+                IconPackMaskPolarity.KEEP_INSIDE -> PorterDuff.Mode.DST_IN
+                // 反相约定：mask 不透明处**挖掉**图标。ColorOS 那类包就是这样 ——
+                // 白色圆角方在**不透明黑**底上，中心反而是透明的。按 DST_IN 处理的
+                // 结果是把图标本体整个擦掉、只剩一圈深色边框，也就是老师看到的
+                // 「图标包未包含的应用显示为黑色空壳」。
+                IconPackMaskPolarity.KEEP_OUTSIDE -> PorterDuff.Mode.DST_OUT
+                // 整张不透明或整张透明：这个 mask 给不出任何形状信息，直接不遮。
+                IconPackMaskPolarity.UNUSABLE -> null
+            }
+            if (blendMode != null) {
+                val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                    xfermode = PorterDuffXfermode(blendMode)
+                }
+                iconCanvas.drawBitmap(maskBitmap, 0f, 0f, maskPaint)
+                maskPaint.xfermode = null
+            }
+        }
+        // 合成完还是空的就整条放弃：宁可退回系统原图标，也不能发一个空壳出去。
+        if (iconLayer.isEffectivelyTransparent()) return null
+        canvas.drawBitmap(iconLayer, 0f, 0f, null)
+        template.iconUpon?.let { drawDrawable(it, canvas, 0, 0, iconSize, iconSize) }
+        if (output.isEffectivelyTransparent()) return null
+        return output
+    }
+
+    private fun Bitmap.alphaAt(x: Int, y: Int): Int {
+        val safeX = x.coerceIn(0, width - 1)
+        val safeY = y.coerceIn(0, height - 1)
+        return Color.alpha(getPixel(safeX, safeY))
+    }
+
+    /** 四角 alpha 均值。取角而不是整圈边：圆角方形的边中点常常还在形状内部。 */
+    private fun Bitmap.cornerMeanAlpha(): Int {
+        val inset = (minOf(width, height) * 0.06f).toInt().coerceAtLeast(0)
+        val xs = intArrayOf(inset, width - 1 - inset)
+        val ys = intArrayOf(inset, height - 1 - inset)
+        var sum = 0
+        for (x in xs) for (y in ys) sum += alphaAt(x, y)
+        return sum / 4
+    }
+
+    /**
+     * 判断这张合成结果是不是「实际上什么都没有」。
+     *
+     * 只抽样不逐像素：图标最多 192×192，抽 16×16 的网格足够判断空与不空，
+     * 而这条检查在每个未适配应用的图标上都会跑一次。
+     */
+    private fun Bitmap.isEffectivelyTransparent(): Boolean {
+        val step = (minOf(width, height) / 16).coerceAtLeast(1)
+        var opaqueEnough = 0
+        var sampled = 0
+        var y = 0
+        while (y < height) {
+            var x = 0
+            while (x < width) {
+                sampled++
+                if (Color.alpha(getPixel(x, y)) > 24) opaqueEnough++
+                x += step
+            }
+            y += step
+        }
+        if (sampled == 0) return true
+        return opaqueEnough * 100 / sampled < 2
+    }
+
+    private fun drawDrawable(
+        drawable: Drawable,
+        canvas: Canvas,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int
+    ) {
+        val copy = drawable.constantState?.newDrawable()?.mutate() ?: drawable.mutate()
+        copy.setBounds(left, top, right, bottom)
+        copy.draw(canvas)
+    }
+
+    private fun createSoftenedBitmap(source: Bitmap): Bitmap {
+        val downscaled = Bitmap.createScaledBitmap(
+            source,
+            (source.width * 0.25f).toInt().coerceAtLeast(1),
+            (source.height * 0.25f).toInt().coerceAtLeast(1),
+            true
+        )
+        return Bitmap.createScaledBitmap(downscaled, source.width, source.height, true)
+    }
+
+    private fun drawableToBitmap(drawable: Drawable, size: Int): Bitmap {
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, size, size)
+        drawable.draw(canvas)
+        return bitmap
+    }
+
+    /**
+     * 统一入口：自适应图标走自绘抗锯齿裁剪，普通图标沿用位图化 + 黑边清理。
+     *
+     * 自适应图标绝不能过 [stripEdgeBlackMatte]——深色背景图标的抗锯齿边像素
+     * （半透明深色）会被泛洪误删，重新切出锯齿。
+     */
+    private fun renderIconBitmap(drawable: Drawable, size: Int): Bitmap =
+        if (drawable is AdaptiveIconDrawable) {
+            createAdaptiveIconBitmap(
+                drawable = drawable,
+                size = size,
+                edgeInsetPx = size * ICON_MASK_EDGE_INSET_FRACTION
+            )
+        } else {
+            stripEdgeBlackMatte(drawableToBitmap(drawable, size))
+        }
+
+    /**
+     * 自绘渲染自适应图标。
+     *
+     * 不使用 AdaptiveIconDrawable#draw：框架实现会先把图层位图整体填黑
+     * （AOSP AdaptiveIconDrawable.draw 里的 mCanvas.drawColor(BLACK)），再用
+     * 按目标尺寸栅格化的 ALPHA_8 遮罩位图裁剪。背景层一旦有透明区域，黑色
+     * 底就会漏出，低分辨率遮罩再把它切成黑色锯齿边。
+     *
+     * 这里改为：把 background/foreground 图层按 108/72 的官方比例放大居中，
+     * 画在完全透明的画布上，再用 BitmapShader + 抗锯齿 Paint 的 drawPath /
+     * drawCircle 自行裁形。
+     */
+    /**
+     * 「圆形图标」开着时把已成图的位图裁成圆，否则原样返回。
+     *
+     * 图标包那两条路径（包里的成品图 / 模板合成结果）用它与系统图标那条对齐形状。
+     * 内缩比例沿用 [ICON_MASK_EDGE_INSET_FRACTION]：列表侧还会用不抗锯齿的 clipPath
+     * 复裁一次，轻微内缩能让抗锯齿边完整落在裁剪路径内部，不被再切出锯齿。
+     */
+    private fun Bitmap.circularIfLegacy(useLegacyCircularIcons: Boolean, iconSize: Int): Bitmap =
+        if (useLegacyCircularIcons) {
+            createCircularBitmap(this, edgeInsetPx = iconSize * ICON_MASK_EDGE_INSET_FRACTION)
+        } else {
+            this
+        }
+
+    private fun createAdaptiveIconBitmap(
+        drawable: AdaptiveIconDrawable,
+        size: Int,
+        forceCircularMask: Boolean = false,
+        edgeInsetPx: Float = 0f
+    ): Bitmap {
+        val layerBitmap = composeAdaptiveIconLayers(drawable, size)
+
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint(
+            Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG
+        ).apply {
+            shader = BitmapShader(layerBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        }
+        if (forceCircularMask) {
+            val radius = (size / 2f - edgeInsetPx).coerceAtLeast(0f)
+            canvas.drawCircle(size / 2f, size / 2f, radius, paint)
+        } else {
+            canvas.drawPath(adaptiveMaskPath(drawable, size, edgeInsetPx), paint)
+        }
+        return output
+    }
+
+    /**
+     * 把自适应图标的背景层与前景层叠成一张**不裁形**的方图。
+     *
+     * 单独抽出来是给图标包模板合成用的：那条路径后面还要套图标包自己的
+     * `iconmask`，如果这里先按设备遮罩裁一次，就成了两层圆角方（半径还不一样）
+     * 各裁一刀 —— 两条抗锯齿边界错开的地方会漏出自适应图标背景色的细边，浅色
+     * 背景的图标看起来就是「边缘一圈白边」。形状只能有一个权威，模板合成里那个
+     * 权威是图标包的 mask，所以这里交出未裁形的原图。
+     */
+    private fun composeAdaptiveIconLayers(
+        drawable: AdaptiveIconDrawable,
+        size: Int
+    ): Bitmap {
+        val layerBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val layerCanvas = Canvas(layerBitmap)
+        val overdrawPx = size * (ADAPTIVE_ICON_LAYER_SCALE - 1f) / 2f
+        val layerStart = (-overdrawPx).roundToInt()
+        val layerEnd = size + overdrawPx.roundToInt()
+        drawable.background?.let { background ->
+            drawDrawable(background, layerCanvas, layerStart, layerStart, layerEnd, layerEnd)
+        }
+        drawable.foreground?.let { foreground ->
+            drawDrawable(foreground, layerCanvas, layerStart, layerStart, layerEnd, layerEnd)
+        }
+        return layerBitmap
+    }
+
+    /**
+     * 把设备的自适应图标遮罩路径归一化到 [0, size] 像素空间。
+     *
+     * 不同 ROM 的 getIconMask() 坐标空间不一致（100x100 视口或已随 bounds
+     * 变换），所以用路径自身包围盒做 rect-to-rect 变换，空路径退化为圆形。
+     */
+    private fun adaptiveMaskPath(
+        drawable: AdaptiveIconDrawable,
+        size: Int,
+        edgeInsetPx: Float
+    ): Path {
+        val target = RectF(edgeInsetPx, edgeInsetPx, size - edgeInsetPx, size - edgeInsetPx)
+        val path = runCatching { Path(drawable.iconMask) }.getOrNull() ?: Path()
+        val pathBounds = RectF()
+        path.computeBounds(pathBounds, true)
+        if (pathBounds.width() > 0f && pathBounds.height() > 0f) {
+            val matrix = Matrix()
+            matrix.setRectToRect(pathBounds, target, Matrix.ScaleToFit.FILL)
+            path.transform(matrix)
+            return path
+        }
+        return Path().apply {
+            addCircle(
+                size / 2f,
+                size / 2f,
+                (size / 2f - edgeInsetPx).coerceAtLeast(0f),
+                Path.Direction.CW
+            )
+        }
+    }
+
+    private fun stripEdgeBlackMatte(source: Bitmap): Bitmap {
+        if (source.width <= 1 || source.height <= 1) return source
+        val width = source.width
+        val height = source.height
+        val pixels = IntArray(width * height)
+        source.getPixels(pixels, 0, width, 0, 0, width, height)
+        val visited = BooleanArray(pixels.size)
+        val queue = IntArray(pixels.size)
+        var head = 0
+        var tail = 0
+        var cleared = 0
+
+        fun isMattePixel(index: Int): Boolean {
+            val pixel = pixels[index]
+            val alpha = Color.alpha(pixel)
+            if (alpha == 0 || alpha >= 248) return false
+            return Color.red(pixel) <= 28 &&
+                Color.green(pixel) <= 28 &&
+                Color.blue(pixel) <= 28
+        }
+
+        fun enqueue(index: Int) {
+            if (visited[index] || !isMattePixel(index)) return
+            visited[index] = true
+            queue[tail++] = index
+        }
+
+        for (x in 0 until width) {
+            enqueue(x)
+            enqueue((height - 1) * width + x)
+        }
+        for (y in 1 until height - 1) {
+            enqueue(y * width)
+            enqueue(y * width + width - 1)
+        }
+
+        while (head < tail) {
+            val index = queue[head++]
+            pixels[index] = Color.TRANSPARENT
+            cleared += 1
+            val x = index % width
+            val y = index / width
+            if (x > 0) enqueue(index - 1)
+            if (x < width - 1) enqueue(index + 1)
+            if (y > 0) enqueue(index - width)
+            if (y < height - 1) enqueue(index + width)
+        }
+
+        if (cleared == 0) return source
+        return Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
+    }
+
+    private fun createCircularBitmap(source: Bitmap, edgeInsetPx: Float = 0f): Bitmap {
+        val output = Bitmap.createBitmap(source.width, source.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG).apply {
+            shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            isFilterBitmap = true
+            isDither = true
+        }
+        val radius = (minOf(source.width, source.height) / 2f - edgeInsetPx).coerceAtLeast(0f)
+        canvas.drawCircle(source.width / 2f, source.height / 2f, radius, paint)
+        return output
+    }
+
+    private fun orderRank(
+        app: AppInfo,
+        orderSnapshot: CustomOrderSnapshot,
+    ): Int {
+        if (orderSnapshot.order.isEmpty()) return Int.MAX_VALUE
+        return orderSnapshot.indexByKey[app.componentKey]
+            ?: orderSnapshot.indexByKey[app.packageName]
+            ?: Int.MAX_VALUE
+    }
+
+    private fun packageInstallTime(packageName: String): Long {
+        synchronized(installTimeCache) {
+            installTimeCache[packageName]?.let { return it }
+        }
+        val installTime = try {
+            @Suppress("DEPRECATION")
+            context.packageManager.getPackageInfo(packageName, 0).firstInstallTime
+        } catch (_: Exception) {
+            Long.MAX_VALUE
+        }
+        synchronized(installTimeCache) {
+            installTimeCache[packageName] = installTime
+        }
+        return installTime
+    }
+
+    private fun sortApps(
+        apps: List<AppInfo>,
+        orderSnapshot: CustomOrderSnapshot,
+    ): List<AppInfo> {
+        return if (orderSnapshot.order.isNotEmpty()) {
+            apps.sortedWith(
+                compareBy<AppInfo> { orderRank(it, orderSnapshot) }
+                    .thenBy {
+                        if (
+                            it.isBuiltInSettingsEntry &&
+                            it.componentKey !in orderSnapshot.indexByKey
+                        ) {
+                            1
+                        } else {
+                            0
+                        }
+                    }
+                    .thenBy { packageInstallTime(it.packageName) }
+                    .thenBy { it.label.lowercase() }
+            )
+        } else {
+            apps.sortedWith(
+                compareBy<AppInfo> { if (it.isBuiltInSettingsEntry) 1 else 0 }
+                    .thenBy { packageInstallTime(it.packageName) }
+                    .thenBy { it.label.lowercase() }
+            )
+        }
+    }
+
+    private fun createShortcutEntry(
+        shortcut: StoredAppListShortcut,
+        iconPackMapping: IconPackMapping?,
+        iconSize: Int,
+        useLegacyCircularIcons: Boolean
+    ): AppInfo? {
+        val packageName = shortcut.packageName
+        val sourceDrawable = itemStorage.loadShortcutIcon(shortcut.iconPath)?.let { bitmap ->
+            BitmapDrawable(context.resources, bitmap)
+        } ?: loadPackageFallbackIcon(packageName) ?: return null
+        val iconCacheKey = "shortcut|${shortcut.id}|${shortcut.iconPath}|$iconSize|${if (useLegacyCircularIcons) "legacy" else "plain"}"
+        val cachedIcons = getOrCreateIconSet(iconCacheKey) {
+            createIconSet(
+                componentKey = shortcut.componentKey,
+                iconPackMapping = iconPackMapping,
+                sourceDrawable = sourceDrawable,
+                iconSize = iconSize,
+                useLegacyCircularIcons = useLegacyCircularIcons
+            )
+        }
+        val plainIconCacheKey = "shortcut|plain|${shortcut.id}|${shortcut.iconPath}|$iconSize"
+        val plainIcons = if (!useLegacyCircularIcons) {
+            cachedIcons
+        } else {
+            getOrCreateIconSet(plainIconCacheKey) {
+                createIconSet(
+                    componentKey = shortcut.componentKey,
+                    iconPackMapping = iconPackMapping,
+                    sourceDrawable = sourceDrawable,
+                    iconSize = iconSize,
+                    useLegacyCircularIcons = false
+                )
+            }
+        }
+        return AppInfo(
+            label = shortcut.label,
+            packageName = packageName,
+            activityName = shortcut.id,
+            cachedIcon = cachedIcons.sharp,
+            cachedBlurredIcon = cachedIcons.softened,
+            cachedPlainIcon = plainIcons.sharp,
+            cachedPlainBlurredIcon = plainIcons.softened,
+            itemType = AppListItemType.SHORTCUT,
+            shortcutIntentUri = shortcut.intentUri,
+            pinnedShortcutId = shortcut.pinnedShortcutId
+        )
+    }
+
+    private fun pinnedShortcutUri(packageName: String, shortcutId: String): String {
+        return Intent("com.fluly.launcher.action.START_PINNED_SHORTCUT").apply {
+            `package` = packageName
+            putExtra("android.intent.extra.shortcut.ID", shortcutId)
+        }.toUri(Intent.URI_INTENT_SCHEME)
+    }
+
+    private fun createFolderEntry(
+        folder: StoredAppListFolder,
+        childItems: List<AppInfo>,
+        iconSize: Int
+    ): AppInfo {
+        val iconCacheKey = "folder|${folder.id}|${folder.itemKeys.joinToString("|")}|$iconSize"
+        val cachedIcons = getOrCreateIconSet(iconCacheKey) {
+            val baseBitmap = createFolderBitmap(childItems, iconSize)
+            CachedIconSet(
+                sharp = baseBitmap.asImageBitmap(),
+                softened = createSoftenedBitmap(baseBitmap).asImageBitmap()
+            )
+        }
+        return AppInfo(
+            label = folder.name,
+            packageName = BUILTIN_SETTINGS_ENTRY_PACKAGE,
+            activityName = folder.id,
+            cachedIcon = cachedIcons.sharp,
+            cachedBlurredIcon = cachedIcons.softened,
+            cachedPlainIcon = cachedIcons.sharp,
+            cachedPlainBlurredIcon = cachedIcons.softened,
+            itemType = AppListItemType.FOLDER,
+            folderItemKeys = folder.itemKeys
+        )
+    }
+
+    private fun createFolderBitmap(childItems: List<AppInfo>, iconSize: Int): Bitmap {
+        val size = iconSize.coerceAtLeast(1)
+        val output = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xDD2C2C2E.toInt() }
+        // 底板画圆，不是圆角方块。列表侧的 iconClipPath 现在恒为
+        // addCircle（图标全部统一圆形），底板若还是 0.24·size 的圆角矩形，
+        // 四角会被裁掉一截、边缘也和旁边的圆图标对不齐——截图里那个文件夹
+        // 缩略图明显比周围图标"方"就是它。
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, bgPaint)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG)
+        // 2x2 子图标网格必须落在内切圆里：蜂窝 / Apple Watch 风格会把整张
+        // 文件夹图按圆形裁剪，旧的 0.36+0.08（总宽 0.80·size）四角到中心是
+        // √2·0.40 = 0.566·size > 0.5·size 半径，四个子图标的外角会被切掉，
+        // 看起来就不是个圆文件夹。0.30+0.08（总宽 0.68·size）对角
+        // √2·0.34 = 0.481·size，稳稳在圆内；圆角矩形档只是子图标略小。
+        val childSize = size * 0.30f
+        val gap = size * 0.08f
+        val start = (size - childSize * 2f - gap) / 2f
+        val childCornerRadius = childSize * 0.24f
+        val childSurfacePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0x18FFFFFF
+        }
+        childItems.take(4).forEachIndexed { index, app ->
+            val row = index / 2
+            val col = index % 2
+            val left = start + col * (childSize + gap)
+            val top = start + row * (childSize + gap)
+            val childBitmap = (app.cachedPlainIcon ?: app.cachedIcon).asAndroidBitmap()
+            val childRect = RectF(left, top, left + childSize, top + childSize)
+            // 只修饰文件夹未打开时的四宫格预览子图标。外层文件夹底板、
+            // 文件夹弹层里的真实图标都不受这里影响。MIUIX 的小尺寸图标使用
+            // 约 24% 圆角，先画一层极轻的玻璃底，再抗锯齿裁切原始位图，
+            // 避免本地图标在缩到 2x2 网格后仍呈现生硬的直角矩形。
+            canvas.drawRoundRect(
+                childRect,
+                childCornerRadius,
+                childCornerRadius,
+                childSurfacePaint,
+            )
+            val checkpoint = canvas.save()
+            val childClip = Path().apply {
+                addRoundRect(childRect, childCornerRadius, childCornerRadius, Path.Direction.CW)
+            }
+            canvas.clipPath(childClip)
+            canvas.drawBitmap(
+                childBitmap,
+                null,
+                childRect,
+                paint
+            )
+            canvas.restoreToCount(checkpoint)
+        }
+        return output
+    }
+
+    private fun loadPackageFallbackIcon(packageName: String): Drawable? {
+        val pm = context.packageManager
+        return runCatching {
+            if (packageName.isBlank()) {
+                ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+            } else {
+                val launchComponent = pm.getLaunchIntentForPackage(packageName)?.component
+                launchComponent?.let(pm::getActivityIcon) ?: pm.getApplicationIcon(packageName)
+            }
+        }.getOrNull() ?: ContextCompat.getDrawable(context, R.mipmap.ic_launcher)
+    }
+
+    private fun createBuiltInSettingsEntry(iconSize: Int): AppInfo? {
+        val iconDrawable = ContextCompat.getDrawable(context, R.mipmap.ic_settings_launcher) ?: return null
+        val iconCacheKey = "builtin_settings|$iconSize"
+        val cachedIcons = getOrCreateIconSet(iconCacheKey) {
+            // 与普通应用同路：自适应图标强制圆形遮罩。以前这里直接走
+            // renderIconBitmap（用设备系统遮罩），全列表只有设置入口被
+            // ROM 的圆角矩形遮罩裁成方的。
+            val baseBitmap = if (iconDrawable is AdaptiveIconDrawable) {
+                createAdaptiveIconBitmap(
+                    drawable = iconDrawable,
+                    size = iconSize,
+                    forceCircularMask = true,
+                    edgeInsetPx = iconSize * ICON_MASK_EDGE_INSET_FRACTION,
+                )
+            } else {
+                renderIconBitmap(iconDrawable, iconSize)
+            }
+            CachedIconSet(
+                sharp = baseBitmap.asImageBitmap(),
+                softened = createSoftenedBitmap(baseBitmap).asImageBitmap()
+            )
+        }
+        return AppInfo(
+            label = context.getString(R.string.settings_title),
+            packageName = BUILTIN_SETTINGS_ENTRY_PACKAGE,
+            activityName = BUILTIN_SETTINGS_ENTRY_COMPONENT.substringAfter('/'),
+            cachedIcon = cachedIcons.sharp,
+            cachedBlurredIcon = cachedIcons.softened,
+            cachedPlainIcon = cachedIcons.sharp,
+            cachedPlainBlurredIcon = cachedIcons.softened,
+            isBuiltInSettingsEntry = true
+        )
+    }
+
+    private fun applyFilters() {
+        _apps.value = _allApps.value.mapNotNull(::visibleAppListItem)
+    }
+
+    private fun visibleAppListItem(app: AppInfo): AppInfo? {
+        if (!app.isFolder) return app.takeUnless(::isHiddenApp)
+        val visibleChildren = app.folderItemKeys.mapNotNull(catalogData.items::get).filterNot(::isHiddenApp)
+        if (visibleChildren.isEmpty()) return null
+        if (visibleChildren.map { it.componentKey } == app.folderItemKeys) return app
+        return createFolderEntry(
+            folder = StoredAppListFolder(
+                id = app.activityName,
+                name = app.label,
+                itemKeys = visibleChildren.map { it.componentKey }
+            ),
+            childItems = visibleChildren,
+            iconSize = currentIconSize
+        )
+    }
+
+    private fun isHiddenApp(app: AppInfo): Boolean {
+        if (app.isFolder) return false
+        return hiddenComponents.contains(app.componentKey) || hiddenComponents.contains(app.packageName)
+    }
+}

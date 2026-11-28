@@ -2,14 +2,14 @@
 
 对照参考实现 `ailife8881/clox`（已浅克隆到 `C:\Users\22403\Documents\ref-watchface\clox`）。
 
-> **本文状态**：已按真实代码勘定过一遍，草稿里三处「照抄 clox 即可」的假设与 Flue 现状不符，
+> **本文状态**：已按真实代码勘定过一遍，草稿里三处「照抄 clox 即可」的假设与 Fluly 现状不符，
 > 已在对应阶段里改写并标注 ⚠️。等老师确认后再动手写代码。
 
 ## 一、为什么现在慢：架构差异，不是常数因子
 
-clox 的表盘引擎在 `app/src/main/assets/lua/`，是 **推模型**；Flue 是 **拉模型**。
+clox 的表盘引擎在 `app/src/main/assets/lua/`，是 **推模型**；Fluly 是 **拉模型**。
 
-| | clox | Flue 现状 |
+| | clox | Fluly 现状 |
 |---|---|---|
 | 属性表达式 | 导入时编译成 Lua 函数（`wf_expr.lua`），运行时只调用 | 每帧重新做 tag 代入 + 词法 + 递归下降 |
 | 更新驱动 | tag 变化 → 推给绑定它的图层（`wf_engine.lua`） | 每帧把每个图层每个属性重算一遍 |
@@ -41,10 +41,10 @@ clox 的表盘引擎在 `app/src/main/assets/lua/`，是 **推模型**；Flue �
 ### 渲染计划与绘制循环（`WatchmakerWatchFaceView.kt`）
 
 - `:867` `WatchLayerRenderItem(layerIndex, ancestorChain)`；`:927` **group 图层已经不进 renderPlan**（`if (!layers[layerIndex].isGroup)`）
-- `ancestorChain != null` 即「不是舞台直接子节点」——clox 的第一条不可烘条件在 Flue 这里是**现成的一个判空**
+- `ancestorChain != null` 即「不是舞台直接子节点」——clox 的第一条不可烘条件在 Fluly 这里是**现成的一个判空**
 - `:1312` 绘制循环就是 `for (planIndex in fromIndex until toIndex) drawRenderItem(...)`，烘焙段替换点在这里
 - `:1284` `tapTargets.clear()`，可点区域是**在绘制过程中登记**的 → 被烘掉的图层不会登记热区
-- `drawRenderItem(canvas, item, prepared, gyroscopeX, gyroscopeY)` 每帧传陀螺仪 → ⚠️ 用重力/视差的图层是 Flue 特有的快依赖，clox 的清单里没有
+- `drawRenderItem(canvas, item, prepared, gyroscopeX, gyroscopeY)` 每帧传陀螺仪 → ⚠️ 用重力/视差的图层是 Fluly 特有的快依赖，clox 的清单里没有
 - `:191` `setRenderSegment(range, drawBackground)`：视频宿主已经按 video 图层把 renderPlan 切段 → ⚠️ 烘焙段**不能跨越视频分段边界**
 
 ### 画布变换（三处必须同步）
@@ -136,7 +136,7 @@ dispatcher 上、已经受 `sourceGeneration` 保护，是天然的「导入期�
 
 ### 阶段 2：tag 分桶 + 推模型
 
-#### 2.1 桶划分（按 Flue 真实 tag 词汇，`:1100` `builtInTags`）
+#### 2.1 桶划分（按 Fluly 真实 tag 词汇，`:1100` `builtInTags`）
 
 | 桶 | tag | 备注 |
 |---|---|---|
@@ -161,7 +161,7 @@ dispatcher 上、已经受 `sourceGeneration` 保护，是天然的「导入期�
 
 312.watch 实测：276 条表达式/帧，其中仅 40 条依赖秒。推模型下每秒只有这 40 条参与。
 
-#### 2.3 Flue 特有的两个不在 clox 清单里的快依赖
+#### 2.3 Fluly 特有的两个不在 clox 清单里的快依赖
 
 1. **陀螺仪视差**：`drawRenderItem` 每帧收 `gyroscopeX/Y`（`:1322`），而
    `smoothedGyroscopeX += (raw - smoothed) * 0.18f` 是**低通滤波** —— 它在陀螺仪
@@ -179,11 +179,11 @@ dispatcher 上、已经受 `sourceGeneration` 保护，是天然的「导入期�
 
 ### 阶段 3：静态图层烘焙（层数归约）
 
-对照 `wf_render.lua:2956`–`3193`。Flue 是 Canvas 直绘，用离屏 Bitmap 代替 RenderTexture。
+对照 `wf_render.lua:2956`–`3193`。Fluly 是 Canvas 直绘，用离屏 Bitmap 代替 RenderTexture。
 
-#### 3.1 可烘判定（Flue 版，以下任一为真则不可烘）
+#### 3.1 可烘判定（Fluly 版，以下任一为真则不可烘）
 
-| 条件 | Flue 里怎么判 |
+| 条件 | Fluly 里怎么判 |
 |---|---|
 | 不是舞台直接子节点 | `item.ancestorChain != null`（现成） |
 | 是 group | 已经天然满足：group 不进 renderPlan（`:927`） |
@@ -217,7 +217,7 @@ z 序天然保持。少于 2 层不值得烘（`FLATTEN_MIN`）。
 2. **画布尺寸下限**（`wf_render.lua:3056`）：`DESIGN_HALF_DIAG = ceil(512*√2/2) = 363`
    —— 图层旋转后可能超出自身声明范围，按半对角线开画布才不会被裁。上限 2048
    防病态，超了跳过不烘。
-3. ⚠️ **不能跨视频分段边界**（Flue 新增，clox 没有这个问题）：
+3. ⚠️ **不能跨视频分段边界**（Fluly 新增，clox 没有这个问题）：
    `WatchmakerWatchFaceStageView` 已按 video 图层把 renderPlan 切成
    `setRenderSegment(range, drawBackground)` 的多段（`:191`），每段一个
    `WatchmakerWatchFaceView` 实例。烘焙段若跨越边界，两个实例会各烘一份重叠内容

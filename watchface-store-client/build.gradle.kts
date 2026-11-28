@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.flue.launcher.watchface.store.client"
+    namespace = "com.fluly.launcher.watchface.store.client"
     compileSdk = 36
 
     defaultConfig {
         minSdk = 27
         // Studio publishing and the store UI share this independently configured client.
-        val watchStoreBaseUrl = providers.gradleProperty("flueWatchStoreBaseUrl")
+        val watchStoreBaseUrl = providers.gradleProperty("flulyWatchStoreBaseUrl")
             .getOrElse("https://jbwatchface.ai-life.xyz/api")
         buildConfigField("String", "WATCH_STORE_BASE_URL", "\"$watchStoreBaseUrl\"")
     }

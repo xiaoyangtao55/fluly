@@ -12,7 +12,7 @@
     <string name="diagnostics_cache_refreshed">已刷新，清理预览 %1$d 项</string>
     <string name="diagnostics_cache_failed">刷新失败，请重试</string>
     <string name="diagnostics_performance_title">性能浮窗</string>
-    <string name="diagnostics_performance_description">仅显示在 Flue 页面，默认全部关闭。按实际渲染帧统计，静止页面可为 0 FPS；浮窗自身的绘制也会计入。</string>
+    <string name="diagnostics_performance_description">仅显示在 Fluly 页面，默认全部关闭。按实际渲染帧统计，静止页面可为 0 FPS；浮窗自身的绘制也会计入。</string>
     <string name="diagnostics_fps">FPS 与帧耗时</string>
     <string name="diagnostics_memory">进程内存</string>
     <string name="diagnostics_threads">进程线程数</string>
@@ -35,7 +35,7 @@
     <string name="diagnostics_overlay_jank">慢帧 %1$.1f%% · 最大 %2$.1f ms</string>
     <string name="diagnostics_overlay_memory">PSS %1$s MB</string>
     <string name="diagnostics_overlay_threads">线程 %1$s</string>
-    <string name="diagnostics_information_title">系统与 Flue 信息</string>
+    <string name="diagnostics_information_title">系统与 Fluly 信息</string>
     <string name="diagnostics_information_privacy">包含版本、设备、屏幕、权限状态及表盘、布局、动画、模糊和小组件配置。仅采集诊断白名单字段，不包含账号凭据、位置或小组件内容。</string>
     <string name="diagnostics_information_failed">读取信息失败，请刷新重试</string>
     <string name="diagnostics_show_information">查看完整信息</string>

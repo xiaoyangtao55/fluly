@@ -18,7 +18,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "WatchLauncher"
+rootProject.name = "Fluly"
 include(":app")
 include(":ui-kit")
 include(":watchface-editor")

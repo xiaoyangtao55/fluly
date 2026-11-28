@@ -1,4 +1,4 @@
-# 接入 Flue 的边界
+# 接入 Fluly 的边界
 
 网页只承担可行性验证。Agent 不应通过模拟点击 Android 控件完成编辑。
 
@@ -8,7 +8,7 @@
 | public/tool-scheduler.js：并行读/生成，文档写屏障 | coroutineScope / Semaphore；批量 await 后按 toolCallId 返回 |
 | providers.py：三协议规范化 | 服务端保留代理，或 Android ProviderAdapter；不能混用协议消息形状 |
 | contracts/tools.json | Android assets 中的工具 JSON Schema；与真正可用的工具一致 |
-| contracts/system-prompt.txt、knowledge.json | 系统提示词、按需格式检索；把网页能力说明换为当前 Flue 原生能力 |
+| contracts/system-prompt.txt、knowledge.json | 系统提示词、按需格式检索；把网页能力说明换为当前 Fluly 原生能力 |
 | read/edit/write_document | WatchEditorSession 草稿；增加从候选 XML 重新解析并提交为单次撤销的入口 |
 | inspect_face | 会话快照及嵌套图层映射；不把顶层 order 当渲染 definitionIndex |
 | preview_face | WatchmakerWatchFaceView 的整盘/图层离屏渲染；增加固定数据快照与诊断 |

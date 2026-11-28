@@ -34,7 +34,7 @@
 ## Release 产物
 
 - APK：`app/build/outputs/apk/release/app-release.apk`
-- 版本：2.3.3，versionCode 28，包名 `com.flue.launcher`
+- 版本：2.3.3，versionCode 28，包名 `com.fluly.launcher`
 - 大小：19853065 字节
 - SHA-256：`A329E1095ED7588D01DC411B18BCE6F4226D669AD271F1B59B638A37E0A52661`
 

@@ -96,7 +96,7 @@
   },
   {
     "name": "search_knowledge",
-    "description": "检索内置 WatchMaker 格式、真实属性/标签、Flue 网页预览能力和 Python 图像工具说明。",
+    "description": "检索内置 WatchMaker 格式、真实属性/标签、Fluly 网页预览能力和 Python 图像工具说明。",
     "parameters": {
       "type": "object",
       "properties": {

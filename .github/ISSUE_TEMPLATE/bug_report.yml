@@ -9,12 +9,12 @@ body:
         没有这些信息通常无法复现。
 
         如果是**安全漏洞**，请不要在这里提交，改用
-        [私密报告](https://github.com/xumidcm/Flue-next/security/advisories/new)。
+        [私密报告](https://github.com/xiaoyangtao55/fluly/security/advisories/new)。
 
   - type: input
     id: version
     attributes:
-      label: Flue 版本
+      label: Fluly 版本
       description: 设置 → 关于 里的版本名与版本号
       placeholder: 2.3.5 (30)
     validations:
@@ -71,7 +71,7 @@ body:
     attributes:
       label: 日志（可选）
       description: |
-        可用 `adb logcat -s Flue:* AndroidRuntime:E` 抓取。上传前请自行检查是否包含隐私信息。
+        可用 `adb logcat -s Fluly:* AndroidRuntime:E` 抓取。上传前请自行检查是否包含隐私信息。
 
   - type: dropdown
     id: frequency

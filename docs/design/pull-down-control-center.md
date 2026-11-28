@@ -130,7 +130,7 @@ performGlobalAction(GLOBAL_ACTION_QUICK_SETTINGS)   // API 17 起就有
 | --- | --- |
 | `service/SystemStatusBar.kt` | 反射 `expandSettingsPanel` / `expandNotificationsPanel`，含降级 |
 | `AndroidManifest.xml` | 声明 `EXPAND_STATUS_BAR`（normal 级） |
-| `service/FlueAccessibilityService.kt` | `openQuickSettings()`，作为兜底 |
+| `service/FlulyAccessibilityService.kt` | `openQuickSettings()`，作为兜底 |
 | `ui/navigation/GestureHost.kt` | `onPullDownShade` 回调 + `Face` 分支的下滑判定 |
 | `LauncherActivity.kt` | `pullDownSystemShade` 三级降级、接到 `GestureHost` |
 | `viewmodel/LauncherViewModel.kt` | `pull_down_control_center_enabled` 键与状态 |

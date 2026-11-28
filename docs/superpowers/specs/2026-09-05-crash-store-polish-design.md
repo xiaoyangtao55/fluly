@@ -6,7 +6,7 @@ This change covers five small user-facing improvements:
 
 - Rename the loading escape action to "Switch to the default watch face and restart".
 - Set the application version to `2.2.1`, including the Settings/About display.
-- Randomize crash-page title and subtitle variants, add surprised kaomoji to both, and add a "Desktop settings" button that opens Flue's `SettingsActivity`.
+- Randomize crash-page title and subtitle variants, add surprised kaomoji to both, and add a "Desktop settings" button that opens Fluly's `SettingsActivity`.
 - Show the watch-face author beside download counts in both grid and list market cards.
 - Make the top-creators page support top-of-list pull-to-refresh with a visible refresh state and duplicate-request protection.
 

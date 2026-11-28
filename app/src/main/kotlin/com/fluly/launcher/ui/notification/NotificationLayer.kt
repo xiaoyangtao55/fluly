@@ -1,0 +1,1123 @@
+﻿package com.fluly.launcher.ui.notification
+
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
+import android.provider.Settings
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.fluly.launcher.ui.common.glassSurface
+import com.fluly.launcher.ui.common.flulyOverlayMaskShape
+import com.fluly.launcher.ui.common.instantPressGesture
+import com.fluly.launcher.ui.common.rememberPressedState
+import com.fluly.launcher.ui.common.FlulyElasticOffsetController
+import com.fluly.launcher.R
+import com.fluly.launcher.motion.LocalFlulyMotionProfile
+import com.fluly.launcher.motion.asFloatAnimationSpec
+import com.fluly.launcher.ui.theme.LauncherTheme
+import com.fluly.launcher.ui.theme.WatchColors
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.math.absoluteValue
+
+private const val NOTIFICATION_CARD_WIDTH_RATIO = 0.88f
+private const val NOTIFICATION_TOP_SAFE_PADDING_DP = 22
+private const val NOTIFICATION_TOP_OVERSCROLL_LIMIT = 72f
+private const val NOTIFICATION_BOTTOM_OVERSCROLL_LIMIT = -96f
+private const val NOTIFICATION_OVERSCROLL_RESISTANCE = 0.18f
+private const val NOTIFICATION_DISMISS_DRAG_RANGE_RATIO = 0.78f
+private const val NOTIFICATION_DISMISS_DRAG_RANGE_MIN = 300f
+private const val NOTIFICATION_DISMISS_RELEASE_PROGRESS = 0.6f
+private const val NOTIFICATION_DISMISS_FLING_VELOCITY = 1350f
+private const val COLLAPSED_STACK_TRANSLATION_DP = 14
+private const val COLLAPSED_STACK_HORIZONTAL_INSET_DP = 5
+private val NOTIFICATION_TIME_FORMAT = ThreadLocal.withInitial {
+    SimpleDateFormat("HH:mm", Locale.getDefault())
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun NotificationLayer(
+    isActive: Boolean,
+    transitionProgress: Float,
+    notificationGroups: List<NotificationGroupUi>,
+    notificationAccessGranted: Boolean,
+    revealedNotificationTarget: NotificationRevealTarget?,
+    onRevealTargetChange: (NotificationRevealTarget?) -> Unit,
+    onDismissToStack: () -> Unit,
+    onTransitionProgressChange: (Float) -> Unit,
+    onTransitionRelease: (Boolean) -> Unit,
+    onToggleGroup: (String) -> Unit,
+    onDismissGroup: (String) -> Unit,
+    onDismissNotification: (String) -> Unit,
+    onDismissAllNotifications: () -> Unit,
+    onRunNotificationAction: (String) -> Boolean,
+    onOpenNotification: (String, Offset) -> Boolean,
+    overlayMaskCornerRadiusDp: Int,
+    /**
+     * Android 12 以下的预制烘焙模糊背景：底层覆层（负一屏 / 控制中心）在静止
+     * 时刻的窗口像素，已离线糊过。
+     *
+     * 给了就铺在半透明玻璃底之下当不透明衬底 —— 那层 0.62 的底本身糊不了任何
+     * 东西（穿透过来的像素不在它的图层里），只靠它通知列表后面就是清晰的图标，
+     * 可读性极差。31+ 传 null，由各层自己的 RenderEffect 实时模糊。
+     */
+    legacyBlurBackdrop: ImageBitmap? = null,
+    glassHighlightEnabled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val motionProfile = LocalFlulyMotionProfile.current
+    val listState = rememberLazyListState()
+    val dismissDragRangePx = remember(configuration.screenHeightDp, density) {
+        maxOf(
+            with(density) { configuration.screenHeightDp.dp.toPx() } * NOTIFICATION_DISMISS_DRAG_RANGE_RATIO,
+            NOTIFICATION_DISMISS_DRAG_RANGE_MIN
+        )
+    }
+    val dismissThresholdPx = dismissDragRangePx * NOTIFICATION_DISMISS_RELEASE_PROGRESS
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val overscroll = remember(scope) { FlulyElasticOffsetController(scope) }
+    val latestMotionProfile = rememberUpdatedState(motionProfile)
+    val launcherStyle = LauncherTheme.style
+    // 缓存计算结果：notificationGroups 引用稳定时不重算。
+    val hasClearableNotifications = remember(notificationGroups) {
+        notificationGroups.any { group ->
+            group.entries.any(NotificationEntryUi::isClearable)
+        }
+    }
+    val groupEntryTracker = remember { NotificationGroupEntryTracker() }
+    val currentGroupKeys = remember(notificationGroups) {
+        notificationGroups.asSequence()
+            .map(NotificationGroupUi::packageName)
+            .toSet()
+    }
+    val enteringGroupKeys = groupEntryTracker.entering(currentGroupKeys)
+    SideEffect { groupEntryTracker.commit(currentGroupKeys) }
+    var dismissTransitionInFlight by remember { mutableStateOf(false) }
+    var dismissDragDistance by remember { mutableFloatStateOf(0f) }
+    var dismissDragVelocityY by remember { mutableFloatStateOf(0f) }
+    var lastDismissDragEventUptime by remember { mutableStateOf(0L) }
+
+    fun applyOverscroll(delta: Float): Float {
+        val profile = latestMotionProfile.value
+        if (!profile.bounceEnabled || profile.edgeStrength <= 0) {
+            if (overscroll.value != 0f) overscroll.reset()
+            return 0f
+        }
+        val next = when {
+            overscroll.value > 0f && delta < 0f -> (overscroll.value + delta).coerceAtLeast(0f)
+            overscroll.value < 0f && delta > 0f -> (overscroll.value + delta).coerceAtMost(0f)
+            delta > 0f -> (overscroll.value + delta * NOTIFICATION_OVERSCROLL_RESISTANCE)
+                .coerceIn(0f, NOTIFICATION_TOP_OVERSCROLL_LIMIT)
+            delta < 0f -> (overscroll.value + delta * NOTIFICATION_OVERSCROLL_RESISTANCE)
+                .coerceIn(NOTIFICATION_BOTTOM_OVERSCROLL_LIMIT, 0f)
+            else -> overscroll.value
+        }
+        overscroll.setImmediate(next)
+        return next
+    }
+
+    fun releaseOverscroll() {
+        val profile = latestMotionProfile.value
+        if (overscroll.value == 0f) return
+        if (profile.bounceEnabled && profile.edgeStrength > 0) {
+            overscroll.settle(profile.edgeBounce.asFloatAnimationSpec())
+        } else {
+            overscroll.reset()
+        }
+    }
+
+    LaunchedEffect(isActive) {
+        if (!isActive) {
+            dismissTransitionInFlight = false
+            dismissDragDistance = 0f
+            dismissDragVelocityY = 0f
+            lastDismissDragEventUptime = 0L
+            overscroll.reset()
+        }
+    }
+    fun listIsAtTop(): Boolean =
+        listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+    val updateDismissDrag: (Float) -> Unit = { delta ->
+        dismissDragDistance = (dismissDragDistance + delta).coerceIn(0f, dismissDragRangePx)
+        onTransitionProgressChange(
+            (1f - dismissDragDistance / dismissDragRangePx).coerceIn(0f, 1f)
+        )
+    }
+    val releaseDismissDrag: () -> Unit = {
+        val shouldDismiss = dismissDragDistance > dismissThresholdPx ||
+            dismissDragVelocityY > NOTIFICATION_DISMISS_FLING_VELOCITY
+        dismissDragDistance = 0f
+        dismissDragVelocityY = 0f
+        lastDismissDragEventUptime = 0L
+        releaseOverscroll()
+        onTransitionRelease(shouldDismiss)
+    }
+    val closeIfPulled: suspend () -> Unit = {
+        if (!dismissTransitionInFlight) {
+            if (dismissDragDistance > dismissThresholdPx) {
+                dismissTransitionInFlight = true
+                onRevealTargetChange(null)
+                releaseDismissDrag()
+            } else if (overscroll.value != 0f) {
+                releaseOverscroll()
+            }
+        }
+    }
+    val staticContentDismissModifier = Modifier.pointerInput(notificationAccessGranted, notificationGroups.size, dismissTransitionInFlight) {
+        if (dismissTransitionInFlight) return@pointerInput
+        detectVerticalDragGestures(
+            onDragStart = {
+                dismissDragVelocityY = 0f
+                lastDismissDragEventUptime = 0L
+            },
+            onVerticalDrag = { change, dragAmount ->
+                if (lastDismissDragEventUptime != 0L) {
+                    val deltaMs = (change.uptimeMillis - lastDismissDragEventUptime).coerceAtLeast(1L)
+                    val instantVelocityY = dragAmount / deltaMs * 1000f
+                    dismissDragVelocityY = if (dismissDragVelocityY == 0f) {
+                        instantVelocityY
+                    } else {
+                        dismissDragVelocityY * 0.35f + instantVelocityY * 0.65f
+                    }
+                }
+                lastDismissDragEventUptime = change.uptimeMillis
+                if ((dragAmount > 0f && listIsAtTop()) || dismissDragDistance > 0f) {
+                    change.consume()
+                    if (dismissDragDistance > 0f) {
+                        val currentDrag = dismissDragDistance
+                        updateDismissDrag(dragAmount)
+                        if (dragAmount < 0f && dragAmount.absoluteValue > currentDrag) {
+                            applyOverscroll(dragAmount + currentDrag)
+                        }
+                    } else {
+                        applyOverscroll(dragAmount)
+                        updateDismissDrag(dragAmount)
+                    }
+                } else if (dragAmount < 0f || overscroll.value != 0f) {
+                    change.consume()
+                    applyOverscroll(dragAmount)
+                }
+            },
+            onDragEnd = {
+                if (dismissDragDistance > 0f) {
+                    releaseDismissDrag()
+                } else {
+                    scope.launch { closeIfPulled() }
+                }
+            },
+            onDragCancel = {
+                if (dismissDragDistance > 0f || transitionProgress < 1f) {
+                    dismissDragDistance = 0f
+                    dismissDragVelocityY = 0f
+                    lastDismissDragEventUptime = 0L
+                    onTransitionRelease(false)
+                }
+                releaseOverscroll()
+            }
+        )
+    }
+    val nestedScroll = remember(listState, dismissTransitionInFlight) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                if (dismissTransitionInFlight) return androidx.compose.ui.geometry.Offset.Zero
+                if (source != NestedScrollSource.UserInput) return androidx.compose.ui.geometry.Offset.Zero
+                val profile = latestMotionProfile.value
+                val bounceEnabled = profile.bounceEnabled && profile.edgeStrength > 0
+                if (!bounceEnabled && overscroll.value != 0f) overscroll.reset()
+                val atTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                val layoutInfo = listState.layoutInfo
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
+                val atBottom = layoutInfo.totalItemsCount > 0 &&
+                    lastVisibleItem != null &&
+                    lastVisibleItem.index == layoutInfo.totalItemsCount - 1 &&
+                    lastVisibleItem.offset + lastVisibleItem.size <= layoutInfo.viewportEndOffset
+                if (available.y > 0f && atTop) {
+                    if (dismissDragDistance > 0f) {
+                        updateDismissDrag(available.y)
+                    } else {
+                        applyOverscroll(available.y)
+                        updateDismissDrag(available.y)
+                    }
+                    return androidx.compose.ui.geometry.Offset(0f, available.y)
+                }
+                if (available.y < 0f && atBottom) {
+                    if (!bounceEnabled) return androidx.compose.ui.geometry.Offset.Zero
+                    applyOverscroll(available.y)
+                    return androidx.compose.ui.geometry.Offset(0f, available.y)
+                }
+                if (dismissDragDistance > 0f && available.y < 0f) {
+                    val currentDrag = dismissDragDistance
+                    val consumedY = available.y.coerceAtLeast(-currentDrag)
+                    updateDismissDrag(consumedY)
+                    return androidx.compose.ui.geometry.Offset(0f, consumedY)
+                }
+                if (overscroll.value != 0f && ((overscroll.value > 0f && available.y < 0f) || (overscroll.value < 0f && available.y > 0f))) {
+                    val current = overscroll.value
+                    val next = when {
+                        current > 0f -> (current + available.y).coerceAtLeast(0f)
+                        else -> (current + available.y).coerceAtMost(0f)
+                    }
+                    overscroll.setImmediate(next)
+                    return androidx.compose.ui.geometry.Offset(0f, next - current)
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: androidx.compose.ui.geometry.Offset,
+                available: androidx.compose.ui.geometry.Offset,
+                source: NestedScrollSource
+            ): androidx.compose.ui.geometry.Offset {
+                if (dismissTransitionInFlight) return androidx.compose.ui.geometry.Offset.Zero
+                if (source != NestedScrollSource.UserInput) return androidx.compose.ui.geometry.Offset.Zero
+                val atTop = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                if (available.y > 0f && atTop) {
+                    if (dismissDragDistance > 0f) {
+                        updateDismissDrag(available.y)
+                    } else {
+                        applyOverscroll(available.y)
+                        updateDismissDrag(available.y)
+                    }
+                    return androidx.compose.ui.geometry.Offset(0f, available.y)
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (dismissTransitionInFlight) return available
+                if (dismissDragDistance > 0f) {
+                    dismissDragVelocityY = available.y
+                    releaseDismissDrag()
+                    return Velocity.Zero
+                }
+                if (overscroll.value != 0f) {
+                    releaseOverscroll()
+                    return available
+                }
+                return Velocity.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                val profile = latestMotionProfile.value
+                if (!profile.bounceEnabled || profile.edgeStrength <= 0) {
+                    if (overscroll.value != 0f) overscroll.reset()
+                    return Velocity.Zero
+                }
+                val layoutInfo = listState.layoutInfo
+                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
+                val atBottom = layoutInfo.totalItemsCount > 0 &&
+                    lastVisibleItem != null &&
+                    lastVisibleItem.index >= layoutInfo.totalItemsCount - 1 &&
+                    lastVisibleItem.offset + lastVisibleItem.size <= layoutInfo.viewportEndOffset
+                val atBoundary = (available.y > 0f && listIsAtTop()) ||
+                    (available.y < 0f && atBottom)
+                if (!atBoundary && overscroll.value == 0f) return Velocity.Zero
+                if (available.y != 0f) {
+                    val kick = (available.y * 0.008f).coerceIn(-40f, 40f)
+                    overscroll.setImmediate(
+                        (overscroll.value + kick).coerceIn(
+                            NOTIFICATION_BOTTOM_OVERSCROLL_LIMIT,
+                            NOTIFICATION_TOP_OVERSCROLL_LIMIT,
+                        ),
+                    )
+                }
+                releaseOverscroll()
+                return available
+            }
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            // 圆屏整圆裁剪 + 半透明玻璃根底（表盘背衬透出即毛玻璃）。
+            .clip(flulyOverlayMaskShape(overlayMaskCornerRadiusDp))
+            // 烘焙帧先铺，玻璃底后压：顺序反了就成了「玻璃在底下」，
+            // 不透明的模糊帧会把那层 0.62 的质感整个盖死。
+            .then(
+                if (legacyBlurBackdrop != null) {
+                    Modifier.drawBehind {
+                        drawImage(
+                            image = legacyBlurBackdrop,
+                            dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                        )
+                    }
+                } else {
+                    Modifier
+                },
+            )
+            // SDK < 31: 纯色背景（alpha = 1.0），遮住底层清晰图标，保证通知列表可读。
+            // SDK >= 31: 半透明玻璃（alpha = 0.62），由 RenderEffect 实时模糊。
+            .background(
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) {
+                    launcherStyle.screenBackground
+                } else {
+                    launcherStyle.screenBackground.copy(alpha = 0.62f)
+                }
+            )
+            // 顶部安全间距也必须属于通知页的命中区域；只观察指针，不抢
+            // LazyColumn / 下拉关闭手势，但不再把这 22dp 传到底层控制中心。
+            .pointerInput(Unit) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        if (event.changes.none { it.pressed }) break
+                    }
+                }
+            }
+            .nestedScroll(nestedScroll)
+    ) {
+        val contentWidth = maxWidth * NOTIFICATION_CARD_WIDTH_RATIO
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { translationY = overscroll.value }
+                .padding(top = NOTIFICATION_TOP_SAFE_PADDING_DP.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            when {
+                !notificationAccessGranted -> Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .then(staticContentDismissModifier),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PermissionCard(contentWidth, glassHighlightEnabled) {
+                        context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) })
+                    }
+                }
+
+                notificationGroups.isEmpty() -> Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .then(staticContentDismissModifier),
+                    contentAlignment = Alignment.Center
+                ) {
+                    EmptyCard(contentWidth, glassHighlightEnabled)
+                }
+
+                else -> LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(top = 10.dp, bottom = 24.dp)
+                ) {
+                    notificationGroups.forEach { group ->
+                        val isEnteringGroup = group.packageName in enteringGroupKeys
+                        item(
+                            key = "header_${group.packageName}",
+                            contentType = "group_header"
+                        ) {
+                            NotificationRowContainer(
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = tween(190),
+                                    placementSpec = spring(stiffness = 500f, dampingRatio = 0.86f),
+                                    fadeOutSpec = tween(130)
+                                )
+                            ) {
+                                NewNotificationGroupEntrance(
+                                    groupKey = group.packageName,
+                                    entering = isEnteringGroup
+                                ) {
+                                    Box(Modifier.width(contentWidth)) {
+                                        GroupHeader(
+                                            title = group.headerTitle,
+                                            count = group.entries.size,
+                                            showMeta = group.entries.size > 1,
+                                            expanded = group.expanded,
+                                            onClick = { onToggleGroup(group.packageName) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        item(
+                            key = "body_${group.packageName}",
+                            contentType = "group_body"
+                        ) {
+                            NotificationRowContainer(
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = tween(190),
+                                    placementSpec = spring(stiffness = 500f, dampingRatio = 0.86f),
+                                    fadeOutSpec = tween(130)
+                                )
+                            ) {
+                                NewNotificationGroupEntrance(
+                                    groupKey = group.packageName,
+                                    entering = isEnteringGroup
+                                ) {
+                                    // 去掉 cardinality 那层 AnimatedContent：应用从 1 条通知变成多条
+                                    // 的瞬间极少发生，不值得为它维护一整层动画节点。
+                                    val hasMultipleEntries = group.entries.size > 1
+                                    if (hasMultipleEntries) {
+                                        AnimatedContent(
+                                            targetState = group.expanded,
+                                            transitionSpec = {
+                                                fadeIn(tween(durationMillis = 160)) togetherWith
+                                                    fadeOut(tween(durationMillis = 120))
+                                            },
+                                            label = "notification_group_body"
+                                        ) { expanded ->
+                                                if (expanded) {
+                                                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                                        group.entries.forEach { entry ->
+                                                            key(entry.key) {
+                                                                SwipeRevealDeleteContainer(
+                                                                    target = NotificationRevealTarget.Entry(entry.key),
+                                                                    revealedTarget = revealedNotificationTarget,
+                                                                    onRevealTargetChange = onRevealTargetChange,
+                                                                    enabled = entry.isClearable,
+                                                                    onDelete = { onDismissNotification(entry.key) },
+                                                                    modifier = Modifier.width(contentWidth)
+                                                                ) {
+                                                                    NotificationCardReplacement(
+                                                                        width = contentWidth,
+                                                                        entry = entry,
+                                                                        glassHighlightEnabled = glassHighlightEnabled,
+                                                                        onOpenNotification = onOpenNotification,
+                                                                        onRunNotificationAction = onRunNotificationAction
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    SwipeRevealDeleteContainer(
+                                                        target = NotificationRevealTarget.Group(group.packageName),
+                                                        revealedTarget = revealedNotificationTarget,
+                                                        onRevealTargetChange = onRevealTargetChange,
+                                                        enabled = group.entries.any(NotificationEntryUi::isClearable),
+                                                        onDelete = { onDismissGroup(group.packageName) },
+                                                        modifier = Modifier.width(contentWidth),
+                                                        actionHeight = 72.dp
+                                                    ) {
+                                                        // targetState 必须是稳定标量：拿整个 entry 会连
+                                                        // ImageBitmap 一起比较，列表每次重新发射都判定
+                                                        // 「变了」，于是滑掉一条时其余横幅全跑一遍淡入淡出
+                                                        // ——这正是「其他横幅闪烁」。
+                                                        val leadKey = group.entries.first().key
+                                                        AnimatedContent(
+                                                            targetState = leadKey,
+                                                            transitionSpec = {
+                                                                fadeIn(tween(180)) togetherWith fadeOut(tween(140))
+                                                            },
+                                                            label = "notification_group_replacement"
+                                                        ) { animatedKey ->
+                                                            val leadEntry = group.entries
+                                                                .firstOrNull { it.key == animatedKey }
+                                                                ?: group.entries.first()
+                                                            CollapsedStackCard(
+                                                                width = contentWidth,
+                                                                leadEntry = leadEntry,
+                                                                hiddenCount = group.entries.size - 1,
+                                                                glassHighlightEnabled = glassHighlightEnabled,
+                                                                onClick = { onToggleGroup(group.packageName) }
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                    } else {
+                                        val entry = group.entries.first()
+                                        SwipeRevealDeleteContainer(
+                                            target = NotificationRevealTarget.Entry(entry.key),
+                                            revealedTarget = revealedNotificationTarget,
+                                            onRevealTargetChange = onRevealTargetChange,
+                                            enabled = entry.isClearable,
+                                            onDelete = { onDismissNotification(entry.key) },
+                                            modifier = Modifier.width(contentWidth)
+                                        ) {
+                                            NotificationCardReplacement(
+                                                width = contentWidth,
+                                                entry = entry,
+                                                glassHighlightEnabled = glassHighlightEnabled,
+                                                onOpenNotification = onOpenNotification,
+                                                onRunNotificationAction = onRunNotificationAction
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (hasClearableNotifications) {
+                        item(
+                            key = "notifications_clear_all",
+                            contentType = "clear_all"
+                        ) {
+                            NotificationRowContainer(
+                                modifier = Modifier.animateItem(
+                                    fadeInSpec = tween(180),
+                                    placementSpec = spring(stiffness = 520f, dampingRatio = 0.86f),
+                                    fadeOutSpec = tween(140)
+                                )
+                            ) {
+                                ActionDock(glassHighlightEnabled) {
+                                    DockActionButton(
+                                        text = stringResource(R.string.notification_clear_all),
+                                        onClick = onDismissAllNotifications
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private class NotificationGroupEntryTracker {
+    private var initialized = false
+    private var previousKeys: Set<String> = emptySet()
+
+    fun entering(currentKeys: Set<String>): Set<String> {
+        return if (initialized) currentKeys - previousKeys else emptySet()
+    }
+
+    fun commit(currentKeys: Set<String>) {
+        initialized = true
+        previousKeys = currentKeys
+    }
+}
+
+@Composable
+private fun NewNotificationGroupEntrance(
+    groupKey: String,
+    entering: Boolean,
+    content: @Composable () -> Unit
+) {
+    val density = LocalDensity.current
+    val offsetPx = with(density) { 24.dp.toPx() }
+    val progress = remember(groupKey) { Animatable(if (entering) 0f else 1f) }
+    LaunchedEffect(groupKey) {
+        if (entering) {
+            progress.animateTo(1f, tween(durationMillis = 220))
+        }
+    }
+    Box(
+        modifier = Modifier.graphicsLayer {
+            alpha = progress.value
+            translationY = (1f - progress.value) * offsetPx
+        }
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun NotificationCardReplacement(
+    width: androidx.compose.ui.unit.Dp,
+    entry: NotificationEntryUi,
+    glassHighlightEnabled: Boolean,
+    onOpenNotification: (String, Offset) -> Boolean,
+    onRunNotificationAction: (String) -> Boolean
+) {
+    // 只比较真正会引起视觉替换的文字字段。直接拿整个 entry 当 targetState
+    // 会把 ImageBitmap 也算进相等性判定，列表任何一次重新发射都会触发
+    // 全体横幅淡入淡出。
+    val contentSignature = remember(entry.key, entry.title, entry.text, entry.time) {
+        "${entry.key}|${entry.title}|${entry.text}|${entry.time}"
+    }
+    AnimatedContent(
+        targetState = contentSignature,
+        transitionSpec = {
+            fadeIn(tween(durationMillis = 180)) togetherWith
+                fadeOut(tween(durationMillis = 140))
+        },
+        label = "notification_content_replacement"
+    ) { _ ->
+        NotificationCard(
+            width = width,
+            entry = entry,
+            glassHighlightEnabled = glassHighlightEnabled,
+            subtitle = entry.text.ifBlank {
+                entry.title.ifBlank { entry.appLabel }
+            },
+            trailing = formatNotificationTime(entry.time),
+            onClick = { origin -> onOpenNotification(entry.key, origin) },
+            onRunNotificationAction = onRunNotificationAction
+        )
+    }
+}
+
+@Composable
+private fun ActionDock(
+    glassHighlightEnabled: Boolean,
+    content: @Composable () -> Unit,
+) {
+    val launcherStyle = LauncherTheme.style
+    // 操作栏浮在通知流上方，用薄档玻璃会让图标和下面的卡片糊在一起。
+    // 原来写死的 #151515@0.82 / #F2F2F6@0.88 已收进 glassThick 令牌，
+    // 视觉效果一字未变，但与其他玻璃表面同源，统一调玻璃时不会漏掉这里。
+    Box(
+        modifier = Modifier
+            .glassSurface(
+                launcherStyle.chipShape,
+                launcherStyle.glassThick,
+                highlightEnabled = glassHighlightEnabled,
+            )
+            .padding(horizontal = 7.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun NotificationRowContainer(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun PermissionCard(
+    width: androidx.compose.ui.unit.Dp,
+    glassHighlightEnabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val title = stringResource(R.string.notification_permission_title)
+    val subtitle = stringResource(R.string.notification_permission_subtitle)
+    val fake = NotificationEntryUi("perm", "", null, title, title, subtitle, 0L, null, false, false, false, false)
+    NotificationCard(width, fake, subtitle, "", glassHighlightEnabled, onClick = { onClick() })
+}
+
+@Composable
+private fun EmptyCard(width: androidx.compose.ui.unit.Dp, glassHighlightEnabled: Boolean) {
+    val title = stringResource(R.string.notification_empty_title)
+    val subtitle = stringResource(R.string.notification_empty_subtitle)
+    val fake = NotificationEntryUi("empty", "", null, title, title, subtitle, 0L, null, false, false, false, false)
+    NotificationCard(width, fake, subtitle, "", glassHighlightEnabled, onClick = {})
+}
+
+@Composable
+private fun GroupHeader(
+    title: String,
+    count: Int,
+    showMeta: Boolean,
+    expanded: Boolean,
+    onClick: () -> Unit
+) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val launcherStyle = LauncherTheme.style
+    val scale by animateFloatAsState(if (isPressed) 0.97f else 1f, spring(stiffness = 840f, dampingRatio = 0.74f), label = "group_header")
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .then(
+                if (showMeta) {
+                    Modifier.instantPressGesture(pressed, onClick = onClick)
+                } else {
+                    Modifier
+                }
+            ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(title, color = launcherStyle.titleColor, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        if (showMeta) {
+            Spacer(Modifier.weight(1f))
+            Text(
+                stringResource(R.string.notification_count_fmt, count),
+                color = launcherStyle.titleColor,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Spacer(Modifier.width(10.dp))
+            // 箭头跟着容器高度动画一起转，不再抢跑瞬翻。
+            val arrowRotation by animateFloatAsState(
+                targetValue = if (expanded) 180f else 0f,
+                animationSpec = spring(dampingRatio = 0.82f, stiffness = 420f),
+                label = "notification_group_arrow",
+            )
+            Box(Modifier.size(28.dp).clip(CircleShape).background(launcherStyle.topBarChipColor), contentAlignment = Alignment.Center) {
+                Icon(Icons.Filled.KeyboardArrowDown, null, tint = launcherStyle.topBarTextColor, modifier = Modifier.size(20.dp).graphicsLayer { rotationZ = arrowRotation })
+            }
+        }
+    }
+}
+
+@Composable
+private fun CollapsedStackCard(
+    width: androidx.compose.ui.unit.Dp,
+    leadEntry: NotificationEntryUi,
+    hiddenCount: Int,
+    glassHighlightEnabled: Boolean,
+    onClick: () -> Unit
+) {
+    val stackStrength by animateFloatAsState(
+        targetValue = if (hiddenCount > 0) 1f else 0f,
+        animationSpec = spring(stiffness = 620f, dampingRatio = 0.82f),
+        label = "collapsed_stack_strength"
+    )
+    var frontCardHeight by remember { mutableIntStateOf(72) }
+    val density = LocalDensity.current
+    val stackBaseColor = rememberNotificationStackBaseColor()
+    val stackCardHeight: androidx.compose.ui.unit.Dp = with(density) { frontCardHeight.toDp() }
+    Box(Modifier.width(width)) {
+        repeat(hiddenCount.coerceIn(0, 2)) { index ->
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(stackCardHeight)
+                    .graphicsLayer {
+                        translationY = with(density) { (COLLAPSED_STACK_TRANSLATION_DP * (index + 1)).dp.toPx() } * stackStrength
+                        scaleX = 1f - (index + 1) * 0.012f * stackStrength
+                        scaleY = 1f - (index + 1) * 0.012f * stackStrength
+                        // 堆叠要读成顶卡的同一块材质，只留一点点纵深衰减。
+                        alpha = 1f - index * 0.10f
+                    }
+                    .padding(horizontal = COLLAPSED_STACK_HORIZONTAL_INSET_DP.dp)
+                    // 形状跟顶卡走，不再写死 28dp。
+                    .clip(LauncherTheme.style.cardShape)
+                    .background(notificationStackBackColor(stackBaseColor, index))
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(bottom = 2.dp)) {
+            NotificationCard(
+                width = width,
+                entry = leadEntry,
+                glassHighlightEnabled = glassHighlightEnabled,
+                subtitle = leadEntry.text.ifBlank { leadEntry.title.ifBlank { leadEntry.appLabel } },
+                trailing = formatNotificationTime(leadEntry.time),
+                onClick = { onClick() },
+                onMeasuredHeight = { heightPx ->
+                    if (heightPx > 0 && frontCardHeight != heightPx) {
+                        frontCardHeight = heightPx
+                    }
+                }
+            )
+            Text(
+                stringResource(R.string.notification_hidden_messages_fmt, hiddenCount),
+                color = WatchColors.TextTertiary,
+                fontSize = 12.sp,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            )
+        }
+    }
+}
+
+@Composable
+private fun NotificationCard(
+    width: androidx.compose.ui.unit.Dp,
+    entry: NotificationEntryUi,
+    subtitle: String,
+    trailing: String,
+    glassHighlightEnabled: Boolean = true,
+    onClick: (Offset) -> Unit,
+    onRunNotificationAction: (String) -> Boolean = { false },
+    onMeasuredHeight: ((Int) -> Unit)? = null
+) {
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val launcherStyle = LauncherTheme.style
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val screenWidthPx = with(density) { configuration.screenWidthDp.dp.toPx() }.coerceAtLeast(1f)
+    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.toPx() }.coerceAtLeast(1f)
+    var launchOrigin by remember { mutableStateOf(Offset(0.5f, 0.5f)) }
+    val scale by animateFloatAsState(if (isPressed) 0.968f else 1f, spring(stiffness = 860f, dampingRatio = 0.72f), label = "notif_card")
+    Box(
+        Modifier
+            .width(width)
+            .onGloballyPositioned { coordinates ->
+                onMeasuredHeight?.invoke(coordinates.size.height)
+                val position = coordinates.positionInRoot()
+                launchOrigin = Offset(
+                    x = ((position.x + coordinates.size.width / 2f) / screenWidthPx).coerceIn(0f, 1f),
+                    y = ((position.y + coordinates.size.height / 2f) / screenHeightPx).coerceIn(0f, 1f)
+                )
+            }
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            // 原来深色下是写死的不透明渐变 3A3A3C→2C2C2E（外加 0.07 描边），
+            // 半透明主题还会被强制刷成 #353535。这两条都让通知卡变成实色板，
+            // 与控制中心的玻璃不同源；统一走 glass 令牌，形状仍是各风格的 cardShape。
+            .glassSurface(
+                launcherStyle.cardShape,
+                launcherStyle.glass,
+                highlightEnabled = glassHighlightEnabled,
+            )
+            .instantPressGesture(
+                pressed,
+                enabled = entry.key == "perm" || entry.key == "empty" || entry.contentIntentAvailable,
+                onClick = { onClick(launchOrigin) }
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp)
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                NotificationIcon(entry.icon)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(entry.title.ifBlank { entry.appLabel }, color = launcherStyle.titleColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(2.dp))
+                    Text(subtitle, color = WatchColors.TextSecondary, fontSize = 13.sp, maxLines = 2)
+                }
+                if (trailing.isNotBlank()) {
+                    Spacer(Modifier.width(10.dp))
+                    Text(trailing, color = launcherStyle.bodyColor, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+            if (entry.actions.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    entry.actions.take(3).forEach { action ->
+                        NotificationActionButton(
+                            title = action.title,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onRunNotificationAction(action.key)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotificationActionButton(
+    title: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val launcherStyle = LauncherTheme.style
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val scale by animateFloatAsState(if (isPressed) 0.955f else 1f, spring(stiffness = 820f, dampingRatio = 0.76f), label = "notif_action")
+    Box(
+        modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(999.dp))
+            .background(launcherStyle.topBarChipColor)
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title,
+            color = launcherStyle.topBarTextColor,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun DockActionButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
+) {
+    val launcherStyle = LauncherTheme.style
+    val pressed = rememberPressedState()
+    val isPressed by pressed
+    val scale by animateFloatAsState(if (isPressed) 0.955f else 1f, spring(stiffness = 820f, dampingRatio = 0.76f), label = "notif_clear_all")
+    Box(
+        modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(999.dp))
+            .background(launcherStyle.topBarChipColor)
+            .instantPressGesture(pressed, onClick = onClick)
+            .padding(horizontal = 18.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = launcherStyle.topBarTextColor,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
+private fun NotificationIcon(icon: ImageBitmap?) {
+    Box(Modifier.size(46.dp).clip(CircleShape).background(Color(0xFFD9D9D9)), contentAlignment = Alignment.Center) {
+        if (icon != null) Image(icon, null, modifier = Modifier.fillMaxSize().clip(CircleShape), filterQuality = FilterQuality.Low, contentScale = ContentScale.Crop)
+        else Icon(
+            painter = painterResource(R.drawable.ic_fluly_notification_round),
+            contentDescription = null,
+            tint = Color(0xFF2B2B2B),
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+/**
+ * 堆叠卡必须和最顶上那张横幅同源取色：之前它取的是 appListColors.item
+ * （全局列表项色），而顶卡走的是 LauncherTheme.style.cardColor，两者一冲
+ * 突就出现「顶卡纯黑、下面堆叠灰色半透明」。
+ *
+ * 顶卡现在是玻璃（glass 令牌），所以堆叠基色也取 glass 的等效底色 ——
+ * 取 baseColor 而不是 fill 顶色，是因为堆叠只露出 6dp 左右的边，
+ * 用 fill 那档 0.13 的淡度根本看不出有几层。
+ */
+@Composable
+internal fun rememberNotificationStackBaseColor(): Color = LauncherTheme.style.glass.baseColor
+
+/**
+ * 表达纵深：底色是半透明白/黑veil 时，明度位移毫无作用（白veil 压暗成灰veil，
+ * 透过来的还是同一块背景），只有 alpha 递减才看得出层次；不透明底色反过来
+ * 靠明度位移，压 alpha 会让它透出背景变灰。所以按底色透明度分两条路走。
+ */
+internal fun notificationStackBackColor(base: Color, index: Int): Color {
+    if (base.alpha < 0.35f) {
+        // 玻璃：每层递减 26% 的 alpha，越往下越薄。
+        val fade = 1f - (index + 1) * 0.26f
+        return base.copy(alpha = (base.alpha * fade).coerceAtLeast(0.03f))
+    }
+    val shift = (index + 1) * 0.06f
+    val darkBase = base.red + base.green + base.blue < 1.2f
+    val factor = if (darkBase) 1f + shift else 1f - shift
+    return Color(
+        red = (base.red * factor).coerceIn(0f, 1f),
+        green = (base.green * factor).coerceIn(0f, 1f),
+        blue = (base.blue * factor).coerceIn(0f, 1f),
+        alpha = base.alpha,
+        colorSpace = base.colorSpace,
+    )
+}
+
+private data class BatteryStatus(
+    val level: Int,
+    val charging: Boolean
+)
+
+@Composable
+private fun rememberBatteryStatus(): BatteryStatus {
+    val context = LocalContext.current
+    var level by remember(context) { mutableIntStateOf(0) }
+    var charging by remember(context) { mutableStateOf(false) }
+    DisposableEffect(context) {
+        fun readLevel(): Int = (context.getSystemService(BatteryManager::class.java)?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: 0).coerceIn(0, 100)
+        fun readCharging(intent: Intent?): Boolean {
+            val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+            return status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
+        }
+        level = readLevel()
+        val stickyIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        charging = readCharging(stickyIntent)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: android.content.Context?, intent: Intent?) {
+                level = readLevel()
+                charging = readCharging(intent)
+            }
+        }
+        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        onDispose { runCatching { context.unregisterReceiver(receiver) } }
+    }
+    return BatteryStatus(level = level, charging = charging)
+}
+
+
+private fun formatNotificationTime(timestamp: Long): String {
+    val formatter = NOTIFICATION_TIME_FORMAT.get() ?: SimpleDateFormat("HH:mm", Locale.getDefault()).also {
+        NOTIFICATION_TIME_FORMAT.set(it)
+    }
+    return formatter.format(Date(timestamp))
+}

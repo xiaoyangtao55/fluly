@@ -1,6 +1,6 @@
 # 参与开发
 
-感谢你愿意花时间改进 Flue。这个项目是手表上的桌面启动器（HOME 应用），改动会直接
+感谢你愿意花时间改进 Fluly。这个项目是手表上的桌面启动器（HOME 应用），改动会直接
 影响用户的日常使用，所以我们对“能构建、能测试、真机上没坏”这三件事要求比较严。
 
 ## 环境
@@ -30,7 +30,7 @@
 迭代时先只跑受影响的测试类，例如：
 
 ```powershell
-.\gradlew.bat :app:testDebugUnitTest --tests "com.flue.launcher.watchface.standard.*" --no-daemon
+.\gradlew.bat :app:testDebugUnitTest --tests "com.fluly.launcher.watchface.standard.*" --no-daemon
 ```
 
 `tools/watchface-agent-web` 是表盘 Agent 的浏览器侧辅助工具，单独测试：
@@ -86,8 +86,8 @@ npm test
 
 - 根目录的 `keystore.properties`（本地文件，不入库）
 - Gradle 属性
-- 环境变量 `FLUE_SIGNING_STORE_FILE` / `FLUE_SIGNING_STORE_PASSWORD` /
-  `FLUE_SIGNING_KEY_ALIAS` / `FLUE_SIGNING_KEY_PASSWORD`
+- 环境变量 `FLULY_SIGNING_STORE_FILE` / `FLULY_SIGNING_STORE_PASSWORD` /
+  `FLULY_SIGNING_KEY_ALIAS` / `FLULY_SIGNING_KEY_PASSWORD`
 
 CI 通过仓库 Secrets 注入，贡献者不需要也无法访问发布签名。
 

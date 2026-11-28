@@ -47,7 +47,7 @@ classes.jar
 
 # Release signing: never commit keys or their passwords.
 # Provide them through keystore.properties (local), Gradle properties, or
-# the FLUE_SIGNING_* environment variables used by CI.
+# the FLULY_SIGNING_* environment variables used by CI.
 keystore.properties
 keystore/
 *.jks

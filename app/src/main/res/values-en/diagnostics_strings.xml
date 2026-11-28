@@ -12,7 +12,7 @@
     <string name="diagnostics_cache_refreshed">Refreshed; cleared %1$d previews</string>
     <string name="diagnostics_cache_failed">Refresh failed. Please try again.</string>
     <string name="diagnostics_performance_title">Performance overlay</string>
-    <string name="diagnostics_performance_description">Only shown on Flue pages; all options start off. Counts rendered frames, so an idle page may show 0 FPS. Drawing the overlay is included in the measurement.</string>
+    <string name="diagnostics_performance_description">Only shown on Fluly pages; all options start off. Counts rendered frames, so an idle page may show 0 FPS. Drawing the overlay is included in the measurement.</string>
     <string name="diagnostics_fps">FPS and frame duration</string>
     <string name="diagnostics_memory">Process memory</string>
     <string name="diagnostics_threads">Process thread count</string>
@@ -35,7 +35,7 @@
     <string name="diagnostics_overlay_jank">Jank %1$.1f%% · Max %2$.1f ms</string>
     <string name="diagnostics_overlay_memory">PSS %1$s MB</string>
     <string name="diagnostics_overlay_threads">Threads %1$s</string>
-    <string name="diagnostics_information_title">System and Flue information</string>
+    <string name="diagnostics_information_title">System and Fluly information</string>
     <string name="diagnostics_information_privacy">Includes app version, device, screen, permission states, and watch face, layout, animation, blur and widget configuration. Only diagnostic allowlist fields are collected; no credentials, location or widget content.</string>
     <string name="diagnostics_information_failed">Could not read information. Please refresh.</string>
     <string name="diagnostics_show_information">Show full information</string>

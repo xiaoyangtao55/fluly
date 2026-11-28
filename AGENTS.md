@@ -2,10 +2,10 @@
 
 ## Project Structure & Module Organization
 
-Flue is a nine-module Android project for watches, with two application modules and seven shared libraries:
+Fluly is a nine-module Android project for watches, with two application modules and seven shared libraries:
 
-- `:app`: HOME launcher, settings, services, and built-in watch-face configuration. Kotlin sources live in `app/src/main/kotlin/com/example/wlauncher` (package `com.flue.launcher`); resources are under `app/src/main/res`.
-- `:studio`: Flue Studio creation application hosting the editor and Agent settings; it does not host the store.
+- `:app`: HOME launcher, settings, services, and built-in watch-face configuration. Kotlin sources live in `app/src/main/kotlin/com/fluly/launcher` (package `com.fluly.launcher`); resources are under `app/src/main/res`.
+- `:studio`: Fluly Studio creation application hosting the editor and Agent settings; it does not host the store.
 - `:ui-kit`: shared themes, controls, motion, round-screen geometry, and overlays.
 - `:watchface-core`: shared watch-face models, expression classification, canvas geometry, and pure algorithms.
 - `:watchface-runtime`: WatchMaker/JB parsing, Lua execution, rendering, and archive installation.

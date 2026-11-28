@@ -1,4 +1,4 @@
-# Flue Watchface Agent Web — prototype plan
+# Fluly Watchface Agent Web — prototype plan
 
 User authorized a runnable local web prototype with Chat Completions, Responses,
 Claude Messages, image generation and Tavily configuration; embedded WatchMaker
@@ -19,7 +19,7 @@ dirty work. No deployment, git commit or global installation is required.
    image operations and archives, actual browser workflow/screenshots, responsive
    layout, review specification first then code quality and fix findings.
 
-The browser preview is a prototype, not the Android Flue rendering engine. Lua
+The browser preview is a prototype, not the Android Fluly rendering engine. Lua
 scripts must remain exportable; unsupported script behavior must be reported.
 The backend has Python 3.12, Pillow and NumPy available, exposed as fixed tools.
 

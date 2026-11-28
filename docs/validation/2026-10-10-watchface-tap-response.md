@@ -21,7 +21,7 @@
 
 执行 `:app:testDebugUnitTest :app:assembleDebug :app:assembleRelease --no-daemon --console=plain` 成功。用户追加“不用打 Debug”时，Debug 已生成且进入 Release 编译，此后未再构建 Debug。
 
-- Release：`app/build/outputs/apk/release/app-release.apk`，`com.flue.launcher`，版本 `2.3.3`（28）。
+- Release：`app/build/outputs/apk/release/app-release.apk`，`com.fluly.launcher`，版本 `2.3.3`（28）。
 - SDK 35.0.0 `apksigner verify --verbose --print-certs` 通过，APK Signature Scheme v2 有效。
 - SHA-256：`faa861be539de3c0b256af284cc2d06f34f26d96a97c3ce449cc3836f3c524a1`。
 - `git diff --check` 通过。

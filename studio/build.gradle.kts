@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.flue.studio"
+    namespace = "com.fluly.studio"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.flue.studio"
+        applicationId = "com.fluly.studio"
         minSdk = 27
         //noinspection ExpiredTargetSdkVersion
         targetSdk = 36

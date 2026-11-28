@@ -233,7 +233,7 @@
     <string name="watch_editor_crop_square">1:1</string>
     <string name="watch_editor_current_watch_size_fmt">Current watch face size: %1$s</string>
     <string name="watch_editor_default">Default</string>
-    <string name="watch_editor_default_watch_name">Flue Watch</string>
+    <string name="watch_editor_default_watch_name">Fluly Watch</string>
     <string name="watch_editor_delete">Delete</string>
     <string name="watch_editor_discard">Discard</string>
     <string name="watch_editor_discard_message">Changes that have not been saved as a new face or exported will be deleted. The installed original will not be affected.</string>
@@ -609,7 +609,7 @@
     <string name="watch_store_login_web_missing">No web login was detected</string>
     <string name="watch_store_logout">Log out</string>
     <string name="watch_store_logout_confirm">Sign out of this watch store account?</string>
-    <string name="watch_store_lua_script_warning">This watch face contains a Global Script (Lua). Flue runs it in a restricted sandbox.</string>
+    <string name="watch_store_lua_script_warning">This watch face contains a Global Script (Lua). Fluly runs it in a restricted sandbox.</string>
     <string name="watch_store_more_options">More options</string>
     <string name="watch_store_my_collections">My collections</string>
     <string name="watch_store_my_favorites">My favorites</string>

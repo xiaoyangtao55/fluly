@@ -1,15 +1,15 @@
-# Flue Studio · 表盘 Agent 可行性原型
+# Fluly Studio · 表盘 Agent 可行性原型
 
 本地网页可以配置 Chat Completions、Responses、Claude Messages，使用工具编辑
 WatchMaker XML、生成图片、Tavily 搜索、调用 Python 图像处理并生成实际 PNG 预览。
-这是一套用于验证 Agent 闭环的独立原型；未修改 Flue Android 工程。
+这是一套用于验证 Agent 闭环的独立原型；未修改 Fluly Android 工程。
 
 ## 启动
 
 在 Windows PowerShell 中：
 
 ```powershell
-cd D:\Flue\tools\watchface-agent-web
+cd D:\Fluly\tools\watchface-agent-web
 .\start.ps1
 ```
 
@@ -46,17 +46,17 @@ Chat/Responses 可携带 parallel_tool_calls，Claude 直接支持多个 tool_us
 
 ## 预览范围
 
-原型是 Canvas 渲染器，不是 Flue Android/CloX 原生渲染器。支持基础文字、图片、
+原型是 Canvas 渲染器，不是 Fluly Android/CloX 原生渲染器。支持基础文字、图片、
 形状、圆角矩形、环、进度、刻度、曲线文字、文字环、分组、标准 Drop/Outline、
 基础变换和 V2 Ambient；支持已明确列出的时间/电量/健康/天气模拟标签和有限表达式。
 有些效果是近似显示。全局 Lua、视频/GIF 动画、3D、复杂 shader/遮罩不执行，
-会保留原文件并给出预览限制。最终设备效果需接 Flue 原生渲染后验证。
+会保留原文件并给出预览限制。最终设备效果需接 Fluly 原生渲染后验证。
 
 Python 暴露固定 Pillow/NumPy 操作：gradient、ticks、resize、crop、rotate、adjust、
 remove_background（颜色阈值，不是语义抠图）。通用工作区、Bash、任意 Python
 代码执行按本次需求暂缓。
 
-## 迁移到 Flue
+## 迁移到 Fluly
 
 运行 `node export-contracts.mjs` 生成可移植的 `contracts/tools.json`、系统提示词
 和格式知识。具体映射见 [INTEGRATION.md](INTEGRATION.md)。

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Retry only Maven HTTP throttling, never an ordinary compiler/test failure.
 set -uo pipefail
-log_dir="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/flue-gradle"
+log_dir="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/fluly-gradle"
 mkdir -p "$log_dir"
 for attempt in 1 2 3; do
   log="$log_dir/attempt-$attempt.log"

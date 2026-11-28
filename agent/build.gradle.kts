@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.flue.launcher.agent"
+    namespace = "com.fluly.launcher.agent"
     compileSdk = 36
 
     defaultConfig {

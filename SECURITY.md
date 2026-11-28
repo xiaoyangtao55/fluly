@@ -5,7 +5,7 @@
 请**不要**在公开 issue 里描述安全问题。使用 GitHub 的私密报告渠道：
 
 **Security** 标签页 → **Report a vulnerability**
-（<https://github.com/xumidcm/Flue-next/security/advisories/new>）
+（<https://github.com/xiaoyangtao55/fluly/security/advisories/new>）
 
 报告里请尽量包含：影响版本、系统版本与设备、复现步骤、预期与实际结果。
 如果涉及用户数据，请只提供必要的最小样本。
@@ -18,7 +18,7 @@
 
 ## 安全模型与已知边界
 
-Flue 是一个需要较高权限的桌面启动器。以下设计是有意为之，**不是漏洞**：
+Fluly 是一个需要较高权限的桌面启动器。以下设计是有意为之，**不是漏洞**：
 
 - 监听通知：通知中心功能所需，数据只在设备本地处理和存储，不上传
 - 无障碍服务：只用于双击息屏与打开电源选项。配置里 `canRetrieveWindowContent="false"`，
